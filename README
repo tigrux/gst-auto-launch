@@ -4,7 +4,7 @@ Usage: ./gst-auto-launch <pipelines.xml> <pipeline_id> <commands>
 Supported commands are:
   -play:
     Change pipeline state to PLAYING
-  -paused:
+  -pause:
     Change pipeline state to PAUSED
   -ready:
     Change pipeline state to READY

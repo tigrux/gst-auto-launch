@@ -120,8 +120,8 @@ gconstpointer object_list_iterator_get (ObjectListIterator* self);
 const char* object_list_get_name (ObjectList* self);
 void command_play (AutoPipeline* ctx, ObjectList* param);
 static void _command_play_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
-void command_paused (AutoPipeline* ctx, ObjectList* param);
-static void _command_paused_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
+void command_pause (AutoPipeline* ctx, ObjectList* param);
+static void _command_pause_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
 void command_ready (AutoPipeline* ctx, ObjectList* param);
 static void _command_ready_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
 void command_null (AutoPipeline* ctx, ObjectList* param);
@@ -249,8 +249,8 @@ static void _command_play_command_func (AutoPipeline* ctx, ObjectList* param, gp
 }
 
 
-static void _command_paused_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
-	command_paused (ctx, param);
+static void _command_pause_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
+	command_pause (ctx, param);
 }
 
 

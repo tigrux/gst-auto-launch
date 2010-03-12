@@ -50,8 +50,8 @@ GType auto_pipeline_get_type (void);
 GType object_list_get_type (void);
 void command_play (AutoPipeline* ctx, ObjectList* param);
 static void _command_play_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
-void command_paused (AutoPipeline* ctx, ObjectList* param);
-static void _command_paused_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
+void command_pause (AutoPipeline* ctx, ObjectList* param);
+static void _command_pause_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
 void command_ready (AutoPipeline* ctx, ObjectList* param);
 static void _command_ready_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
 void command_null (AutoPipeline* ctx, ObjectList* param);
@@ -78,7 +78,7 @@ GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 static void _lambda0_ (void* data);
 static void __lambda0__gfunc (void* data, gpointer self);
 
-const Command COMMANDS[] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"paused", "Change pipeline state to PAUSED", _command_paused_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"wait", "Wait the supplied number of seconds", _command_wait_command_func}, {"w", "Wait the supplied number of seconds", _command_wait_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}, {NULL}};
+const Command COMMANDS[] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", _command_pause_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"wait", "Wait the supplied number of seconds", _command_wait_command_func}, {"w", "Wait the supplied number of seconds", _command_wait_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}, {NULL}};
 
 
 static void _command_play_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
@@ -86,8 +86,8 @@ static void _command_play_command_func (AutoPipeline* ctx, ObjectList* param, gp
 }
 
 
-static void _command_paused_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
-	command_paused (ctx, param);
+static void _command_pause_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
+	command_pause (ctx, param);
 }
 
 
@@ -124,7 +124,7 @@ void command_play (AutoPipeline* ctx, ObjectList* param) {
 }
 
 
-void command_paused (AutoPipeline* ctx, ObjectList* param) {
+void command_pause (AutoPipeline* ctx, ObjectList* param) {
 	g_return_if_fail (ctx != NULL);
 	g_print ("Changing to PAUSED\n");
 	auto_pipeline_set_state (ctx, GST_STATE_PAUSED);

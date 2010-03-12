@@ -1,6 +1,6 @@
 const Command[] COMMANDS = {
     {"play", "Change pipeline state to PLAYING", command_play},
-    {"paused", "Change pipeline state to PAUSED", command_paused},
+    {"pause", "Change pipeline state to PAUSED", command_pause},
     {"ready", "Change pipeline state to READY", command_ready},
     {"null", "Change pipeline state to NULL", command_null},
     {"wait", "Wait the supplied number of seconds", command_wait},
@@ -17,7 +17,7 @@ void command_play(AutoPipeline ctx, ObjectList<string> ?param) {
 }
 
 
-void command_paused(AutoPipeline ctx, ObjectList<string> ?param) {
+void command_pause(AutoPipeline ctx, ObjectList<string> ?param) {
     print("Changing to PAUSED\n");
     ctx.state = Gst.State.PAUSED;
     ctx.continue_exec();
