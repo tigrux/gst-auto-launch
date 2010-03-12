@@ -1,5 +1,9 @@
 SUBDIRS = \
 	src
 
-EXTRA_DIST = autogen.sh AUTHORS README
+EXTRA_DIST = \
+	autogen.sh \
+	AUTHORS \
+	README \
+	convert-pipelines-from-py-to-xml.py
 
