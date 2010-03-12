@@ -1,0 +1,4 @@
+<pipeline id="videotest">
+    videotestsrc ! autovideosink
+</pipeline>
+
