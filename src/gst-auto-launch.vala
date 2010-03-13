@@ -3,14 +3,10 @@ int main(string[] args) {
         print("Usage: %s <pipelines.xml> <pipeline_id> <commands>\n", args[0]);
         print("Supported commands are:\n");
 
-        uint i = 0;
-        while(true) {
-            Command command = COMMANDS[i];
-            if(command.name == null)
-                break;
-            print("  -%s:\n    %s\n", command.name, command.description);
-            i++;
-        }
+        foreach_command(
+            (command) => {
+                print("  -%s:\n    %s\n", command.name, command.description);
+            });
 
         return 1;
     }
@@ -48,8 +44,10 @@ int main(string[] args) {
 
     var pipeline = new AutoPipeline();
 
-    Gst.init(ref args);
+    if(!pipeline.parse_parameters(args[3 : args.length]))
+        return 1;
 
+    Gst.init(ref args);
 
     try {
         pipeline.parse(description);
@@ -59,7 +57,6 @@ int main(string[] args) {
         return 1;
     }
 
-    pipeline.parse_parameters(args[3 : args.length]);
     pipeline.exec_parameters();
     pipeline.loop.run();
     return 0;

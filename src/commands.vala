@@ -6,8 +6,7 @@ const Command[] COMMANDS = {
     {"wait", "Wait the supplied number of seconds", command_wait},
     {"w", "Wait the supplied number of seconds", command_wait},
     {"eos", "Send eos to the source elements", command_eos},
-    {"quit", "Quit the event loop", command_quit},
-    {null}
+    {"quit", "Quit the event loop", command_quit}
 };
 
 void command_play(AutoPipeline ctx, ObjectList<string> ?param) {
@@ -69,4 +68,33 @@ void command_eos(AutoPipeline ctx, ObjectList<string> ?param) {
         });
     ctx.continue_exec();
 }
+
+
+delegate void CommandFunc(AutoPipeline ctx, ObjectList<string> ?param);
+
+struct Command {
+    string name;
+    string description;
+    CommandFunc function;
+}
+
+
+delegate void ForeachCommandFunc(Command command);
+
+void foreach_command(ForeachCommandFunc func) {
+    foreach(var command in COMMANDS)
+        func(command);
+}
+
+
+bool find_command(string name, out Command ?out_command) {
+    foreach(var command in COMMANDS)
+        if(command.name == name) {
+            if(&out_command != null)
+                out_command = command;
+            return true;
+        }
+    return false;
+}
+
 

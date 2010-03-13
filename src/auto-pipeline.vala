@@ -1,13 +1,3 @@
-struct Command {
-    string name;
-    string description;
-    command_func function;
-}
-
-
-delegate void command_func(AutoPipeline ctx, ObjectList<string> ?param);
-
-
 class AutoPipeline: Object {
 
     construct {
@@ -49,30 +39,20 @@ class AutoPipeline: Object {
         if(iterator.next()) {
             var param = iterator.get();
             weak string param_name = param.name;
-            uint i = 0;
-            while(true) {
-                Command command = COMMANDS[i];
-                if(command.name == null) {
-                    print("There is no command named '%s'\n", param_name);
-                    break;
-                }
-                    
-                if(command.name == param_name) {
-                    Idle.add(
-                        () => { 
-                            command.function(this, param);
-                            return false;
-                        });
-                    break;
-                }
-                i++;
+            Command command;
+            if(find_command(param_name, out command)) {
+                Idle.add(
+                    () => {
+                        command.function(this, param);
+                        return false;
+                    });
             }
         }
         return false;
     }
 
 
-    public void parse_parameters(string[] args) {
+    public bool parse_parameters(string[] args) {
         _parameters = new ObjectList< ObjectList<string> > ();
         ObjectList<string> current_parameter = null;
         foreach(var arg in args) {
@@ -81,6 +61,10 @@ class AutoPipeline: Object {
                     _parameters.append(current_parameter);
 
                 var param_name = arg.next_char();
+                if(!find_command(param_name, null)) {
+                    warning("There is no command '%s'\n", param_name);
+                    return false;
+                }
                 current_parameter = new ObjectList<string>();
                 current_parameter.name = param_name;
             }
@@ -91,9 +75,10 @@ class AutoPipeline: Object {
                     warning(
                         "Got argument '%s' without preceding parameter\n", arg);
         }
-
         if(current_parameter != null)
             _parameters.append(current_parameter);
+
+        return true;
     }
 
 

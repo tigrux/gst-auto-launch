@@ -10,6 +10,8 @@
 #include <gst/gst.h>
 
 
+#define TYPE_COMMAND (command_get_type ())
+
 #define TYPE_AUTO_PIPELINE (auto_pipeline_get_type ())
 #define AUTO_PIPELINE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_AUTO_PIPELINE, AutoPipeline))
 #define AUTO_PIPELINE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_AUTO_PIPELINE, AutoPipelineClass))
@@ -29,8 +31,6 @@ typedef struct _AutoPipelineClass AutoPipelineClass;
 
 typedef struct _ObjectList ObjectList;
 typedef struct _ObjectListClass ObjectListClass;
-
-#define TYPE_COMMAND (command_get_type ())
 typedef struct _Command Command;
 #define _g_free0(var) (var = (g_free (var), NULL))
 
@@ -46,38 +46,28 @@ typedef struct _ConfigParserClass ConfigParserClass;
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
-typedef void (*command_func) (AutoPipeline* ctx, ObjectList* param, void* user_data);
+typedef void (*CommandFunc) (AutoPipeline* ctx, ObjectList* param, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
-	command_func function;
+	CommandFunc function;
 	gpointer function_target;
 	GDestroyNotify function_target_destroy_notify;
 };
 
+typedef void (*ForeachCommandFunc) (Command* command, void* user_data);
 
 
+GType command_get_type (void);
 GType auto_pipeline_get_type (void);
 GType object_list_get_type (void);
-void command_play (AutoPipeline* ctx, ObjectList* param);
-static void _command_play_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
-void command_pause (AutoPipeline* ctx, ObjectList* param);
-static void _command_pause_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
-void command_ready (AutoPipeline* ctx, ObjectList* param);
-static void _command_ready_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
-void command_null (AutoPipeline* ctx, ObjectList* param);
-static void _command_null_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
-void command_wait (AutoPipeline* ctx, ObjectList* param);
-static void _command_wait_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
-void command_eos (AutoPipeline* ctx, ObjectList* param);
-static void _command_eos_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
-void command_quit (AutoPipeline* ctx, ObjectList* param);
-static void _command_quit_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
-GType command_get_type (void);
 Command* command_dup (const Command* self);
 void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
 void command_destroy (Command* self);
+void foreach_command (ForeachCommandFunc func, void* func_target);
+static void _lambda2_ (Command* command);
+static void __lambda2__foreach_command_func (Command* command, gpointer self);
 ConfigParser* config_parser_new (void);
 ConfigParser* config_parser_construct (GType object_type);
 GType config_parser_get_type (void);
@@ -85,47 +75,21 @@ gboolean config_parser_parse_file (ConfigParser* self, const char* filename, GEr
 char* config_parser_get (ConfigParser* self, const char* key);
 AutoPipeline* auto_pipeline_new (void);
 AutoPipeline* auto_pipeline_construct (GType object_type);
+gboolean auto_pipeline_parse_parameters (AutoPipeline* self, char** args, int args_length1);
 void auto_pipeline_parse (AutoPipeline* self, const char* description, GError** error);
-void auto_pipeline_parse_parameters (AutoPipeline* self, char** args, int args_length1);
 void auto_pipeline_exec_parameters (AutoPipeline* self);
 GMainLoop* auto_pipeline_get_loop (AutoPipeline* self);
 gint _main (char** args, int args_length1);
 
-extern const Command COMMANDS[];
 
 
-static void _command_play_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
-	command_play (ctx, param);
+static void _lambda2_ (Command* command) {
+	g_print ("  -%s:\n    %s\n", (*command).name, (*command).description);
 }
 
 
-static void _command_pause_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
-	command_pause (ctx, param);
-}
-
-
-static void _command_ready_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
-	command_ready (ctx, param);
-}
-
-
-static void _command_null_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
-	command_null (ctx, param);
-}
-
-
-static void _command_wait_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
-	command_wait (ctx, param);
-}
-
-
-static void _command_eos_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
-	command_eos (ctx, param);
-}
-
-
-static void _command_quit_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
-	command_quit (ctx, param);
+static void __lambda2__foreach_command_func (Command* command, gpointer self) {
+	_lambda2_ (command);
 }
 
 
@@ -138,26 +102,13 @@ gint _main (char** args, int args_length1) {
 	char* pipeline_id;
 	char* description;
 	AutoPipeline* pipeline;
-	char** _tmp3_ = NULL;
-	gint _tmp2_;
+	char** _tmp2_ = NULL;
+	gint _tmp1_;
 	_inner_error_ = NULL;
 	if (args_length1 < 4) {
-		guint i;
 		g_print ("Usage: %s <pipelines.xml> <pipeline_id> <commands>\n", args[0]);
 		g_print ("Supported commands are:\n");
-		i = (guint) 0;
-		while (TRUE) {
-			Command _tmp0_ = {0};
-			Command command;
-			command = (command_copy (&COMMANDS[i], &_tmp0_), _tmp0_);
-			if (command.name == NULL) {
-				command_destroy (&command);
-				break;
-			}
-			g_print ("  -%s:\n    %s\n", command.name, command.description);
-			i++;
-			command_destroy (&command);
-		}
+		foreach_command (__lambda2__foreach_command_func, NULL);
 		result = 1;
 		return result;
 	}
@@ -171,12 +122,12 @@ gint _main (char** args, int args_length1) {
 	parser = config_parser_new ();
 	parsed = FALSE;
 	{
-		gboolean _tmp1_;
-		_tmp1_ = config_parser_parse_file (parser, pipelines_config, &_inner_error_);
+		gboolean _tmp0_;
+		_tmp0_ = config_parser_parse_file (parser, pipelines_config, &_inner_error_);
 		if (_inner_error_ != NULL) {
 			goto __catch0_g_error;
 		}
-		parsed = _tmp1_;
+		parsed = _tmp0_;
 	}
 	goto __finally0;
 	__catch0_g_error:
@@ -216,6 +167,15 @@ gint _main (char** args, int args_length1) {
 		return result;
 	}
 	pipeline = auto_pipeline_new ();
+	if (!auto_pipeline_parse_parameters (pipeline, (_tmp2_ = args + 3, _tmp1_ = args_length1 - 3, _tmp2_), _tmp1_)) {
+		result = 1;
+		_g_free0 (pipelines_config);
+		_g_object_unref0 (parser);
+		_g_free0 (pipeline_id);
+		_g_free0 (description);
+		_g_object_unref0 (pipeline);
+		return result;
+	}
 	gst_init (&args_length1, &args);
 	{
 		auto_pipeline_parse (pipeline, description, &_inner_error_);
@@ -252,7 +212,6 @@ gint _main (char** args, int args_length1) {
 		g_clear_error (&_inner_error_);
 		return 0;
 	}
-	auto_pipeline_parse_parameters (pipeline, (_tmp3_ = args + 3, _tmp2_ = args_length1 - 3, _tmp3_), _tmp2_);
 	auto_pipeline_exec_parameters (pipeline);
 	g_main_loop_run (auto_pipeline_get_loop (pipeline));
 	result = 0;

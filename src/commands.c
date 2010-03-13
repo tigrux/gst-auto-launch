@@ -34,16 +34,18 @@ typedef struct _Command Command;
 #define _g_free0(var) (var = (g_free (var), NULL))
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
 #define _gst_iterator_free0(var) ((var == NULL) ? NULL : (var = (gst_iterator_free (var), NULL)))
+#define _command_free0(var) ((var == NULL) ? NULL : (var = (command_free (var), NULL)))
 
-typedef void (*command_func) (AutoPipeline* ctx, ObjectList* param, void* user_data);
+typedef void (*CommandFunc) (AutoPipeline* ctx, ObjectList* param, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
-	command_func function;
+	CommandFunc function;
 	gpointer function_target;
 	GDestroyNotify function_target_destroy_notify;
 };
 
+typedef void (*ForeachCommandFunc) (Command* command, void* user_data);
 
 
 GType auto_pipeline_get_type (void);
@@ -77,8 +79,11 @@ GMainLoop* auto_pipeline_get_loop (AutoPipeline* self);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 static void _lambda0_ (void* data);
 static void __lambda0__gfunc (void* data, gpointer self);
+void foreach_command (ForeachCommandFunc func, void* func_target);
+gboolean find_command (const char* name, Command** out_command);
+static int _vala_strcmp0 (const char * str1, const char * str2);
 
-const Command COMMANDS[] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", _command_pause_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"wait", "Wait the supplied number of seconds", _command_wait_command_func}, {"w", "Wait the supplied number of seconds", _command_wait_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}, {NULL}};
+const Command COMMANDS[] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", _command_pause_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"wait", "Wait the supplied number of seconds", _command_wait_command_func}, {"w", "Wait the supplied number of seconds", _command_wait_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}};
 
 
 static void _command_play_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
@@ -216,6 +221,109 @@ void command_eos (AutoPipeline* ctx, ObjectList* param) {
 	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (ctx)), __lambda0__gfunc, NULL);
 	_gst_iterator_free0 (_tmp0_);
 	auto_pipeline_continue_exec (ctx);
+}
+
+
+void command_copy (const Command* self, Command* dest) {
+	dest->name = g_strdup (self->name);
+	dest->description = g_strdup (self->description);
+	dest->function = self->function;
+}
+
+
+void command_destroy (Command* self) {
+	_g_free0 (self->name);
+	_g_free0 (self->description);
+	((*self).function_target_destroy_notify == NULL) ? NULL : (*self).function_target_destroy_notify ((*self).function_target);
+	self->function = NULL;
+	(*self).function_target = NULL;
+	(*self).function_target_destroy_notify = NULL;
+}
+
+
+Command* command_dup (const Command* self) {
+	Command* dup;
+	dup = g_new0 (Command, 1);
+	command_copy (self, dup);
+	return dup;
+}
+
+
+void command_free (Command* self) {
+	command_destroy (self);
+	g_free (self);
+}
+
+
+GType command_get_type (void) {
+	static GType command_type_id = 0;
+	if (command_type_id == 0) {
+		command_type_id = g_boxed_type_register_static ("Command", (GBoxedCopyFunc) command_dup, (GBoxedFreeFunc) command_free);
+	}
+	return command_type_id;
+}
+
+
+void foreach_command (ForeachCommandFunc func, void* func_target) {
+	{
+		Command* command_collection;
+		int command_collection_length1;
+		int command_it;
+		command_collection = COMMANDS;
+		command_collection_length1 = G_N_ELEMENTS (COMMANDS);
+		for (command_it = 0; command_it < G_N_ELEMENTS (COMMANDS); command_it = command_it + 1) {
+			Command command;
+			command = command_collection[command_it];
+			{
+				func (&command, func_target);
+			}
+		}
+	}
+}
+
+
+static gpointer _command_dup0 (gpointer self) {
+	return self ? command_dup (self) : NULL;
+}
+
+
+gboolean find_command (const char* name, Command** out_command) {
+	gboolean result;
+	g_return_val_if_fail (name != NULL, FALSE);
+	{
+		Command* command_collection;
+		int command_collection_length1;
+		int command_it;
+		command_collection = COMMANDS;
+		command_collection_length1 = G_N_ELEMENTS (COMMANDS);
+		for (command_it = 0; command_it < G_N_ELEMENTS (COMMANDS); command_it = command_it + 1) {
+			Command command;
+			command = command_collection[command_it];
+			{
+				if (_vala_strcmp0 (command.name, name) == 0) {
+					if ((out_command) != NULL) {
+						Command* _tmp0_;
+						*out_command = (_tmp0_ = _command_dup0 (&command), _command_free0 (*out_command), _tmp0_);
+					}
+					result = TRUE;
+					return result;
+				}
+			}
+		}
+	}
+	result = FALSE;
+	return result;
+}
+
+
+static int _vala_strcmp0 (const char * str1, const char * str2) {
+	if (str1 == NULL) {
+		return -(str1 != str2);
+	}
+	if (str2 == NULL) {
+		return str1 != str2;
+	}
+	return strcmp (str1, str2);
 }
 
 
