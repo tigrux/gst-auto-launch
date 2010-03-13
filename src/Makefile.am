@@ -10,7 +10,7 @@ gst_auto_launch_VALASOURCES = \
 	commands.vala
 
 gst_auto_launch_SOURCES = \
-	$(gst_auto_launch_VALASOURCES:.gs=.c)
+	$(gst_auto_launch_VALASOURCES:.vala=.c)
 
 gst_auto_launch_LDADD = \
 	$(PROGRAM_LIBS)
