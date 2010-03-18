@@ -19,7 +19,7 @@ class Task: Object {
     public uint exec(AutoPipeline ctx) {
         return Timeout.add((uint)(seconds*1000),
             () => {
-            print("Time = %lf\n", ctx.timer.elapsed());
+            print("Time = %0.3lf\n", ctx.timer.elapsed());
             _command->function(ctx);
             return false;
         });

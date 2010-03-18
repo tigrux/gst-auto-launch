@@ -112,7 +112,7 @@ static gboolean _lambda0_ (Block1Data* _data1_) {
 	Task * self;
 	gboolean result;
 	self = _data1_->self;
-	g_print ("Time = %lf\n", g_timer_elapsed (auto_pipeline_get_timer (_data1_->ctx), NULL));
+	g_print ("Time = %0.3lf\n", g_timer_elapsed (auto_pipeline_get_timer (_data1_->ctx), NULL));
 	(*self->priv->_command).function (_data1_->ctx, (*self->priv->_command).function_target);
 	result = FALSE;
 	return result;
