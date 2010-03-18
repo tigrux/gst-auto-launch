@@ -10,8 +10,6 @@
 #include <gst/gst.h>
 
 
-#define TYPE_COMMAND (command_get_type ())
-
 #define TYPE_AUTO_PIPELINE (auto_pipeline_get_type ())
 #define AUTO_PIPELINE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_AUTO_PIPELINE, AutoPipeline))
 #define AUTO_PIPELINE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_AUTO_PIPELINE, AutoPipelineClass))
@@ -22,31 +20,34 @@
 typedef struct _AutoPipeline AutoPipeline;
 typedef struct _AutoPipelineClass AutoPipelineClass;
 
-#define TYPE_OBJECT_LIST (object_list_get_type ())
-#define OBJECT_LIST(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_OBJECT_LIST, ObjectList))
-#define OBJECT_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_OBJECT_LIST, ObjectListClass))
-#define IS_OBJECT_LIST(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_OBJECT_LIST))
-#define IS_OBJECT_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TYPE_OBJECT_LIST))
-#define OBJECT_LIST_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), TYPE_OBJECT_LIST, ObjectListClass))
-
-typedef struct _ObjectList ObjectList;
-typedef struct _ObjectListClass ObjectListClass;
+#define TYPE_COMMAND (command_get_type ())
 typedef struct _Command Command;
 #define _g_free0(var) (var = (g_free (var), NULL))
-
-#define TYPE_CONFIG_PARSER (config_parser_get_type ())
-#define CONFIG_PARSER(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_CONFIG_PARSER, ConfigParser))
-#define CONFIG_PARSER_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_CONFIG_PARSER, ConfigParserClass))
-#define IS_CONFIG_PARSER(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_CONFIG_PARSER))
-#define IS_CONFIG_PARSER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TYPE_CONFIG_PARSER))
-#define CONFIG_PARSER_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), TYPE_CONFIG_PARSER, ConfigParserClass))
-
-typedef struct _ConfigParser ConfigParser;
-typedef struct _ConfigParserClass ConfigParserClass;
-#define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
-typedef void (*CommandFunc) (AutoPipeline* ctx, ObjectList* param, void* user_data);
+#define TYPE_XML_PARSER (xml_parser_get_type ())
+#define XML_PARSER(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_XML_PARSER, XmlParser))
+#define XML_PARSER_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_XML_PARSER, XmlParserClass))
+#define IS_XML_PARSER(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_XML_PARSER))
+#define IS_XML_PARSER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TYPE_XML_PARSER))
+#define XML_PARSER_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), TYPE_XML_PARSER, XmlParserClass))
+
+typedef struct _XmlParser XmlParser;
+typedef struct _XmlParserClass XmlParserClass;
+#define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
+
+#define TYPE_TASK (task_get_type ())
+#define TASK(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_TASK, Task))
+#define TASK_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_TASK, TaskClass))
+#define IS_TASK(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_TASK))
+#define IS_TASK_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TYPE_TASK))
+#define TASK_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), TYPE_TASK, TaskClass))
+
+typedef struct _Task Task;
+typedef struct _TaskClass TaskClass;
+#define __g_list_free_g_object_unref0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_object_unref (var), NULL)))
+
+typedef void (*CommandFunc) (AutoPipeline* ctx, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
@@ -55,75 +56,103 @@ struct _Command {
 	GDestroyNotify function_target_destroy_notify;
 };
 
-typedef void (*ForeachCommandFunc) (Command* command, void* user_data);
 
 
-GType command_get_type (void);
+AutoPipeline* auto_pipeline_new (void);
+AutoPipeline* auto_pipeline_construct (GType object_type);
 GType auto_pipeline_get_type (void);
-GType object_list_get_type (void);
+GScanner* auto_pipeline_get_scanner (AutoPipeline* self);
+GType command_get_type (void);
 Command* command_dup (const Command* self);
 void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
 void command_destroy (Command* self);
-void foreach_command (ForeachCommandFunc func, void* func_target);
-static void _lambda2_ (Command* command);
-static void __lambda2__foreach_command_func (Command* command, gpointer self);
-ConfigParser* config_parser_new (void);
-ConfigParser* config_parser_construct (GType object_type);
-GType config_parser_get_type (void);
-gboolean config_parser_parse_file (ConfigParser* self, const char* filename, GError** error);
-char* config_parser_get (ConfigParser* self, const char* key);
-AutoPipeline* auto_pipeline_new (void);
-AutoPipeline* auto_pipeline_construct (GType object_type);
-gboolean auto_pipeline_parse_parameters (AutoPipeline* self, char** args, int args_length1);
-void auto_pipeline_parse (AutoPipeline* self, const char* description, GError** error);
-void auto_pipeline_exec_parameters (AutoPipeline* self);
+static void _lambda2_ (void* key, void* val);
+static void __lambda2__gh_func (void* key, void* value, gpointer self);
+XmlParser* xml_parser_new (void);
+XmlParser* xml_parser_construct (GType object_type);
+GType xml_parser_get_type (void);
+gboolean xml_parser_parse_file (XmlParser* self, const char* filename, GError** error);
+char* xml_parser_get (XmlParser* self, const char* key);
+GType task_get_type (void);
+GList* auto_pipeline_parse_args (AutoPipeline* self, char** args, int args_length1, char*** new_args, int* new_args_length1);
+void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GError** error);
+static void _g_list_free_g_object_unref (GList* self);
+GTimer* auto_pipeline_get_timer (AutoPipeline* self);
+guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
 GMainLoop* auto_pipeline_get_loop (AutoPipeline* self);
 gint _main (char** args, int args_length1);
+static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func);
+static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func);
 
 
 
-static void _lambda2_ (Command* command) {
-	g_print ("  -%s:\n    %s\n", (*command).name, (*command).description);
+static void _lambda2_ (void* key, void* val) {
+	char* name;
+	Command* command;
+	name = g_strdup ((const char*) key);
+	command = (Command*) val;
+	g_print ("  %s:\n    %s\n", name, (*command).description);
+	_g_free0 (name);
 }
 
 
-static void __lambda2__foreach_command_func (Command* command, gpointer self) {
-	_lambda2_ (command);
+static void __lambda2__gh_func (void* key, void* value, gpointer self) {
+	_lambda2_ (key, value);
+}
+
+
+static void _g_list_free_g_object_unref (GList* self) {
+	g_list_foreach (self, (GFunc) g_object_unref, NULL);
+	g_list_free (self);
+}
+
+
+static gpointer _g_object_ref0 (gpointer self) {
+	return self ? g_object_ref (self) : NULL;
 }
 
 
 gint _main (char** args, int args_length1) {
 	gint result;
 	GError * _inner_error_;
+	AutoPipeline* pipeline;
 	char* pipelines_config;
-	ConfigParser* parser;
+	XmlParser* parser;
 	gboolean parsed;
 	char* pipeline_id;
 	char* description;
-	AutoPipeline* pipeline;
-	char** _tmp2_ = NULL;
-	gint _tmp1_;
+	gint new_args_size;
+	gint new_args_length1;
+	char** new_args;
+	GList* tasks;
+	char** _tmp1_;
 	_inner_error_ = NULL;
+	pipeline = auto_pipeline_new ();
 	if (args_length1 < 4) {
 		g_print ("Usage: %s <pipelines.xml> <pipeline_id> <commands>\n", args[0]);
+		g_print ("Where each command is of the form <seconds>:<name>\n");
 		g_print ("Supported commands are:\n");
-		foreach_command (__lambda2__foreach_command_func, NULL);
+		g_scanner_scope_foreach_symbol (auto_pipeline_get_scanner (pipeline), (guint) 0, __lambda2__gh_func, NULL);
+		g_print ("\nExample:\n");
+		g_print ("%s pipelines.xml videotest 0:pause 1:play +5:eos\n", args[0]);
 		result = 1;
+		_g_object_unref0 (pipeline);
 		return result;
 	}
 	pipelines_config = g_strdup (args[1]);
 	if (!g_file_test (pipelines_config, G_FILE_TEST_IS_REGULAR)) {
 		g_print ("'%s' is not a regular file\n", pipelines_config);
 		result = 1;
+		_g_object_unref0 (pipeline);
 		_g_free0 (pipelines_config);
 		return result;
 	}
-	parser = config_parser_new ();
+	parser = xml_parser_new ();
 	parsed = FALSE;
 	{
 		gboolean _tmp0_;
-		_tmp0_ = config_parser_parse_file (parser, pipelines_config, &_inner_error_);
+		_tmp0_ = xml_parser_parse_file (parser, pipelines_config, &_inner_error_);
 		if (_inner_error_ != NULL) {
 			goto __catch0_g_error;
 		}
@@ -142,6 +171,7 @@ gint _main (char** args, int args_length1) {
 	}
 	__finally0:
 	if (_inner_error_ != NULL) {
+		_g_object_unref0 (pipeline);
 		_g_free0 (pipelines_config);
 		_g_object_unref0 (parser);
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
@@ -151,34 +181,29 @@ gint _main (char** args, int args_length1) {
 	if (!parsed) {
 		g_print ("Could not parse file '%s'\n", pipelines_config);
 		result = 1;
+		_g_object_unref0 (pipeline);
 		_g_free0 (pipelines_config);
 		_g_object_unref0 (parser);
 		return result;
 	}
 	pipeline_id = g_strdup (args[2]);
-	description = config_parser_get (parser, pipeline_id);
+	description = xml_parser_get (parser, pipeline_id);
 	if (description == NULL) {
 		g_print ("No pipeline found for id '%s'\n", pipeline_id);
 		result = 1;
-		_g_free0 (pipelines_config);
-		_g_object_unref0 (parser);
-		_g_free0 (pipeline_id);
-		_g_free0 (description);
-		return result;
-	}
-	pipeline = auto_pipeline_new ();
-	if (!auto_pipeline_parse_parameters (pipeline, (_tmp2_ = args + 3, _tmp1_ = args_length1 - 3, _tmp2_), _tmp1_)) {
-		result = 1;
-		_g_free0 (pipelines_config);
-		_g_object_unref0 (parser);
-		_g_free0 (pipeline_id);
-		_g_free0 (description);
 		_g_object_unref0 (pipeline);
+		_g_free0 (pipelines_config);
+		_g_object_unref0 (parser);
+		_g_free0 (pipeline_id);
+		_g_free0 (description);
 		return result;
 	}
+	new_args = (new_args_length1 = 0, NULL);
+	tasks = auto_pipeline_parse_args (pipeline, args, args_length1, &new_args, &new_args_length1);
+	args = (_tmp1_ = new_args, args_length1 = new_args_length1, _tmp1_);
 	gst_init (&args_length1, &args);
 	{
-		auto_pipeline_parse (pipeline, description, &_inner_error_);
+		auto_pipeline_parse_launch (pipeline, description, &_inner_error_);
 		if (_inner_error_ != NULL) {
 			goto __catch1_g_error;
 		}
@@ -193,33 +218,52 @@ gint _main (char** args, int args_length1) {
 			g_print ("Error: %s\n", e->message);
 			result = 1;
 			_g_error_free0 (e);
+			_g_object_unref0 (pipeline);
 			_g_free0 (pipelines_config);
 			_g_object_unref0 (parser);
 			_g_free0 (pipeline_id);
 			_g_free0 (description);
-			_g_object_unref0 (pipeline);
+			new_args = (_vala_array_free (new_args, new_args_length1, (GDestroyNotify) g_free), NULL);
+			__g_list_free_g_object_unref0 (tasks);
 			return result;
 		}
 	}
 	__finally1:
 	if (_inner_error_ != NULL) {
+		_g_object_unref0 (pipeline);
 		_g_free0 (pipelines_config);
 		_g_object_unref0 (parser);
 		_g_free0 (pipeline_id);
 		_g_free0 (description);
-		_g_object_unref0 (pipeline);
+		new_args = (_vala_array_free (new_args, new_args_length1, (GDestroyNotify) g_free), NULL);
+		__g_list_free_g_object_unref0 (tasks);
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 		g_clear_error (&_inner_error_);
 		return 0;
 	}
-	auto_pipeline_exec_parameters (pipeline);
+	g_timer_start (auto_pipeline_get_timer (pipeline));
+	{
+		GList* task_collection;
+		GList* task_it;
+		task_collection = tasks;
+		for (task_it = task_collection; task_it != NULL; task_it = task_it->next) {
+			Task* task;
+			task = _g_object_ref0 ((Task*) task_it->data);
+			{
+				auto_pipeline_exec_task (pipeline, task);
+				_g_object_unref0 (task);
+			}
+		}
+	}
 	g_main_loop_run (auto_pipeline_get_loop (pipeline));
 	result = 0;
+	_g_object_unref0 (pipeline);
 	_g_free0 (pipelines_config);
 	_g_object_unref0 (parser);
 	_g_free0 (pipeline_id);
 	_g_free0 (description);
-	_g_object_unref0 (pipeline);
+	new_args = (_vala_array_free (new_args, new_args_length1, (GDestroyNotify) g_free), NULL);
+	__g_list_free_g_object_unref0 (tasks);
 	return result;
 }
 
@@ -227,6 +271,24 @@ gint _main (char** args, int args_length1) {
 int main (int argc, char ** argv) {
 	g_type_init ();
 	return _main (argv, argc);
+}
+
+
+static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func) {
+	if ((array != NULL) && (destroy_func != NULL)) {
+		int i;
+		for (i = 0; i < array_length; i = i + 1) {
+			if (((gpointer*) array)[i] != NULL) {
+				destroy_func (((gpointer*) array)[i]);
+			}
+		}
+	}
+}
+
+
+static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func) {
+	_vala_array_destroy (array, array_length, destroy_func);
+	g_free (array);
 }
 
 

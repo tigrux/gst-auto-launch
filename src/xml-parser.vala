@@ -1,4 +1,4 @@
-class ConfigParser: Object {
+class XmlParser: Object {
     const MarkupParser _parser = {
         start,
         end,

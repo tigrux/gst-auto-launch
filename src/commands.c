@@ -19,24 +19,12 @@
 typedef struct _AutoPipeline AutoPipeline;
 typedef struct _AutoPipelineClass AutoPipelineClass;
 
-#define TYPE_OBJECT_LIST (object_list_get_type ())
-#define OBJECT_LIST(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_OBJECT_LIST, ObjectList))
-#define OBJECT_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_OBJECT_LIST, ObjectListClass))
-#define IS_OBJECT_LIST(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_OBJECT_LIST))
-#define IS_OBJECT_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TYPE_OBJECT_LIST))
-#define OBJECT_LIST_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), TYPE_OBJECT_LIST, ObjectListClass))
-
-typedef struct _ObjectList ObjectList;
-typedef struct _ObjectListClass ObjectListClass;
-
 #define TYPE_COMMAND (command_get_type ())
 typedef struct _Command Command;
-#define _g_free0(var) (var = (g_free (var), NULL))
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
 #define _gst_iterator_free0(var) ((var == NULL) ? NULL : (var = (gst_iterator_free (var), NULL)))
-#define _command_free0(var) ((var == NULL) ? NULL : (var = (command_free (var), NULL)))
 
-typedef void (*CommandFunc) (AutoPipeline* ctx, ObjectList* param, void* user_data);
+typedef void (*CommandFunc) (AutoPipeline* ctx, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
@@ -45,141 +33,98 @@ struct _Command {
 	GDestroyNotify function_target_destroy_notify;
 };
 
-typedef void (*ForeachCommandFunc) (Command* command, void* user_data);
 
 
 GType auto_pipeline_get_type (void);
-GType object_list_get_type (void);
-void command_play (AutoPipeline* ctx, ObjectList* param);
-static void _command_play_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
-void command_pause (AutoPipeline* ctx, ObjectList* param);
-static void _command_pause_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
-void command_ready (AutoPipeline* ctx, ObjectList* param);
-static void _command_ready_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
-void command_null (AutoPipeline* ctx, ObjectList* param);
-static void _command_null_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
-void command_wait (AutoPipeline* ctx, ObjectList* param);
-static void _command_wait_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
-void command_eos (AutoPipeline* ctx, ObjectList* param);
-static void _command_eos_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
-void command_quit (AutoPipeline* ctx, ObjectList* param);
-static void _command_quit_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self);
+void command_play (AutoPipeline* ctx);
+static void _command_play_command_func (AutoPipeline* ctx, gpointer self);
+void command_pause (AutoPipeline* ctx);
+static void _command_pause_command_func (AutoPipeline* ctx, gpointer self);
+void command_ready (AutoPipeline* ctx);
+static void _command_ready_command_func (AutoPipeline* ctx, gpointer self);
+void command_null (AutoPipeline* ctx);
+static void _command_null_command_func (AutoPipeline* ctx, gpointer self);
+void command_eos (AutoPipeline* ctx);
+static void _command_eos_command_func (AutoPipeline* ctx, gpointer self);
+void command_quit (AutoPipeline* ctx);
+static void _command_quit_command_func (AutoPipeline* ctx, gpointer self);
 GType command_get_type (void);
 Command* command_dup (const Command* self);
 void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
 void command_destroy (Command* self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
-void auto_pipeline_continue_exec (AutoPipeline* self);
-guint object_list_get_length (ObjectList* self);
-const char* object_list_get_name (ObjectList* self);
-gpointer object_list_get (ObjectList* self, guint i);
-void auto_pipeline_continue_exec_in_seconds (AutoPipeline* self, guint n_seconds);
 GMainLoop* auto_pipeline_get_loop (AutoPipeline* self);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
-static void _lambda0_ (void* data);
-static void __lambda0__gfunc (void* data, gpointer self);
-void foreach_command (ForeachCommandFunc func, void* func_target);
-gboolean find_command (const char* name, Command** out_command);
-static int _vala_strcmp0 (const char * str1, const char * str2);
+static void _lambda1_ (void* data);
+static void __lambda1__gfunc (void* data, gpointer self);
+void scanner_register_symbols (GScanner* scanner, guint scope);
 
-const Command COMMANDS[] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", _command_pause_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"wait", "Wait the supplied number of seconds", _command_wait_command_func}, {"w", "Wait the supplied number of seconds", _command_wait_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}};
+const Command COMMANDS[7] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", _command_pause_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}, {NULL}};
 
 
-static void _command_play_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
-	command_play (ctx, param);
+static void _command_play_command_func (AutoPipeline* ctx, gpointer self) {
+	command_play (ctx);
 }
 
 
-static void _command_pause_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
-	command_pause (ctx, param);
+static void _command_pause_command_func (AutoPipeline* ctx, gpointer self) {
+	command_pause (ctx);
 }
 
 
-static void _command_ready_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
-	command_ready (ctx, param);
+static void _command_ready_command_func (AutoPipeline* ctx, gpointer self) {
+	command_ready (ctx);
 }
 
 
-static void _command_null_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
-	command_null (ctx, param);
+static void _command_null_command_func (AutoPipeline* ctx, gpointer self) {
+	command_null (ctx);
 }
 
 
-static void _command_wait_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
-	command_wait (ctx, param);
+static void _command_eos_command_func (AutoPipeline* ctx, gpointer self) {
+	command_eos (ctx);
 }
 
 
-static void _command_eos_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
-	command_eos (ctx, param);
+static void _command_quit_command_func (AutoPipeline* ctx, gpointer self) {
+	command_quit (ctx);
 }
 
 
-static void _command_quit_command_func (AutoPipeline* ctx, ObjectList* param, gpointer self) {
-	command_quit (ctx, param);
-}
-
-
-void command_play (AutoPipeline* ctx, ObjectList* param) {
+void command_play (AutoPipeline* ctx) {
 	g_return_if_fail (ctx != NULL);
 	g_print ("Changing to PLAYING\n");
 	auto_pipeline_set_state (ctx, GST_STATE_PLAYING);
-	auto_pipeline_continue_exec (ctx);
 }
 
 
-void command_pause (AutoPipeline* ctx, ObjectList* param) {
+void command_pause (AutoPipeline* ctx) {
 	g_return_if_fail (ctx != NULL);
 	g_print ("Changing to PAUSED\n");
 	auto_pipeline_set_state (ctx, GST_STATE_PAUSED);
-	auto_pipeline_continue_exec (ctx);
 }
 
 
-void command_ready (AutoPipeline* ctx, ObjectList* param) {
+void command_ready (AutoPipeline* ctx) {
 	g_return_if_fail (ctx != NULL);
 	g_print ("Changing to READY\n");
 	auto_pipeline_set_state (ctx, GST_STATE_READY);
-	auto_pipeline_continue_exec (ctx);
 }
 
 
-void command_null (AutoPipeline* ctx, ObjectList* param) {
+void command_null (AutoPipeline* ctx) {
 	g_return_if_fail (ctx != NULL);
 	g_print ("Changing to NULL\n");
 	auto_pipeline_set_state (ctx, GST_STATE_NULL);
-	auto_pipeline_continue_exec (ctx);
 }
 
 
-void command_wait (AutoPipeline* ctx, ObjectList* param) {
-	gboolean _tmp0_ = FALSE;
-	char* _tmp1_;
-	gint _tmp2_;
-	gint seconds;
-	g_return_if_fail (ctx != NULL);
-	if (param == NULL) {
-		_tmp0_ = TRUE;
-	} else {
-		_tmp0_ = object_list_get_length (param) < 1;
-	}
-	if (_tmp0_) {
-		g_print ("Command '%s' needs an argument\n", object_list_get_name (param));
-		auto_pipeline_continue_exec (ctx);
-		return;
-	}
-	seconds = (_tmp2_ = atoi (_tmp1_ = (char*) object_list_get (param, (guint) 0)), _g_free0 (_tmp1_), _tmp2_);
-	g_print ("Waiting %d seconds\n", seconds);
-	auto_pipeline_continue_exec_in_seconds (ctx, (guint) seconds);
-}
-
-
-void command_quit (AutoPipeline* ctx, ObjectList* param) {
+void command_quit (AutoPipeline* ctx) {
 	g_return_if_fail (ctx != NULL);
 	g_print ("Quitting\n");
 	g_main_loop_quit (auto_pipeline_get_loop (ctx));
-	auto_pipeline_continue_exec (ctx);
 }
 
 
@@ -197,7 +142,7 @@ static gboolean string_contains (const char* self, const char* needle) {
 }
 
 
-static void _lambda0_ (void* data) {
+static void _lambda1_ (void* data) {
 	void* _tmp0_;
 	GstElement* elem;
 	elem = _gst_object_ref0 ((_tmp0_ = data, GST_IS_ELEMENT (_tmp0_) ? ((GstElement*) _tmp0_) : NULL));
@@ -209,121 +154,31 @@ static void _lambda0_ (void* data) {
 }
 
 
-static void __lambda0__gfunc (void* data, gpointer self) {
-	_lambda0_ (data);
+static void __lambda1__gfunc (void* data, gpointer self) {
+	_lambda1_ (data);
 }
 
 
-void command_eos (AutoPipeline* ctx, ObjectList* param) {
+void command_eos (AutoPipeline* ctx) {
 	GstIterator* _tmp0_;
 	g_return_if_fail (ctx != NULL);
 	g_print ("Trying to send eos to the sources\n");
-	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (ctx)), __lambda0__gfunc, NULL);
+	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (ctx)), __lambda1__gfunc, NULL);
 	_gst_iterator_free0 (_tmp0_);
-	auto_pipeline_continue_exec (ctx);
 }
 
 
-void command_copy (const Command* self, Command* dest) {
-	dest->name = g_strdup (self->name);
-	dest->description = g_strdup (self->description);
-	dest->function = self->function;
-}
-
-
-void command_destroy (Command* self) {
-	_g_free0 (self->name);
-	_g_free0 (self->description);
-	((*self).function_target_destroy_notify == NULL) ? NULL : (*self).function_target_destroy_notify ((*self).function_target);
-	self->function = NULL;
-	(*self).function_target = NULL;
-	(*self).function_target_destroy_notify = NULL;
-}
-
-
-Command* command_dup (const Command* self) {
-	Command* dup;
-	dup = g_new0 (Command, 1);
-	command_copy (self, dup);
-	return dup;
-}
-
-
-void command_free (Command* self) {
-	command_destroy (self);
-	g_free (self);
-}
-
-
-GType command_get_type (void) {
-	static GType command_type_id = 0;
-	if (command_type_id == 0) {
-		command_type_id = g_boxed_type_register_static ("Command", (GBoxedCopyFunc) command_dup, (GBoxedFreeFunc) command_free);
-	}
-	return command_type_id;
-}
-
-
-void foreach_command (ForeachCommandFunc func, void* func_target) {
-	{
-		Command* command_collection;
-		int command_collection_length1;
-		int command_it;
-		command_collection = COMMANDS;
-		command_collection_length1 = G_N_ELEMENTS (COMMANDS);
-		for (command_it = 0; command_it < G_N_ELEMENTS (COMMANDS); command_it = command_it + 1) {
-			Command command;
-			command = command_collection[command_it];
-			{
-				func (&command, func_target);
-			}
+void scanner_register_symbols (GScanner* scanner, guint scope) {
+	Command* command;
+	g_return_if_fail (scanner != NULL);
+	command = &COMMANDS[0];
+	while (TRUE) {
+		if (!((*command).name != NULL)) {
+			break;
 		}
+		g_scanner_scope_add_symbol (scanner, scope, (*command).name, command);
+		command++;
 	}
-}
-
-
-static gpointer _command_dup0 (gpointer self) {
-	return self ? command_dup (self) : NULL;
-}
-
-
-gboolean find_command (const char* name, Command** out_command) {
-	gboolean result;
-	g_return_val_if_fail (name != NULL, FALSE);
-	{
-		Command* command_collection;
-		int command_collection_length1;
-		int command_it;
-		command_collection = COMMANDS;
-		command_collection_length1 = G_N_ELEMENTS (COMMANDS);
-		for (command_it = 0; command_it < G_N_ELEMENTS (COMMANDS); command_it = command_it + 1) {
-			Command command;
-			command = command_collection[command_it];
-			{
-				if (_vala_strcmp0 (command.name, name) == 0) {
-					if ((out_command) != NULL) {
-						Command* _tmp0_;
-						*out_command = (_tmp0_ = _command_dup0 (&command), _command_free0 (*out_command), _tmp0_);
-					}
-					result = TRUE;
-					return result;
-				}
-			}
-		}
-	}
-	result = FALSE;
-	return result;
-}
-
-
-static int _vala_strcmp0 (const char * str1, const char * str2) {
-	if (str1 == NULL) {
-		return -(str1 != str2);
-	}
-	if (str2 == NULL) {
-		return str1 != str2;
-	}
-	return strcmp (str1, str2);
 }
 
 

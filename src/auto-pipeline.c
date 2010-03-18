@@ -7,6 +7,8 @@
 #include <gst/gst.h>
 #include <stdlib.h>
 #include <string.h>
+#include <float.h>
+#include <math.h>
 
 
 #define TYPE_AUTO_PIPELINE (auto_pipeline_get_type ())
@@ -19,36 +21,26 @@
 typedef struct _AutoPipeline AutoPipeline;
 typedef struct _AutoPipelineClass AutoPipelineClass;
 typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
-
-#define TYPE_OBJECT_LIST (object_list_get_type ())
-#define OBJECT_LIST(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_OBJECT_LIST, ObjectList))
-#define OBJECT_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_OBJECT_LIST, ObjectListClass))
-#define IS_OBJECT_LIST(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_OBJECT_LIST))
-#define IS_OBJECT_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TYPE_OBJECT_LIST))
-#define OBJECT_LIST_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), TYPE_OBJECT_LIST, ObjectListClass))
-
-typedef struct _ObjectList ObjectList;
-typedef struct _ObjectListClass ObjectListClass;
-
-#define OBJECT_LIST_TYPE_ITERATOR (object_list_iterator_get_type ())
-#define OBJECT_LIST_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), OBJECT_LIST_TYPE_ITERATOR, ObjectListIterator))
-#define OBJECT_LIST_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), OBJECT_LIST_TYPE_ITERATOR, ObjectListIteratorClass))
-#define OBJECT_LIST_IS_ITERATOR(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), OBJECT_LIST_TYPE_ITERATOR))
-#define OBJECT_LIST_IS_ITERATOR_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), OBJECT_LIST_TYPE_ITERATOR))
-#define OBJECT_LIST_ITERATOR_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), OBJECT_LIST_TYPE_ITERATOR, ObjectListIteratorClass))
-
-typedef struct _ObjectListIterator ObjectListIterator;
-typedef struct _ObjectListIteratorClass ObjectListIteratorClass;
+#define _g_scanner_destroy0(var) ((var == NULL) ? NULL : (var = (g_scanner_destroy (var), NULL)))
+#define _g_timer_destroy0(var) ((var == NULL) ? NULL : (var = (g_timer_destroy (var), NULL)))
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
 #define _g_main_loop_unref0(var) ((var == NULL) ? NULL : (var = (g_main_loop_unref (var), NULL)))
-#define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
-#define _object_list_iterator_unref0(var) ((var == NULL) ? NULL : (var = (object_list_iterator_unref (var), NULL)))
+
+#define TYPE_TASK (task_get_type ())
+#define TASK(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_TASK, Task))
+#define TASK_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_TASK, TaskClass))
+#define IS_TASK(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_TASK))
+#define IS_TASK_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TYPE_TASK))
+#define TASK_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), TYPE_TASK, TaskClass))
+
+typedef struct _Task Task;
+typedef struct _TaskClass TaskClass;
+#define _g_free0(var) (var = (g_free (var), NULL))
 
 #define TYPE_COMMAND (command_get_type ())
 typedef struct _Command Command;
-#define _command_free0(var) ((var == NULL) ? NULL : (var = (command_free (var), NULL)))
-typedef struct _Block1Data Block1Data;
-#define _g_free0(var) (var = (g_free (var), NULL))
+#define __g_list_free_g_free0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_free (var), NULL)))
+#define __g_list_free_g_object_unref0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_object_unref (var), NULL)))
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 
 struct _AutoPipeline {
@@ -61,13 +53,13 @@ struct _AutoPipelineClass {
 };
 
 struct _AutoPipelinePrivate {
+	GScanner* _scanner;
+	GTimer* _timer;
 	GstBin* _pipeline;
 	GMainLoop* _loop;
-	ObjectList* _parameters;
-	ObjectListIterator* iterator;
 };
 
-typedef void (*CommandFunc) (AutoPipeline* ctx, ObjectList* param, void* user_data);
+typedef void (*CommandFunc) (AutoPipeline* ctx, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
@@ -76,72 +68,51 @@ struct _Command {
 	GDestroyNotify function_target_destroy_notify;
 };
 
-struct _Block1Data {
-	int _ref_count_;
-	AutoPipeline * self;
-	ObjectList* param;
-	Command command;
-};
-
 
 static gpointer auto_pipeline_parent_class = NULL;
 
 GType auto_pipeline_get_type (void);
-GType object_list_get_type (void);
-gpointer object_list_iterator_ref (gpointer instance);
-void object_list_iterator_unref (gpointer instance);
-GParamSpec* object_list_param_spec_iterator (const gchar* name, const gchar* nick, const gchar* blurb, GType object_type, GParamFlags flags);
-void object_list_value_set_iterator (GValue* value, gpointer v_object);
-gpointer object_list_value_get_iterator (const GValue* value);
-GType object_list_iterator_get_type (void);
 #define AUTO_PIPELINE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), TYPE_AUTO_PIPELINE, AutoPipelinePrivate))
 enum  {
 	AUTO_PIPELINE_DUMMY_PROPERTY,
 	AUTO_PIPELINE_STATE,
 	AUTO_PIPELINE_PIPELINE,
 	AUTO_PIPELINE_LOOP,
-	AUTO_PIPELINE_PARAMETERS
+	AUTO_PIPELINE_SCANNER,
+	AUTO_PIPELINE_TIMER
 };
 static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* message);
 static void _auto_pipeline_on_bus_message_gst_bus_message (GstBus* _sender, GstMessage* message, gpointer self);
-void auto_pipeline_parse (AutoPipeline* self, const char* description, GError** error);
-gboolean object_list_iterator_next (ObjectListIterator* self);
-gconstpointer object_list_iterator_get (ObjectListIterator* self);
-const char* object_list_get_name (ObjectList* self);
+void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GError** error);
+GType task_get_type (void);
 GType command_get_type (void);
 Command* command_dup (const Command* self);
 void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
 void command_destroy (Command* self);
-gboolean find_command (const char* name, Command** out_command);
-static gboolean _lambda1_ (Block1Data* _data1_);
-static gboolean __lambda1__gsource_func (gpointer self);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
-static void block1_data_unref (Block1Data* _data1_);
-static gboolean auto_pipeline_do_exec_parameters (AutoPipeline* self);
-ObjectList* object_list_new (GType t_type, GBoxedCopyFunc t_dup_func, GDestroyNotify t_destroy_func);
-ObjectList* object_list_construct (GType object_type, GType t_type, GBoxedCopyFunc t_dup_func, GDestroyNotify t_destroy_func);
-void object_list_append (ObjectList* self, gconstpointer s);
-void object_list_set_name (ObjectList* self, const char* value);
-gboolean auto_pipeline_parse_parameters (AutoPipeline* self, char** args, int args_length1);
-ObjectList* auto_pipeline_get_parameters (AutoPipeline* self);
-ObjectListIterator* object_list_iterator (ObjectList* self);
-void auto_pipeline_continue_exec (AutoPipeline* self);
-void auto_pipeline_exec_parameters (AutoPipeline* self);
-static gboolean _auto_pipeline_do_exec_parameters_gsource_func (gpointer self);
-void auto_pipeline_continue_exec_in_seconds (AutoPipeline* self, guint n_seconds);
+Task* task_new (double seconds, Command* command);
+Task* task_construct (GType object_type, double seconds, Command* command);
+static void _g_list_free_g_free (GList* self);
+static void _g_list_free_g_object_unref (GList* self);
+GList* auto_pipeline_parse_args (AutoPipeline* self, char** args, int args_length1, char*** new_args, int* new_args_length1);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
+guint task_exec (Task* self, AutoPipeline* ctx);
+guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
 AutoPipeline* auto_pipeline_new (void);
 AutoPipeline* auto_pipeline_construct (GType object_type);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 void auto_pipeline_set_pipeline (AutoPipeline* self, GstBin* value);
 GMainLoop* auto_pipeline_get_loop (AutoPipeline* self);
 void auto_pipeline_set_loop (AutoPipeline* self, GMainLoop* value);
-void auto_pipeline_set_parameters (AutoPipeline* self, ObjectList* value);
+GScanner* auto_pipeline_get_scanner (AutoPipeline* self);
+GTimer* auto_pipeline_get_timer (AutoPipeline* self);
+void scanner_register_symbols (GScanner* scanner, guint scope);
 static GObject * auto_pipeline_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties);
 static void auto_pipeline_finalize (GObject* obj);
 static void auto_pipeline_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
 static void auto_pipeline_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
+static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func);
+static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func);
 
 
 
@@ -155,7 +126,7 @@ static void _auto_pipeline_on_bus_message_gst_bus_message (GstBus* _sender, GstM
 }
 
 
-void auto_pipeline_parse (AutoPipeline* self, const char* description, GError** error) {
+void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GError** error) {
 	GError * _inner_error_;
 	GstElement* _tmp0_;
 	GstBin* _tmp2_;
@@ -177,76 +148,43 @@ void auto_pipeline_parse (AutoPipeline* self, const char* description, GError** 
 }
 
 
-static gpointer _g_object_ref0 (gpointer self) {
-	return self ? g_object_ref (self) : NULL;
-}
-
-
-static gboolean _lambda1_ (Block1Data* _data1_) {
-	AutoPipeline * self;
-	gboolean result;
-	self = _data1_->self;
-	_data1_->command.function (self, _data1_->param, _data1_->command.function_target);
-	result = FALSE;
+static glong string_get_length (const char* self) {
+	glong result;
+	g_return_val_if_fail (self != NULL, 0L);
+	result = g_utf8_strlen (self, -1);
 	return result;
 }
 
 
-static gboolean __lambda1__gsource_func (gpointer self) {
-	return _lambda1_ (self);
+static void _g_list_free_g_free (GList* self) {
+	g_list_foreach (self, (GFunc) g_free, NULL);
+	g_list_free (self);
 }
 
 
-static Block1Data* block1_data_ref (Block1Data* _data1_) {
-	++_data1_->_ref_count_;
-	return _data1_;
+static void _g_list_free_g_object_unref (GList* self) {
+	g_list_foreach (self, (GFunc) g_object_unref, NULL);
+	g_list_free (self);
 }
 
 
-static void block1_data_unref (Block1Data* _data1_) {
-	if ((--_data1_->_ref_count_) == 0) {
-		_g_object_unref0 (_data1_->self);
-		_g_object_unref0 (_data1_->param);
-		command_destroy (&_data1_->command);
-		g_slice_free (Block1Data, _data1_);
+GList* auto_pipeline_parse_args (AutoPipeline* self, char** args, int args_length1, char*** new_args, int* new_args_length1) {
+	GList* result;
+	double last_time_seconds;
+	GList* remaining_args;
+	GList* tasks;
+	guint n_discard_args;
+	char** _tmp1_;
+	gint _tmp0_;
+	guint i;
+	g_return_val_if_fail (self != NULL, NULL);
+	if (new_args != NULL) {
+		*new_args = NULL;
 	}
-}
-
-
-static gboolean auto_pipeline_do_exec_parameters (AutoPipeline* self) {
-	gboolean result;
-	g_return_val_if_fail (self != NULL, FALSE);
-	if (object_list_iterator_next (self->priv->iterator)) {
-		Block1Data* _data1_;
-		const char* param_name;
-		Command _tmp4_ = {0};
-		Command* _tmp3_;
-		Command _tmp2_;
-		gboolean _tmp1_;
-		Command* _tmp0_ = NULL;
-		gboolean _tmp5_;
-		_data1_ = g_slice_new0 (Block1Data);
-		_data1_->_ref_count_ = 1;
-		_data1_->self = g_object_ref (self);
-		_data1_->param = _g_object_ref0 ((ObjectList*) object_list_iterator_get (self->priv->iterator));
-		param_name = object_list_get_name (_data1_->param);
-		if ((_tmp5_ = (_tmp1_ = find_command (param_name, &_tmp0_), _data1_->command = (_tmp2_ = (command_copy (_tmp3_ = _tmp0_, &_tmp4_), _tmp4_), command_destroy (&_data1_->command), _tmp2_), _tmp1_), _command_free0 (_tmp3_), _tmp5_)) {
-			g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, __lambda1__gsource_func, block1_data_ref (_data1_), block1_data_unref);
-		}
-		block1_data_unref (_data1_);
-	}
-	result = FALSE;
-	return result;
-}
-
-
-gboolean auto_pipeline_parse_parameters (AutoPipeline* self, char** args, int args_length1) {
-	gboolean result;
-	ObjectList* _tmp0_;
-	ObjectList* current_parameter;
-	g_return_val_if_fail (self != NULL, FALSE);
-	self->priv->_parameters = (_tmp0_ = object_list_new (TYPE_OBJECT_LIST, (GBoxedCopyFunc) g_object_ref, g_object_unref), _g_object_unref0 (self->priv->_parameters), _tmp0_);
-	current_parameter = NULL;
+	last_time_seconds = (double) 0;
+	remaining_args = NULL;
+	tasks = NULL;
+	n_discard_args = (guint) 3;
 	{
 		char** arg_collection;
 		int arg_collection_length1;
@@ -257,66 +195,87 @@ gboolean auto_pipeline_parse_parameters (AutoPipeline* self, char** args, int ar
 			char* arg;
 			arg = g_strdup (arg_collection[arg_it]);
 			{
-				if (g_str_has_prefix (arg, "-")) {
-					char* param_name;
-					ObjectList* _tmp1_;
-					if (current_parameter != NULL) {
-						object_list_append (self->priv->_parameters, current_parameter);
-					}
-					param_name = g_strdup (g_utf8_next_char (arg));
-					if (!find_command (param_name, NULL)) {
-						g_warning ("auto-pipeline.vala:65: There is no command '%s'\n", param_name);
-						result = FALSE;
-						_g_free0 (param_name);
-						_g_free0 (arg);
-						_g_object_unref0 (current_parameter);
-						return result;
-					}
-					current_parameter = (_tmp1_ = object_list_new (G_TYPE_STRING, (GBoxedCopyFunc) g_strdup, g_free), _g_object_unref0 (current_parameter), _tmp1_);
-					object_list_set_name (current_parameter, param_name);
-					_g_free0 (param_name);
+				gint relative = 0;
+				GTokenType tok_type;
+				double seconds;
+				Command* p_command;
+				if (n_discard_args != 0) {
+					n_discard_args--;
+					remaining_args = g_list_append (remaining_args, g_strdup (arg));
+					_g_free0 (arg);
+					continue;
+				}
+				if (g_str_has_prefix (arg, "--")) {
+					remaining_args = g_list_append (remaining_args, g_strdup (arg));
+				}
+				g_scanner_input_text (self->priv->_scanner, arg, (guint) string_get_length (arg));
+				tok_type = g_scanner_peek_next_token (self->priv->_scanner);
+				if (tok_type == G_TOKEN_EOF) {
+					_g_free0 (arg);
+					break;
+				}
+				if (tok_type == '+') {
+					relative = 1;
 				} else {
-					if (current_parameter != NULL) {
-						object_list_append (current_parameter, arg);
+					if (tok_type == '-') {
+						relative = -1;
 					} else {
-						g_warning ("auto-pipeline.vala:75: Got argument '%s' without preceding parameter\n", arg);
+						relative = 0;
 					}
 				}
+				if (relative != 0) {
+					g_scanner_get_next_token (self->priv->_scanner);
+				}
+				if (g_scanner_peek_next_token (self->priv->_scanner) != G_TOKEN_FLOAT) {
+					_g_free0 (arg);
+					continue;
+				}
+				g_scanner_get_next_token (self->priv->_scanner);
+				seconds = self->priv->_scanner->value.v_float;
+				if (relative != 0) {
+					seconds = last_time_seconds + (relative * seconds);
+				}
+				if (g_scanner_peek_next_token (self->priv->_scanner) != ':') {
+					remaining_args = g_list_append (remaining_args, g_strdup (arg));
+					g_print ("Expecting a semicolon, discarding %s\n", arg);
+					_g_free0 (arg);
+					continue;
+				}
+				g_scanner_get_next_token (self->priv->_scanner);
+				if (g_scanner_peek_next_token (self->priv->_scanner) != G_TOKEN_SYMBOL) {
+					remaining_args = g_list_append (remaining_args, g_strdup (arg));
+					g_print ("Expecting a symbol, discarding %s\n", arg);
+					_g_free0 (arg);
+					continue;
+				}
+				g_scanner_get_next_token (self->priv->_scanner);
+				p_command = (Command*) self->priv->_scanner->value.v_symbol;
+				tasks = g_list_append (tasks, task_new (seconds, p_command));
+				last_time_seconds = seconds;
 				_g_free0 (arg);
 			}
 		}
 	}
-	if (current_parameter != NULL) {
-		object_list_append (self->priv->_parameters, current_parameter);
+	*new_args = (_tmp1_ = g_new0 (char*, (_tmp0_ = g_list_length (remaining_args)) + 1), *new_args = (_vala_array_free (*new_args, *new_args_length1, (GDestroyNotify) g_free), NULL), *new_args_length1 = _tmp0_, _tmp1_);
+	i = (guint) 0;
+	{
+		GList* arg_collection;
+		GList* arg_it;
+		arg_collection = remaining_args;
+		for (arg_it = arg_collection; arg_it != NULL; arg_it = arg_it->next) {
+			char* arg;
+			arg = g_strdup ((const char*) arg_it->data);
+			{
+				char* _tmp2_;
+				(*new_args)[i] = (_tmp2_ = g_strdup (arg), _g_free0 ((*new_args)[i]), _tmp2_);
+				i++;
+				_g_free0 (arg);
+			}
+		}
 	}
-	result = TRUE;
-	_g_object_unref0 (current_parameter);
+	result = tasks;
+	__g_list_free_g_free0 (remaining_args);
 	return result;
-}
-
-
-void auto_pipeline_exec_parameters (AutoPipeline* self) {
-	ObjectListIterator* _tmp0_;
-	g_return_if_fail (self != NULL);
-	self->priv->iterator = (_tmp0_ = object_list_iterator (self->priv->_parameters), _object_list_iterator_unref0 (self->priv->iterator), _tmp0_);
-	auto_pipeline_continue_exec (self);
-}
-
-
-static gboolean _auto_pipeline_do_exec_parameters_gsource_func (gpointer self) {
-	return auto_pipeline_do_exec_parameters (self);
-}
-
-
-void auto_pipeline_continue_exec (AutoPipeline* self) {
-	g_return_if_fail (self != NULL);
-	g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, _auto_pipeline_do_exec_parameters_gsource_func, g_object_ref (self), g_object_unref);
-}
-
-
-void auto_pipeline_continue_exec_in_seconds (AutoPipeline* self, guint n_seconds) {
-	g_return_if_fail (self != NULL);
-	g_timeout_add_seconds_full (G_PRIORITY_DEFAULT, n_seconds, _auto_pipeline_do_exec_parameters_gsource_func, g_object_ref (self), g_object_unref);
 }
 
 
@@ -337,7 +296,7 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 				s = NULL;
 				(gst_message_parse_error (message, &_tmp0_, &_tmp2_), e = (_tmp1_ = _tmp0_, _g_error_free0 (e), _tmp1_));
 				s = (_tmp3_ = _tmp2_, _g_free0 (s), _tmp3_);
-				g_critical ("auto-pipeline.vala:108: Bus error: %s %s\n", e->message, s);
+				g_critical ("auto-pipeline.vala:133: Bus error: %s %s\n", e->message, s);
 				_g_error_free0 (e);
 				_g_free0 (s);
 				break;
@@ -357,6 +316,15 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 			break;
 		}
 	}
+}
+
+
+guint auto_pipeline_exec_task (AutoPipeline* self, Task* task) {
+	guint result;
+	g_return_val_if_fail (self != NULL, 0U);
+	g_return_val_if_fail (task != NULL, 0U);
+	result = task_exec (task, self);
+	return result;
 }
 
 
@@ -416,19 +384,19 @@ void auto_pipeline_set_loop (AutoPipeline* self, GMainLoop* value) {
 }
 
 
-ObjectList* auto_pipeline_get_parameters (AutoPipeline* self) {
-	ObjectList* result;
+GScanner* auto_pipeline_get_scanner (AutoPipeline* self) {
+	GScanner* result;
 	g_return_val_if_fail (self != NULL, NULL);
-	result = self->priv->_parameters;
+	result = self->priv->_scanner;
 	return result;
 }
 
 
-void auto_pipeline_set_parameters (AutoPipeline* self, ObjectList* value) {
-	ObjectList* _tmp0_;
-	g_return_if_fail (self != NULL);
-	self->priv->_parameters = (_tmp0_ = _g_object_ref0 (value), _g_object_unref0 (self->priv->_parameters), _tmp0_);
-	g_object_notify ((GObject *) self, "parameters");
+GTimer* auto_pipeline_get_timer (AutoPipeline* self) {
+	GTimer* result;
+	g_return_val_if_fail (self != NULL, NULL);
+	result = self->priv->_timer;
+	return result;
 }
 
 
@@ -441,7 +409,17 @@ static GObject * auto_pipeline_constructor (GType type, guint n_construct_proper
 	self = AUTO_PIPELINE (obj);
 	{
 		GMainLoop* _tmp0_;
+		GScanner* _tmp1_;
+		GTimeVal _tmp2_ = {0};
+		GTimeVal current_tv;
+		GTimer* _tmp3_;
 		self->priv->_loop = (_tmp0_ = g_main_loop_new (NULL, FALSE), _g_main_loop_unref0 (self->priv->_loop), _tmp0_);
+		self->priv->_scanner = (_tmp1_ = g_scanner_new (NULL), _g_scanner_destroy0 (self->priv->_scanner), _tmp1_);
+		(*self->priv->_scanner->config).scan_identifier_1char = FALSE;
+		(*self->priv->_scanner->config).int_2_float = TRUE;
+		scanner_register_symbols (self->priv->_scanner, (guint) 0);
+		current_tv = (g_get_current_time (&_tmp2_), _tmp2_);
+		self->priv->_timer = (_tmp3_ = g_timer_new (), _g_timer_destroy0 (self->priv->_timer), _tmp3_);
 	}
 	return obj;
 }
@@ -457,7 +435,8 @@ static void auto_pipeline_class_init (AutoPipelineClass * klass) {
 	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_STATE, g_param_spec_enum ("state", "state", "state", GST_TYPE_STATE, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_PIPELINE, g_param_spec_object ("pipeline", "pipeline", "pipeline", GST_TYPE_BIN, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_LOOP, g_param_spec_pointer ("loop", "loop", "loop", G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
-	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_PARAMETERS, g_param_spec_object ("parameters", "parameters", "parameters", TYPE_OBJECT_LIST, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_SCANNER, g_param_spec_pointer ("scanner", "scanner", "scanner", G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_TIMER, g_param_spec_pointer ("timer", "timer", "timer", G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 }
 
 
@@ -469,10 +448,10 @@ static void auto_pipeline_instance_init (AutoPipeline * self) {
 static void auto_pipeline_finalize (GObject* obj) {
 	AutoPipeline * self;
 	self = AUTO_PIPELINE (obj);
+	_g_scanner_destroy0 (self->priv->_scanner);
+	_g_timer_destroy0 (self->priv->_timer);
 	_gst_object_unref0 (self->priv->_pipeline);
 	_g_main_loop_unref0 (self->priv->_loop);
-	_g_object_unref0 (self->priv->_parameters);
-	_object_list_iterator_unref0 (self->priv->iterator);
 	G_OBJECT_CLASS (auto_pipeline_parent_class)->finalize (obj);
 }
 
@@ -497,8 +476,11 @@ static void auto_pipeline_get_property (GObject * object, guint property_id, GVa
 		case AUTO_PIPELINE_LOOP:
 		g_value_set_pointer (value, auto_pipeline_get_loop (self));
 		break;
-		case AUTO_PIPELINE_PARAMETERS:
-		g_value_set_object (value, auto_pipeline_get_parameters (self));
+		case AUTO_PIPELINE_SCANNER:
+		g_value_set_pointer (value, auto_pipeline_get_scanner (self));
+		break;
+		case AUTO_PIPELINE_TIMER:
+		g_value_set_pointer (value, auto_pipeline_get_timer (self));
 		break;
 		default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -520,13 +502,28 @@ static void auto_pipeline_set_property (GObject * object, guint property_id, con
 		case AUTO_PIPELINE_LOOP:
 		auto_pipeline_set_loop (self, g_value_get_pointer (value));
 		break;
-		case AUTO_PIPELINE_PARAMETERS:
-		auto_pipeline_set_parameters (self, g_value_get_object (value));
-		break;
 		default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 		break;
 	}
+}
+
+
+static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func) {
+	if ((array != NULL) && (destroy_func != NULL)) {
+		int i;
+		for (i = 0; i < array_length; i = i + 1) {
+			if (((gpointer*) array)[i] != NULL) {
+				destroy_func (((gpointer*) array)[i]);
+			}
+		}
+	}
+}
+
+
+static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func) {
+	_vala_array_destroy (array, array_length, destroy_func);
+	g_free (array);
 }
 
 
