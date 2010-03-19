@@ -53,22 +53,16 @@ class AutoPipeline: Object {
     }
 
 
-    public List<Task> parse_args(string[] args, out string[] new_args) {
+    public List<Task> parse_tasks_from_args(string[] args, out string[] new_args) {
         double last_time_seconds = 0;
         var remaining_args = new List<string> ();
         var tasks = new List<Task> ();
 
-        uint n_discard_args = 3;
-
         foreach(var arg in args) {
-            if(n_discard_args != 0) {
-                n_discard_args--;
+            if(arg.has_prefix("--")) {
                 remaining_args.append(arg);
                 continue;
             }
-
-            if(arg.has_prefix("--"))
-                remaining_args.append(arg);
 
             _scanner.input_text(arg, (uint)arg.length);
 
@@ -87,8 +81,10 @@ class AutoPipeline: Object {
             if(relative != 0)
                 _scanner.get_next_token();
 
-            if(_scanner.peek_next_token() != TokenType.FLOAT)
+            if(_scanner.peek_next_token() != TokenType.FLOAT) {
+                remaining_args.append(arg);
                 continue;
+            }
             _scanner.get_next_token();
             double seconds = _scanner.value.float;
 
@@ -97,14 +93,12 @@ class AutoPipeline: Object {
 
             if(_scanner.peek_next_token() != ':') {
                 remaining_args.append(arg);
-                print("Expecting a semicolon, discarding %s\n", arg);
                 continue;
             }
             _scanner.get_next_token();
 
             if(_scanner.peek_next_token() != TokenType.SYMBOL) {
                 remaining_args.append(arg);
-                print("Expecting a symbol, discarding %s\n", arg);
                 continue;
             }
             _scanner.get_next_token();
@@ -120,6 +114,7 @@ class AutoPipeline: Object {
             new_args[i] = arg;
             i++;
         }
+
         return tasks;
     }
 

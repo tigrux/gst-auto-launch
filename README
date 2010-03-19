@@ -16,5 +16,10 @@ Supported commands are:
   quit:
     Quit the event loop
 
-Example:
-./gst-auto-launch pipelines.xml videotest 0:pause 1:play +5:eos
+If no xml file can be parsed, it will get the pipeline
+from the command line.
+
+Examples:
+gst-auto-launch pipelines.xml videotest 0:pause 1:play +5:eos
+gst-auto-launch videotestsrc ! autovideosink 0:pause 1:play +5:eos
+

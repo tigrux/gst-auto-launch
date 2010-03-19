@@ -94,7 +94,7 @@ Task* task_new (double seconds, Command* command);
 Task* task_construct (GType object_type, double seconds, Command* command);
 static void _g_list_free_g_free (GList* self);
 static void _g_list_free_g_object_unref (GList* self);
-GList* auto_pipeline_parse_args (AutoPipeline* self, char** args, int args_length1, char*** new_args, int* new_args_length1);
+GList* auto_pipeline_parse_tasks_from_args (AutoPipeline* self, char** args, int args_length1, char*** new_args, int* new_args_length1);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
 guint task_exec (Task* self, AutoPipeline* ctx);
 guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
@@ -168,12 +168,11 @@ static void _g_list_free_g_object_unref (GList* self) {
 }
 
 
-GList* auto_pipeline_parse_args (AutoPipeline* self, char** args, int args_length1, char*** new_args, int* new_args_length1) {
+GList* auto_pipeline_parse_tasks_from_args (AutoPipeline* self, char** args, int args_length1, char*** new_args, int* new_args_length1) {
 	GList* result;
 	double last_time_seconds;
 	GList* remaining_args;
 	GList* tasks;
-	guint n_discard_args;
 	char** _tmp1_;
 	gint _tmp0_;
 	guint i;
@@ -184,7 +183,6 @@ GList* auto_pipeline_parse_args (AutoPipeline* self, char** args, int args_lengt
 	last_time_seconds = (double) 0;
 	remaining_args = NULL;
 	tasks = NULL;
-	n_discard_args = (guint) 3;
 	{
 		char** arg_collection;
 		int arg_collection_length1;
@@ -199,14 +197,10 @@ GList* auto_pipeline_parse_args (AutoPipeline* self, char** args, int args_lengt
 				GTokenType tok_type;
 				double seconds;
 				Command* p_command;
-				if (n_discard_args != 0) {
-					n_discard_args--;
+				if (g_str_has_prefix (arg, "--")) {
 					remaining_args = g_list_append (remaining_args, g_strdup (arg));
 					_g_free0 (arg);
 					continue;
-				}
-				if (g_str_has_prefix (arg, "--")) {
-					remaining_args = g_list_append (remaining_args, g_strdup (arg));
 				}
 				g_scanner_input_text (self->priv->_scanner, arg, (guint) string_get_length (arg));
 				tok_type = g_scanner_peek_next_token (self->priv->_scanner);
@@ -227,6 +221,7 @@ GList* auto_pipeline_parse_args (AutoPipeline* self, char** args, int args_lengt
 					g_scanner_get_next_token (self->priv->_scanner);
 				}
 				if (g_scanner_peek_next_token (self->priv->_scanner) != G_TOKEN_FLOAT) {
+					remaining_args = g_list_append (remaining_args, g_strdup (arg));
 					_g_free0 (arg);
 					continue;
 				}
@@ -237,14 +232,12 @@ GList* auto_pipeline_parse_args (AutoPipeline* self, char** args, int args_lengt
 				}
 				if (g_scanner_peek_next_token (self->priv->_scanner) != ':') {
 					remaining_args = g_list_append (remaining_args, g_strdup (arg));
-					g_print ("Expecting a semicolon, discarding %s\n", arg);
 					_g_free0 (arg);
 					continue;
 				}
 				g_scanner_get_next_token (self->priv->_scanner);
 				if (g_scanner_peek_next_token (self->priv->_scanner) != G_TOKEN_SYMBOL) {
 					remaining_args = g_list_append (remaining_args, g_strdup (arg));
-					g_print ("Expecting a symbol, discarding %s\n", arg);
 					_g_free0 (arg);
 					continue;
 				}
@@ -296,7 +289,7 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 				s = NULL;
 				(gst_message_parse_error (message, &_tmp0_, &_tmp2_), e = (_tmp1_ = _tmp0_, _g_error_free0 (e), _tmp1_));
 				s = (_tmp3_ = _tmp2_, _g_free0 (s), _tmp3_);
-				g_critical ("auto-pipeline.vala:133: Bus error: %s %s\n", e->message, s);
+				g_critical ("auto-pipeline.vala:128: Bus error: %s %s\n", e->message, s);
 				_g_error_free0 (e);
 				_g_free0 (s);
 				break;
