@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gst/gst.h>
+#include <gst/base/gstbasesrc.h>
 
 
 #define TYPE_AUTO_PIPELINE (auto_pipeline_get_type ())
@@ -145,8 +146,14 @@ static gboolean string_contains (const char* self, const char* needle) {
 static void _lambda1_ (void* data) {
 	void* _tmp0_;
 	GstElement* elem;
+	gboolean _tmp1_ = FALSE;
 	elem = _gst_object_ref0 ((_tmp0_ = data, GST_IS_ELEMENT (_tmp0_) ? ((GstElement*) _tmp0_) : NULL));
 	if (string_contains (gst_object_get_name ((GstObject*) elem), "src")) {
+		_tmp1_ = TRUE;
+	} else {
+		_tmp1_ = GST_IS_BASE_SRC (elem);
+	}
+	if (_tmp1_) {
 		g_print ("Sending eos to %s\n", gst_object_get_name ((GstObject*) elem));
 		gst_element_send_event (elem, gst_event_new_eos ());
 	}

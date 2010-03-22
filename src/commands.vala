@@ -44,7 +44,7 @@ void command_eos(AutoPipeline ctx) {
     ctx.pipeline.iterate_elements().foreach(
         (data) => {
             var elem = data as Gst.Element;
-            if("src" in elem.name) {
+            if("src" in elem.name || elem is Gst.BaseSrc) {
                 print("Sending eos to %s\n", elem.name);
                 elem.send_event(new Gst.Event.eos());
             }
