@@ -2,6 +2,7 @@ const Command[] COMMANDS = {
     {"play", "Change pipeline state to PLAYING", command_play},
     {"pause", "Change pipeline state to PAUSED", command_pause},
     {"ready", "Change pipeline state to READY", command_ready},
+    {"stop", "Change pipeline state to READY", command_ready},
     {"null", "Change pipeline state to NULL", command_null},
     {"eos", "Send eos to the source elements", command_eos},
     {"quit", "Quit the event loop", command_quit},

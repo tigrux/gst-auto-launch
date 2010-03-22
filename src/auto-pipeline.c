@@ -177,9 +177,6 @@ GList* auto_pipeline_parse_tasks_from_args (AutoPipeline* self, char** args, int
 	gint _tmp0_;
 	guint i;
 	g_return_val_if_fail (self != NULL, NULL);
-	if (new_args != NULL) {
-		*new_args = NULL;
-	}
 	last_time_seconds = (double) 0;
 	remaining_args = NULL;
 	tasks = NULL;
