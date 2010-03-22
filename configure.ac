@@ -1,4 +1,4 @@
-AC_INIT([gst-auto-launch], [0.3], [tigrux@gmail.com], [gst-auto-launch])
+AC_INIT([gst-auto-launch], [0.3.1], [tigrux@gmail.com], [gst-auto-launch])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE([foreign])
@@ -14,10 +14,10 @@ AC_SUBST(CFLAGS)
 AC_SUBST(CPPFLAGS)
 AC_SUBST(LDFLAGS)
 
-VALAFLAGS="--pkg gstreamer-0.10"
+VALAFLAGS="--pkg gstreamer-0.10 --pkg gstreamer-base-0.10"
 AC_SUBST(VALAFLAGS)
 
-PKG_CHECK_MODULES(PROGRAM, gstreamer-0.10)
+PKG_CHECK_MODULES(PROGRAM, gstreamer-0.10 gstreamer-base-0.10)
 AC_SUBST(PROGRAM_CFLAGS)
 AC_SUBST(PROGRAM_LIBS)
 

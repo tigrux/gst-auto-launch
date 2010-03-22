@@ -151,7 +151,10 @@ gint _main (char** args, int args_length1) {
 		g_print ("Where each command is of the form <seconds>:<name>\n");
 		g_print ("Supported commands are:\n");
 		g_scanner_scope_foreach_symbol (auto_pipeline_get_scanner (auto_pipeline), (guint) 0, __lambda2__gh_func, NULL);
-		g_print ("\nIf no xml file can be parsed, it will get the pipeline from the command line\n\n");
+		g_print ("\n" \
+"If no xml file can be parsed, it will get the pipeline from the comman" \
+"d line\n" \
+"\n");
 		g_print ("Examples:\n");
 		g_print ("  %s pipelines.xml videotest 0:pause 1:play +5:eos\n", args[0]);
 		g_print ("  %s videotestsrc ! autovideosink 0:pause 1:play +5:eos\n", args[0]);
