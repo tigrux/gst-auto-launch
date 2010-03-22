@@ -24,5 +24,5 @@ vala.stamp:
 
 EXTRA_DIST = \
 	$(gst_auto_launch_VALASOURCES) \
-	config.xml \
+	pipelines.xml \
 	vala.stamp
