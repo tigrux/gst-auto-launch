@@ -34,6 +34,7 @@ typedef struct _TaskClass TaskClass;
 typedef struct _AutoPipeline AutoPipeline;
 typedef struct _AutoPipelineClass AutoPipelineClass;
 typedef struct _Command Command;
+#define _command_free0(var) ((var == NULL) ? NULL : (var = (command_free (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define __g_list_free_g_object_unref0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_object_unref (var), NULL)))
 
@@ -83,6 +84,11 @@ static glong string_get_length (const char* self) {
 }
 
 
+static gpointer _command_dup0 (gpointer self) {
+	return self ? command_dup (self) : NULL;
+}
+
+
 static gpointer _g_object_ref0 (gpointer self) {
 	return self ? g_object_ref (self) : NULL;
 }
@@ -114,7 +120,7 @@ GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int arg
 				gint relative;
 				GTokenType tok_type;
 				double seconds;
-				Command* p_command;
+				Command* command;
 				Task* task;
 				if (g_str_has_prefix (arg, "--")) {
 					_g_free0 (arg);
@@ -156,11 +162,12 @@ GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int arg
 					continue;
 				}
 				g_scanner_get_next_token ((GScanner*) self);
-				p_command = (Command*) ((GScanner*) self)->value.v_symbol;
-				task = task_new (seconds, p_command);
+				command = _command_dup0 ((Command*) ((GScanner*) self)->value.v_symbol);
+				task = task_new (seconds, command);
 				tasks = g_list_append (tasks, _g_object_ref0 (task));
 				last_time_seconds = seconds;
 				_g_free0 (arg);
+				_command_free0 (command);
 				_g_object_unref0 (task);
 			}
 		}

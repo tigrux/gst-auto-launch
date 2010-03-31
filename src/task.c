@@ -56,7 +56,7 @@ struct _Command {
 
 struct _TaskPrivate {
 	double _seconds;
-	Command* _command;
+	Command _command;
 };
 
 struct _Block1Data {
@@ -96,9 +96,11 @@ static void task_get_property (GObject * object, guint property_id, GValue * val
 
 Task* task_construct (GType object_type, double seconds, Command* command) {
 	Task * self;
+	Command _tmp1_;
+	Command _tmp0_ = {0};
 	self = (Task*) g_object_new (object_type, NULL);
 	self->priv->_seconds = seconds;
-	self->priv->_command = command;
+	self->priv->_command = (_tmp1_ = (command_copy (command, &_tmp0_), _tmp0_), command_destroy (&self->priv->_command), _tmp1_);
 	return self;
 }
 
@@ -113,7 +115,7 @@ static gboolean _lambda0_ (Block1Data* _data1_) {
 	gboolean result = FALSE;
 	self = _data1_->self;
 	g_print ("Time = %0.3lf\n", g_timer_elapsed (auto_pipeline_get_timer (_data1_->ctx), NULL));
-	(*self->priv->_command).function (_data1_->ctx, (*self->priv->_command).function_target);
+	self->priv->_command.function (_data1_->ctx, self->priv->_command.function_target);
 	result = FALSE;
 	return result;
 }
@@ -184,6 +186,7 @@ static void task_instance_init (Task * self) {
 static void task_finalize (GObject* obj) {
 	Task * self;
 	self = TASK (obj);
+	command_destroy (&self->priv->_command);
 	G_OBJECT_CLASS (task_parent_class)->finalize (obj);
 }
 

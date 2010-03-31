@@ -1,6 +1,6 @@
 class Task: Object {
     double _seconds;
-    Command *_command;
+    Command _command;
 
 
     public double seconds {
@@ -10,7 +10,7 @@ class Task: Object {
     }
 
 
-    public Task(double seconds, Command *command) {
+    public Task(double seconds, Command command) {
         _seconds = seconds;
         _command = command;
     }
@@ -20,7 +20,7 @@ class Task: Object {
         return Timeout.add((uint)(seconds*1000),
             () => {
             print("Time = %0.3lf\n", ctx.timer.elapsed());
-            _command->function(ctx);
+            _command.function(ctx);
             return false;
         });
     }

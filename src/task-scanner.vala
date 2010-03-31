@@ -48,9 +48,9 @@ class TaskScanner: Scanner {
             if(peek_next_token() != TokenType.SYMBOL)
                 continue;
             get_next_token();
-            var p_command = (Command*)value.symbol;
+            var command = (Command?)value.symbol;
 
-            var task = new Task(seconds, p_command);
+            var task = new Task(seconds, command);
             tasks.append(task);
             last_time_seconds = seconds;
         }
