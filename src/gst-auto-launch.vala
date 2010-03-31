@@ -1,12 +1,13 @@
 int main(string[] args) {
     var auto_pipeline = new AutoPipeline();
+    var scanner = new TaskScanner();
 
     if(args.length < 2) {
         print("Usage: %s <pipelines.xml> <pipeline_id> <commands>\n", args[0]);
         print("Where each command is of the form <seconds>:<name>\n");
         print("Supported commands are:\n");
 
-        auto_pipeline.scanner.scope_foreach_symbol(0,
+        scanner.scope_foreach_symbol(0,
             (key, val) => {
                 var name = (string)key;
                 var command = (Command*)val;
@@ -22,7 +23,7 @@ int main(string[] args) {
         return 1;
     }
 
-    var tasks = auto_pipeline.scanner.get_tasks_from_args(args);
+    var tasks = scanner.get_tasks_from_args(args);
 
     var effective_args_list = new List<string> ();
     foreach(var arg in args[1:args.length])

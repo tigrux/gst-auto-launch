@@ -1,11 +1,9 @@
 class AutoPipeline: Object {
 
-    TaskScanner _scanner;
     Timer _timer;
 
     construct {
         _loop = new MainLoop();
-        _scanner = new TaskScanner();
         var current_tv = TimeVal();
         _timer = new Timer();
     }
@@ -25,13 +23,6 @@ class AutoPipeline: Object {
 
     public MainLoop loop {
         get; set;
-    }
-
-
-    public TaskScanner scanner {
-        get {
-            return _scanner;
-        }
     }
 
 

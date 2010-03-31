@@ -19,8 +19,6 @@
 typedef struct _AutoPipeline AutoPipeline;
 typedef struct _AutoPipelineClass AutoPipelineClass;
 typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
-typedef GScanner TaskScanner;
-#define _g_scanner_destroy0(var) ((var == NULL) ? NULL : (var = (g_scanner_destroy (var), NULL)))
 #define _g_timer_destroy0(var) ((var == NULL) ? NULL : (var = (g_timer_destroy (var), NULL)))
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
 #define _g_main_loop_unref0(var) ((var == NULL) ? NULL : (var = (g_main_loop_unref (var), NULL)))
@@ -47,7 +45,6 @@ struct _AutoPipelineClass {
 };
 
 struct _AutoPipelinePrivate {
-	TaskScanner* _scanner;
 	GTimer* _timer;
 	GstBin* _pipeline;
 	GMainLoop* _loop;
@@ -63,7 +60,6 @@ enum  {
 	AUTO_PIPELINE_STATE,
 	AUTO_PIPELINE_PIPELINE,
 	AUTO_PIPELINE_LOOP,
-	AUTO_PIPELINE_SCANNER,
 	AUTO_PIPELINE_TIMER
 };
 static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* message);
@@ -79,10 +75,7 @@ GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 void auto_pipeline_set_pipeline (AutoPipeline* self, GstBin* value);
 GMainLoop* auto_pipeline_get_loop (AutoPipeline* self);
 void auto_pipeline_set_loop (AutoPipeline* self, GMainLoop* value);
-TaskScanner* auto_pipeline_get_scanner (AutoPipeline* self);
 GTimer* auto_pipeline_get_timer (AutoPipeline* self);
-TaskScanner* task_scanner_new (void);
-TaskScanner* task_scanner_new (void);
 static GObject * auto_pipeline_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties);
 static void auto_pipeline_finalize (GObject* obj);
 static void auto_pipeline_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
@@ -139,7 +132,7 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 				s = NULL;
 				(gst_message_parse_error (message, &_tmp0_, &_tmp2_), e = (_tmp1_ = _tmp0_, _g_error_free0 (e), _tmp1_));
 				s = (_tmp3_ = _tmp2_, _g_free0 (s), _tmp3_);
-				g_critical ("auto-pipeline.vala:59: Bus error: %s %s\n", e->message, s);
+				g_critical ("auto-pipeline.vala:50: Bus error: %s %s\n", e->message, s);
 				_g_error_free0 (e);
 				_g_free0 (s);
 				break;
@@ -227,14 +220,6 @@ void auto_pipeline_set_loop (AutoPipeline* self, GMainLoop* value) {
 }
 
 
-TaskScanner* auto_pipeline_get_scanner (AutoPipeline* self) {
-	TaskScanner* result;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = self->priv->_scanner;
-	return result;
-}
-
-
 GTimer* auto_pipeline_get_timer (AutoPipeline* self) {
 	GTimer* result;
 	g_return_val_if_fail (self != NULL, NULL);
@@ -252,13 +237,11 @@ static GObject * auto_pipeline_constructor (GType type, guint n_construct_proper
 	self = AUTO_PIPELINE (obj);
 	{
 		GMainLoop* _tmp0_;
-		TaskScanner* _tmp1_;
 		GTimeVal current_tv = {0};
-		GTimer* _tmp2_;
+		GTimer* _tmp1_;
 		self->priv->_loop = (_tmp0_ = g_main_loop_new (NULL, FALSE), _g_main_loop_unref0 (self->priv->_loop), _tmp0_);
-		self->priv->_scanner = (_tmp1_ = task_scanner_new (), _g_scanner_destroy0 (self->priv->_scanner), _tmp1_);
 		g_get_current_time (&current_tv);
-		self->priv->_timer = (_tmp2_ = g_timer_new (), _g_timer_destroy0 (self->priv->_timer), _tmp2_);
+		self->priv->_timer = (_tmp1_ = g_timer_new (), _g_timer_destroy0 (self->priv->_timer), _tmp1_);
 	}
 	return obj;
 }
@@ -274,7 +257,6 @@ static void auto_pipeline_class_init (AutoPipelineClass * klass) {
 	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_STATE, g_param_spec_enum ("state", "state", "state", GST_TYPE_STATE, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_PIPELINE, g_param_spec_object ("pipeline", "pipeline", "pipeline", GST_TYPE_BIN, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_LOOP, g_param_spec_pointer ("loop", "loop", "loop", G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
-	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_SCANNER, g_param_spec_pointer ("scanner", "scanner", "scanner", G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_TIMER, g_param_spec_pointer ("timer", "timer", "timer", G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 }
 
@@ -287,7 +269,6 @@ static void auto_pipeline_instance_init (AutoPipeline * self) {
 static void auto_pipeline_finalize (GObject* obj) {
 	AutoPipeline * self;
 	self = AUTO_PIPELINE (obj);
-	_g_scanner_destroy0 (self->priv->_scanner);
 	_g_timer_destroy0 (self->priv->_timer);
 	_gst_object_unref0 (self->priv->_pipeline);
 	_g_main_loop_unref0 (self->priv->_loop);
@@ -316,9 +297,6 @@ static void auto_pipeline_get_property (GObject * object, guint property_id, GVa
 		break;
 		case AUTO_PIPELINE_LOOP:
 		g_value_set_pointer (value, auto_pipeline_get_loop (self));
-		break;
-		case AUTO_PIPELINE_SCANNER:
-		g_value_set_pointer (value, auto_pipeline_get_scanner (self));
 		break;
 		case AUTO_PIPELINE_TIMER:
 		g_value_set_pointer (value, auto_pipeline_get_timer (self));
