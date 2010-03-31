@@ -23,7 +23,7 @@ int main(string[] args) {
     }
 
     string[] remaining_args;
-    var tasks = auto_pipeline.parse_tasks_from_args(args, out remaining_args);
+    var tasks = auto_pipeline.scanner.get_tasks_from_args(args, out remaining_args);
 
     var effective_args_list = new List<string> ();
     foreach(var arg in remaining_args)

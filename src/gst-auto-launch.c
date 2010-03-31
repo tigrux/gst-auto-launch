@@ -19,6 +19,7 @@
 
 typedef struct _AutoPipeline AutoPipeline;
 typedef struct _AutoPipelineClass AutoPipelineClass;
+typedef GScanner TaskScanner;
 
 #define TYPE_COMMAND (command_get_type ())
 typedef struct _Command Command;
@@ -62,7 +63,7 @@ struct _Command {
 AutoPipeline* auto_pipeline_new (void);
 AutoPipeline* auto_pipeline_construct (GType object_type);
 GType auto_pipeline_get_type (void);
-GScanner* auto_pipeline_get_scanner (AutoPipeline* self);
+TaskScanner* auto_pipeline_get_scanner (AutoPipeline* self);
 GType command_get_type (void);
 Command* command_dup (const Command* self);
 void command_free (Command* self);
@@ -71,7 +72,7 @@ void command_destroy (Command* self);
 static void _lambda2_ (void* key, void* val);
 static void __lambda2__gh_func (void* key, void* value, gpointer self);
 GType task_get_type (void);
-GList* auto_pipeline_parse_tasks_from_args (AutoPipeline* self, char** args, int args_length1, char*** new_args, int* new_args_length1);
+GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int args_length1, char*** new_args, int* new_args_length1);
 gboolean try_to_get_desc_from_xml (char** args, int args_length1, char** pipeline_desc);
 void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GError** error);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
@@ -81,7 +82,7 @@ static void _g_list_free_g_free (GList* self);
 GTimer* auto_pipeline_get_timer (AutoPipeline* self);
 guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
 GMainLoop* auto_pipeline_get_loop (AutoPipeline* self);
-gint _main (char** args, int args_length1);
+gint _vala_main (char** args, int args_length1);
 XmlParser* xml_parser_new (void);
 XmlParser* xml_parser_construct (GType object_type);
 GType xml_parser_get_type (void);
@@ -108,7 +109,7 @@ static void __lambda2__gh_func (void* key, void* value, gpointer self) {
 
 
 static gboolean string_contains (const char* self, const char* needle) {
-	gboolean result;
+	gboolean result = FALSE;
 	g_return_val_if_fail (self != NULL, FALSE);
 	g_return_val_if_fail (needle != NULL, FALSE);
 	result = strstr (self, needle) != NULL;
@@ -133,11 +134,11 @@ static gpointer _g_object_ref0 (gpointer self) {
 }
 
 
-gint _main (char** args, int args_length1) {
-	gint result;
+gint _vala_main (char** args, int args_length1) {
+	gint result = 0;
 	GError * _inner_error_;
 	AutoPipeline* auto_pipeline;
-	gint remaining_args_size;
+	gint _remaining_args_size_;
 	gint remaining_args_length1;
 	char** remaining_args;
 	GList* tasks;
@@ -150,7 +151,7 @@ gint _main (char** args, int args_length1) {
 		g_print ("Usage: %s <pipelines.xml> <pipeline_id> <commands>\n", args[0]);
 		g_print ("Where each command is of the form <seconds>:<name>\n");
 		g_print ("Supported commands are:\n");
-		g_scanner_scope_foreach_symbol (auto_pipeline_get_scanner (auto_pipeline), (guint) 0, __lambda2__gh_func, NULL);
+		g_scanner_scope_foreach_symbol ((GScanner*) auto_pipeline_get_scanner (auto_pipeline), (guint) 0, __lambda2__gh_func, NULL);
 		g_print ("\n" \
 "If no xml file can be parsed, it will get the pipeline from the comman" \
 "d line\n" \
@@ -163,7 +164,7 @@ gint _main (char** args, int args_length1) {
 		return result;
 	}
 	remaining_args = (remaining_args_length1 = 0, NULL);
-	tasks = auto_pipeline_parse_tasks_from_args (auto_pipeline, args, args_length1, &remaining_args, &remaining_args_length1);
+	tasks = task_scanner_get_tasks_from_args (auto_pipeline_get_scanner (auto_pipeline), args, args_length1, &remaining_args, &remaining_args_length1);
 	effective_args_list = NULL;
 	{
 		char** arg_collection;
@@ -198,7 +199,7 @@ gint _main (char** args, int args_length1) {
 	if (!should_parse_xml) {
 		guint i;
 		char** _tmp1_;
-		gint effective_args_size;
+		gint _effective_args_size_;
 		gint effective_args_length1;
 		gint _tmp0_;
 		char** effective_args;
@@ -207,7 +208,7 @@ gint _main (char** args, int args_length1) {
 		gint _tmp3_;
 		g_print ("Getting pipeline description from the command line\n");
 		i = (guint) 0;
-		effective_args = (_tmp1_ = g_new0 (char*, (_tmp0_ = g_list_length (effective_args_list)) + 1), effective_args_length1 = _tmp0_, effective_args_size = effective_args_length1, _tmp1_);
+		effective_args = (_tmp1_ = g_new0 (char*, (_tmp0_ = g_list_length (effective_args_list)) + 1), effective_args_length1 = _tmp0_, _effective_args_size_ = effective_args_length1, _tmp1_);
 		{
 			GList* arg_collection;
 			GList* arg_it;
@@ -294,12 +295,12 @@ gint _main (char** args, int args_length1) {
 
 int main (int argc, char ** argv) {
 	g_type_init ();
-	return _main (argv, argc);
+	return _vala_main (argv, argc);
 }
 
 
 gboolean try_to_get_desc_from_xml (char** args, int args_length1, char** pipeline_desc) {
-	gboolean result;
+	gboolean result = FALSE;
 	GError * _inner_error_;
 	char* xml_file;
 	XmlParser* parser;

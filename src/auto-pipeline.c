@@ -7,8 +7,6 @@
 #include <gst/gst.h>
 #include <stdlib.h>
 #include <string.h>
-#include <float.h>
-#include <math.h>
 
 
 #define TYPE_AUTO_PIPELINE (auto_pipeline_get_type ())
@@ -21,10 +19,13 @@
 typedef struct _AutoPipeline AutoPipeline;
 typedef struct _AutoPipelineClass AutoPipelineClass;
 typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
+typedef GScanner TaskScanner;
 #define _g_scanner_destroy0(var) ((var == NULL) ? NULL : (var = (g_scanner_destroy (var), NULL)))
 #define _g_timer_destroy0(var) ((var == NULL) ? NULL : (var = (g_timer_destroy (var), NULL)))
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
 #define _g_main_loop_unref0(var) ((var == NULL) ? NULL : (var = (g_main_loop_unref (var), NULL)))
+#define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
+#define _g_free0(var) (var = (g_free (var), NULL))
 
 #define TYPE_TASK (task_get_type ())
 #define TASK(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_TASK, Task))
@@ -35,13 +36,6 @@ typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 
 typedef struct _Task Task;
 typedef struct _TaskClass TaskClass;
-#define _g_free0(var) (var = (g_free (var), NULL))
-
-#define TYPE_COMMAND (command_get_type ())
-typedef struct _Command Command;
-#define __g_list_free_g_free0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_free (var), NULL)))
-#define __g_list_free_g_object_unref0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_object_unref (var), NULL)))
-#define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 
 struct _AutoPipeline {
 	GObject parent_instance;
@@ -53,19 +47,10 @@ struct _AutoPipelineClass {
 };
 
 struct _AutoPipelinePrivate {
-	GScanner* _scanner;
+	TaskScanner* _scanner;
 	GTimer* _timer;
 	GstBin* _pipeline;
 	GMainLoop* _loop;
-};
-
-typedef void (*CommandFunc) (AutoPipeline* ctx, void* user_data);
-struct _Command {
-	char* name;
-	char* description;
-	CommandFunc function;
-	gpointer function_target;
-	GDestroyNotify function_target_destroy_notify;
 };
 
 
@@ -84,18 +69,8 @@ enum  {
 static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* message);
 static void _auto_pipeline_on_bus_message_gst_bus_message (GstBus* _sender, GstMessage* message, gpointer self);
 void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GError** error);
-GType task_get_type (void);
-GType command_get_type (void);
-Command* command_dup (const Command* self);
-void command_free (Command* self);
-void command_copy (const Command* self, Command* dest);
-void command_destroy (Command* self);
-Task* task_new (double seconds, Command* command);
-Task* task_construct (GType object_type, double seconds, Command* command);
-static void _g_list_free_g_free (GList* self);
-static void _g_list_free_g_object_unref (GList* self);
-GList* auto_pipeline_parse_tasks_from_args (AutoPipeline* self, char** args, int args_length1, char*** new_args, int* new_args_length1);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
+GType task_get_type (void);
 guint task_exec (Task* self, AutoPipeline* ctx);
 guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
 AutoPipeline* auto_pipeline_new (void);
@@ -104,15 +79,14 @@ GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 void auto_pipeline_set_pipeline (AutoPipeline* self, GstBin* value);
 GMainLoop* auto_pipeline_get_loop (AutoPipeline* self);
 void auto_pipeline_set_loop (AutoPipeline* self, GMainLoop* value);
-GScanner* auto_pipeline_get_scanner (AutoPipeline* self);
+TaskScanner* auto_pipeline_get_scanner (AutoPipeline* self);
 GTimer* auto_pipeline_get_timer (AutoPipeline* self);
-void scanner_register_symbols (GScanner* scanner, guint scope);
+TaskScanner* task_scanner_new (void);
+TaskScanner* task_scanner_new (void);
 static GObject * auto_pipeline_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties);
 static void auto_pipeline_finalize (GObject* obj);
 static void auto_pipeline_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
 static void auto_pipeline_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
-static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func);
-static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func);
 
 
 
@@ -148,127 +122,6 @@ void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GE
 }
 
 
-static glong string_get_length (const char* self) {
-	glong result;
-	g_return_val_if_fail (self != NULL, 0L);
-	result = g_utf8_strlen (self, -1);
-	return result;
-}
-
-
-static void _g_list_free_g_free (GList* self) {
-	g_list_foreach (self, (GFunc) g_free, NULL);
-	g_list_free (self);
-}
-
-
-static void _g_list_free_g_object_unref (GList* self) {
-	g_list_foreach (self, (GFunc) g_object_unref, NULL);
-	g_list_free (self);
-}
-
-
-GList* auto_pipeline_parse_tasks_from_args (AutoPipeline* self, char** args, int args_length1, char*** new_args, int* new_args_length1) {
-	GList* result;
-	double last_time_seconds;
-	GList* remaining_args;
-	GList* tasks;
-	char** _tmp1_;
-	gint _tmp0_;
-	guint i;
-	g_return_val_if_fail (self != NULL, NULL);
-	last_time_seconds = (double) 0;
-	remaining_args = NULL;
-	tasks = NULL;
-	{
-		char** arg_collection;
-		int arg_collection_length1;
-		int arg_it;
-		arg_collection = args;
-		arg_collection_length1 = args_length1;
-		for (arg_it = 0; arg_it < args_length1; arg_it = arg_it + 1) {
-			char* arg;
-			arg = g_strdup (arg_collection[arg_it]);
-			{
-				gint relative = 0;
-				GTokenType tok_type;
-				double seconds;
-				Command* p_command;
-				if (g_str_has_prefix (arg, "--")) {
-					remaining_args = g_list_append (remaining_args, g_strdup (arg));
-					_g_free0 (arg);
-					continue;
-				}
-				g_scanner_input_text (self->priv->_scanner, arg, (guint) string_get_length (arg));
-				tok_type = g_scanner_peek_next_token (self->priv->_scanner);
-				if (tok_type == G_TOKEN_EOF) {
-					_g_free0 (arg);
-					break;
-				}
-				if (tok_type == '+') {
-					relative = 1;
-				} else {
-					if (tok_type == '-') {
-						relative = -1;
-					} else {
-						relative = 0;
-					}
-				}
-				if (relative != 0) {
-					g_scanner_get_next_token (self->priv->_scanner);
-				}
-				if (g_scanner_peek_next_token (self->priv->_scanner) != G_TOKEN_FLOAT) {
-					remaining_args = g_list_append (remaining_args, g_strdup (arg));
-					_g_free0 (arg);
-					continue;
-				}
-				g_scanner_get_next_token (self->priv->_scanner);
-				seconds = self->priv->_scanner->value.v_float;
-				if (relative != 0) {
-					seconds = last_time_seconds + (relative * seconds);
-				}
-				if (g_scanner_peek_next_token (self->priv->_scanner) != ':') {
-					remaining_args = g_list_append (remaining_args, g_strdup (arg));
-					_g_free0 (arg);
-					continue;
-				}
-				g_scanner_get_next_token (self->priv->_scanner);
-				if (g_scanner_peek_next_token (self->priv->_scanner) != G_TOKEN_SYMBOL) {
-					remaining_args = g_list_append (remaining_args, g_strdup (arg));
-					_g_free0 (arg);
-					continue;
-				}
-				g_scanner_get_next_token (self->priv->_scanner);
-				p_command = (Command*) self->priv->_scanner->value.v_symbol;
-				tasks = g_list_append (tasks, task_new (seconds, p_command));
-				last_time_seconds = seconds;
-				_g_free0 (arg);
-			}
-		}
-	}
-	*new_args = (_tmp1_ = g_new0 (char*, (_tmp0_ = g_list_length (remaining_args)) + 1), *new_args = (_vala_array_free (*new_args, *new_args_length1, (GDestroyNotify) g_free), NULL), *new_args_length1 = _tmp0_, _tmp1_);
-	i = (guint) 0;
-	{
-		GList* arg_collection;
-		GList* arg_it;
-		arg_collection = remaining_args;
-		for (arg_it = arg_collection; arg_it != NULL; arg_it = arg_it->next) {
-			char* arg;
-			arg = g_strdup ((const char*) arg_it->data);
-			{
-				char* _tmp2_;
-				(*new_args)[i] = (_tmp2_ = g_strdup (arg), _g_free0 ((*new_args)[i]), _tmp2_);
-				i++;
-				_g_free0 (arg);
-			}
-		}
-	}
-	result = tasks;
-	__g_list_free_g_free0 (remaining_args);
-	return result;
-}
-
-
 static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* message) {
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (message != NULL);
@@ -286,7 +139,7 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 				s = NULL;
 				(gst_message_parse_error (message, &_tmp0_, &_tmp2_), e = (_tmp1_ = _tmp0_, _g_error_free0 (e), _tmp1_));
 				s = (_tmp3_ = _tmp2_, _g_free0 (s), _tmp3_);
-				g_critical ("auto-pipeline.vala:128: Bus error: %s %s\n", e->message, s);
+				g_critical ("auto-pipeline.vala:59: Bus error: %s %s\n", e->message, s);
 				_g_error_free0 (e);
 				_g_free0 (s);
 				break;
@@ -310,7 +163,7 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 
 
 guint auto_pipeline_exec_task (AutoPipeline* self, Task* task) {
-	guint result;
+	guint result = 0U;
 	g_return_val_if_fail (self != NULL, 0U);
 	g_return_val_if_fail (task != NULL, 0U);
 	result = task_exec (task, self);
@@ -374,8 +227,8 @@ void auto_pipeline_set_loop (AutoPipeline* self, GMainLoop* value) {
 }
 
 
-GScanner* auto_pipeline_get_scanner (AutoPipeline* self) {
-	GScanner* result;
+TaskScanner* auto_pipeline_get_scanner (AutoPipeline* self) {
+	TaskScanner* result;
 	g_return_val_if_fail (self != NULL, NULL);
 	result = self->priv->_scanner;
 	return result;
@@ -399,17 +252,13 @@ static GObject * auto_pipeline_constructor (GType type, guint n_construct_proper
 	self = AUTO_PIPELINE (obj);
 	{
 		GMainLoop* _tmp0_;
-		GScanner* _tmp1_;
-		GTimeVal _tmp2_ = {0};
-		GTimeVal current_tv;
-		GTimer* _tmp3_;
+		TaskScanner* _tmp1_;
+		GTimeVal current_tv = {0};
+		GTimer* _tmp2_;
 		self->priv->_loop = (_tmp0_ = g_main_loop_new (NULL, FALSE), _g_main_loop_unref0 (self->priv->_loop), _tmp0_);
-		self->priv->_scanner = (_tmp1_ = g_scanner_new (NULL), _g_scanner_destroy0 (self->priv->_scanner), _tmp1_);
-		(*self->priv->_scanner->config).scan_identifier_1char = FALSE;
-		(*self->priv->_scanner->config).int_2_float = TRUE;
-		scanner_register_symbols (self->priv->_scanner, (guint) 0);
-		current_tv = (g_get_current_time (&_tmp2_), _tmp2_);
-		self->priv->_timer = (_tmp3_ = g_timer_new (), _g_timer_destroy0 (self->priv->_timer), _tmp3_);
+		self->priv->_scanner = (_tmp1_ = task_scanner_new (), _g_scanner_destroy0 (self->priv->_scanner), _tmp1_);
+		g_get_current_time (&current_tv);
+		self->priv->_timer = (_tmp2_ = g_timer_new (), _g_timer_destroy0 (self->priv->_timer), _tmp2_);
 	}
 	return obj;
 }
@@ -447,12 +296,14 @@ static void auto_pipeline_finalize (GObject* obj) {
 
 
 GType auto_pipeline_get_type (void) {
-	static GType auto_pipeline_type_id = 0;
-	if (auto_pipeline_type_id == 0) {
+	static volatile gsize auto_pipeline_type_id__volatile = 0;
+	if (g_once_init_enter (&auto_pipeline_type_id__volatile)) {
 		static const GTypeInfo g_define_type_info = { sizeof (AutoPipelineClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) auto_pipeline_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (AutoPipeline), 0, (GInstanceInitFunc) auto_pipeline_instance_init, NULL };
+		GType auto_pipeline_type_id;
 		auto_pipeline_type_id = g_type_register_static (G_TYPE_OBJECT, "AutoPipeline", &g_define_type_info, 0);
+		g_once_init_leave (&auto_pipeline_type_id__volatile, auto_pipeline_type_id);
 	}
-	return auto_pipeline_type_id;
+	return auto_pipeline_type_id__volatile;
 }
 
 
@@ -496,24 +347,6 @@ static void auto_pipeline_set_property (GObject * object, guint property_id, con
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 		break;
 	}
-}
-
-
-static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func) {
-	if ((array != NULL) && (destroy_func != NULL)) {
-		int i;
-		for (i = 0; i < array_length; i = i + 1) {
-			if (((gpointer*) array)[i] != NULL) {
-				destroy_func (((gpointer*) array)[i]);
-			}
-		}
-	}
-}
-
-
-static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func) {
-	_vala_array_destroy (array, array_length, destroy_func);
-	g_free (array);
 }
 
 
