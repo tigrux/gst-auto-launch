@@ -62,9 +62,7 @@ Task* task_new (double seconds, Command* command);
 Task* task_construct (GType object_type, double seconds, Command* command);
 static void _g_list_free_g_free (GList* self);
 static void _g_list_free_g_object_unref (GList* self);
-GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int args_length1, char*** new_args, int* new_args_length1);
-static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func);
-static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func);
+GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int args_length1);
 
 
 
@@ -98,18 +96,12 @@ static void _g_list_free_g_object_unref (GList* self) {
 }
 
 
-GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int args_length1, char*** new_args, int* new_args_length1) {
+GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int args_length1) {
 	GList* result = NULL;
 	double last_time_seconds;
 	GList* remaining_args;
 	GList* tasks;
-	char** _tmp1_;
-	gint _tmp0_;
-	guint i;
 	g_return_val_if_fail (self != NULL, NULL);
-	if (new_args != NULL) {
-		*new_args = NULL;
-	}
 	last_time_seconds = (double) 0;
 	remaining_args = NULL;
 	tasks = NULL;
@@ -179,44 +171,9 @@ GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int arg
 			}
 		}
 	}
-	*new_args = (_tmp1_ = g_new0 (char*, (_tmp0_ = g_list_length (remaining_args)) + 1), *new_args = (_vala_array_free (*new_args, *new_args_length1, (GDestroyNotify) g_free), NULL), *new_args_length1 = _tmp0_, _tmp1_);
-	i = (guint) 0;
-	{
-		GList* arg_collection;
-		GList* arg_it;
-		arg_collection = remaining_args;
-		for (arg_it = arg_collection; arg_it != NULL; arg_it = arg_it->next) {
-			char* arg;
-			arg = g_strdup ((const char*) arg_it->data);
-			{
-				char* _tmp2_;
-				(*new_args)[i] = (_tmp2_ = g_strdup (arg), _g_free0 ((*new_args)[i]), _tmp2_);
-				i++;
-				_g_free0 (arg);
-			}
-		}
-	}
 	result = tasks;
 	__g_list_free_g_free0 (remaining_args);
 	return result;
-}
-
-
-static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func) {
-	if ((array != NULL) && (destroy_func != NULL)) {
-		int i;
-		for (i = 0; i < array_length; i = i + 1) {
-			if (((gpointer*) array)[i] != NULL) {
-				destroy_func (((gpointer*) array)[i]);
-			}
-		}
-	}
-}
-
-
-static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func) {
-	_vala_array_destroy (array, array_length, destroy_func);
-	g_free (array);
 }
 
 

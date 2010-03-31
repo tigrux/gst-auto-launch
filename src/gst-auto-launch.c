@@ -35,9 +35,9 @@ typedef struct _Command Command;
 
 typedef struct _Task Task;
 typedef struct _TaskClass TaskClass;
-#define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 #define __g_list_free_g_object_unref0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_object_unref (var), NULL)))
 #define __g_list_free_g_free0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_free (var), NULL)))
+#define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 
 #define TYPE_XML_PARSER (xml_parser_get_type ())
 #define XML_PARSER(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_XML_PARSER, XmlParser))
@@ -72,13 +72,13 @@ void command_destroy (Command* self);
 static void _lambda2_ (void* key, void* val);
 static void __lambda2__gh_func (void* key, void* value, gpointer self);
 GType task_get_type (void);
-GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int args_length1, char*** new_args, int* new_args_length1);
+GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int args_length1);
 gboolean try_to_get_desc_from_xml (char** args, int args_length1, char** pipeline_desc);
+static void _g_list_free_g_object_unref (GList* self);
+static void _g_list_free_g_free (GList* self);
 void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GError** error);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
-static void _g_list_free_g_object_unref (GList* self);
-static void _g_list_free_g_free (GList* self);
 GTimer* auto_pipeline_get_timer (AutoPipeline* self);
 guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
 GMainLoop* auto_pipeline_get_loop (AutoPipeline* self);
@@ -138,9 +138,6 @@ gint _vala_main (char** args, int args_length1) {
 	gint result = 0;
 	GError * _inner_error_;
 	AutoPipeline* auto_pipeline;
-	gint _remaining_args_size_;
-	gint remaining_args_length1;
-	char** remaining_args;
 	GList* tasks;
 	GList* effective_args_list;
 	gboolean should_parse_xml;
@@ -163,20 +160,27 @@ gint _vala_main (char** args, int args_length1) {
 		_g_object_unref0 (auto_pipeline);
 		return result;
 	}
-	remaining_args = (remaining_args_length1 = 0, NULL);
-	tasks = task_scanner_get_tasks_from_args (auto_pipeline_get_scanner (auto_pipeline), args, args_length1, &remaining_args, &remaining_args_length1);
+	tasks = task_scanner_get_tasks_from_args (auto_pipeline_get_scanner (auto_pipeline), args, args_length1);
 	effective_args_list = NULL;
 	{
+		char** _tmp1_ = NULL;
+		gint _tmp0_;
 		char** arg_collection;
 		int arg_collection_length1;
 		int arg_it;
-		arg_collection = remaining_args;
-		arg_collection_length1 = remaining_args_length1;
-		for (arg_it = 0; arg_it < remaining_args_length1; arg_it = arg_it + 1) {
+		arg_collection = (_tmp1_ = args + 1, _tmp0_ = args_length1 - 1, _tmp1_);
+		arg_collection_length1 = _tmp0_;
+		for (arg_it = 0; arg_it < _tmp0_; arg_it = arg_it + 1) {
 			char* arg;
 			arg = g_strdup (arg_collection[arg_it]);
 			{
+				gboolean _tmp2_ = FALSE;
 				if (!g_str_has_prefix (arg, "-")) {
+					_tmp2_ = !string_contains (arg, ":");
+				} else {
+					_tmp2_ = FALSE;
+				}
+				if (_tmp2_) {
 					effective_args_list = g_list_append (effective_args_list, g_strdup (arg));
 				}
 				_g_free0 (arg);
@@ -184,31 +188,27 @@ gint _vala_main (char** args, int args_length1) {
 		}
 	}
 	should_parse_xml = FALSE;
-	if (g_list_length (effective_args_list) == 3) {
-		if (!string_contains ((const char*) g_list_nth_data (effective_args_list, (guint) 2), "=")) {
-			should_parse_xml = TRUE;
-		}
+	if (g_list_length (effective_args_list) == 2) {
+		should_parse_xml = TRUE;
 	}
 	pipeline_desc = NULL;
 	if (should_parse_xml) {
 		should_parse_xml = try_to_get_desc_from_xml (args, args_length1, &pipeline_desc);
 		if (!should_parse_xml) {
-			g_print ("Could get pipeline description from xml file\n");
+			g_print ("Could not get pipeline description from xml file\n");
 		}
 	}
 	if (!should_parse_xml) {
 		guint i;
-		char** _tmp1_;
+		char** _tmp4_;
 		gint _effective_args_size_;
 		gint effective_args_length1;
-		gint _tmp0_;
-		char** effective_args;
-		char* _tmp5_;
-		char** _tmp4_ = NULL;
 		gint _tmp3_;
+		char** effective_args;
+		char* _tmp6_;
 		g_print ("Getting pipeline description from the command line\n");
 		i = (guint) 0;
-		effective_args = (_tmp1_ = g_new0 (char*, (_tmp0_ = g_list_length (effective_args_list)) + 1), effective_args_length1 = _tmp0_, _effective_args_size_ = effective_args_length1, _tmp1_);
+		effective_args = (_tmp4_ = g_new0 (char*, (_tmp3_ = g_list_length (effective_args_list)) + 1), effective_args_length1 = _tmp3_, _effective_args_size_ = effective_args_length1, _tmp4_);
 		{
 			GList* arg_collection;
 			GList* arg_it;
@@ -217,17 +217,27 @@ gint _vala_main (char** args, int args_length1) {
 				char* arg;
 				arg = g_strdup ((const char*) arg_it->data);
 				{
-					char* _tmp2_;
-					effective_args[i] = (_tmp2_ = g_strdup (arg), _g_free0 (effective_args[i]), _tmp2_);
+					char* _tmp5_;
+					effective_args[i] = (_tmp5_ = g_strdup (arg), _g_free0 (effective_args[i]), _tmp5_);
 					i++;
 					_g_free0 (arg);
 				}
 			}
 		}
-		pipeline_desc = (_tmp5_ = g_strjoinv (" ", (_tmp4_ = effective_args + 1, _tmp3_ = effective_args_length1 - 1, _tmp4_)), _g_free0 (pipeline_desc), _tmp5_);
+		pipeline_desc = (_tmp6_ = g_strjoinv (" ", effective_args), _g_free0 (pipeline_desc), _tmp6_);
+		if (!string_contains (pipeline_desc, "!")) {
+			g_print ("Not a valid pipeline\n");
+			result = 1;
+			effective_args = (_vala_array_free (effective_args, effective_args_length1, (GDestroyNotify) g_free), NULL);
+			_g_object_unref0 (auto_pipeline);
+			__g_list_free_g_object_unref0 (tasks);
+			__g_list_free_g_free0 (effective_args_list);
+			_g_free0 (pipeline_desc);
+			return result;
+		}
 		effective_args = (_vala_array_free (effective_args, effective_args_length1, (GDestroyNotify) g_free), NULL);
 	}
-	gst_init (&remaining_args_length1, &remaining_args);
+	gst_init (&args_length1, &args);
 	{
 		g_print ("Pipeline to use is:\n%s\n\n", pipeline_desc);
 		auto_pipeline_parse_launch (auto_pipeline, pipeline_desc, &_inner_error_);
@@ -249,7 +259,6 @@ gint _vala_main (char** args, int args_length1) {
 			result = 1;
 			_g_error_free0 (e);
 			_g_object_unref0 (auto_pipeline);
-			remaining_args = (_vala_array_free (remaining_args, remaining_args_length1, (GDestroyNotify) g_free), NULL);
 			__g_list_free_g_object_unref0 (tasks);
 			__g_list_free_g_free0 (effective_args_list);
 			_g_free0 (pipeline_desc);
@@ -259,7 +268,6 @@ gint _vala_main (char** args, int args_length1) {
 	__finally0:
 	if (_inner_error_ != NULL) {
 		_g_object_unref0 (auto_pipeline);
-		remaining_args = (_vala_array_free (remaining_args, remaining_args_length1, (GDestroyNotify) g_free), NULL);
 		__g_list_free_g_object_unref0 (tasks);
 		__g_list_free_g_free0 (effective_args_list);
 		_g_free0 (pipeline_desc);
@@ -285,7 +293,6 @@ gint _vala_main (char** args, int args_length1) {
 	auto_pipeline_set_state (auto_pipeline, GST_STATE_NULL);
 	result = 0;
 	_g_object_unref0 (auto_pipeline);
-	remaining_args = (_vala_array_free (remaining_args, remaining_args_length1, (GDestroyNotify) g_free), NULL);
 	__g_list_free_g_object_unref0 (tasks);
 	__g_list_free_g_free0 (effective_args_list);
 	_g_free0 (pipeline_desc);

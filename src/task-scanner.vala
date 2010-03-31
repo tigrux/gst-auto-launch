@@ -9,7 +9,7 @@ class TaskScanner: Scanner {
         scanner_register_symbols(this, 0);
     }
 
-    public List<Task> get_tasks_from_args(string[] args, out string[] new_args) {
+    public List<Task> get_tasks_from_args(string[] args) {
         double last_time_seconds = 0;
         var remaining_args = new List<string> ();
         var tasks = new List<Task> ();
@@ -63,14 +63,6 @@ class TaskScanner: Scanner {
             tasks.append(new Task(seconds, p_command));
             last_time_seconds = seconds;
         }
-        
-        new_args = new string[remaining_args.length()];
-        uint i = 0;
-        foreach(var arg in remaining_args) {
-            new_args[i] = arg;
-            i++;
-        }
-
         return tasks;
     }
 }
