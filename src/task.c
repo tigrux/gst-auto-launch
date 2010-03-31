@@ -84,8 +84,8 @@ Task* task_new (double seconds, Command* command);
 Task* task_construct (GType object_type, double seconds, Command* command);
 double task_get_seconds (Task* self);
 GTimer* auto_pipeline_get_timer (AutoPipeline* self);
-static gboolean _lambda0_ (Block1Data* _data1_);
-static gboolean __lambda0__gsource_func (gpointer self);
+static gboolean _lambda1_ (Block1Data* _data1_);
+static gboolean __lambda1__gsource_func (gpointer self);
 static Block1Data* block1_data_ref (Block1Data* _data1_);
 static void block1_data_unref (Block1Data* _data1_);
 guint task_exec (Task* self, AutoPipeline* ctx);
@@ -108,9 +108,9 @@ Task* task_new (double seconds, Command* command) {
 }
 
 
-static gboolean _lambda0_ (Block1Data* _data1_) {
+static gboolean _lambda1_ (Block1Data* _data1_) {
 	Task * self;
-	gboolean result;
+	gboolean result = FALSE;
 	self = _data1_->self;
 	g_print ("Time = %0.3lf\n", g_timer_elapsed (auto_pipeline_get_timer (_data1_->ctx), NULL));
 	(*self->priv->_command).function (_data1_->ctx, (*self->priv->_command).function_target);
@@ -119,8 +119,8 @@ static gboolean _lambda0_ (Block1Data* _data1_) {
 }
 
 
-static gboolean __lambda0__gsource_func (gpointer self) {
-	return _lambda0_ (self);
+static gboolean __lambda1__gsource_func (gpointer self) {
+	return _lambda1_ (self);
 }
 
 
@@ -145,7 +145,7 @@ static void block1_data_unref (Block1Data* _data1_) {
 
 
 guint task_exec (Task* self, AutoPipeline* ctx) {
-	guint result;
+	guint result = 0U;
 	Block1Data* _data1_;
 	g_return_val_if_fail (self != NULL, 0U);
 	g_return_val_if_fail (ctx != NULL, 0U);
@@ -153,7 +153,7 @@ guint task_exec (Task* self, AutoPipeline* ctx) {
 	_data1_->_ref_count_ = 1;
 	_data1_->self = g_object_ref (self);
 	_data1_->ctx = _g_object_ref0 (ctx);
-	result = g_timeout_add_full (G_PRIORITY_DEFAULT, (guint) (task_get_seconds (self) * 1000), __lambda0__gsource_func, block1_data_ref (_data1_), block1_data_unref);
+	result = g_timeout_add_full (G_PRIORITY_DEFAULT, (guint) (task_get_seconds (self) * 1000), __lambda1__gsource_func, block1_data_ref (_data1_), block1_data_unref);
 	block1_data_unref (_data1_);
 	return result;
 }
@@ -189,12 +189,14 @@ static void task_finalize (GObject* obj) {
 
 
 GType task_get_type (void) {
-	static GType task_type_id = 0;
-	if (task_type_id == 0) {
+	static volatile gsize task_type_id__volatile = 0;
+	if (g_once_init_enter (&task_type_id__volatile)) {
 		static const GTypeInfo g_define_type_info = { sizeof (TaskClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) task_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (Task), 0, (GInstanceInitFunc) task_instance_init, NULL };
+		GType task_type_id;
 		task_type_id = g_type_register_static (G_TYPE_OBJECT, "Task", &g_define_type_info, 0);
+		g_once_init_leave (&task_type_id__volatile, task_type_id);
 	}
-	return task_type_id;
+	return task_type_id__volatile;
 }
 
 

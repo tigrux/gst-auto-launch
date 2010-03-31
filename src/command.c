@@ -74,11 +74,13 @@ void command_free (Command* self) {
 
 
 GType command_get_type (void) {
-	static GType command_type_id = 0;
-	if (command_type_id == 0) {
+	static volatile gsize command_type_id__volatile = 0;
+	if (g_once_init_enter (&command_type_id__volatile)) {
+		GType command_type_id;
 		command_type_id = g_boxed_type_register_static ("Command", (GBoxedCopyFunc) command_dup, (GBoxedFreeFunc) command_free);
+		g_once_init_leave (&command_type_id__volatile, command_type_id);
 	}
-	return command_type_id;
+	return command_type_id__volatile;
 }
 
 

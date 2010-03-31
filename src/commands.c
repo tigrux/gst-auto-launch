@@ -57,11 +57,11 @@ void command_destroy (Command* self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
 GMainLoop* auto_pipeline_get_loop (AutoPipeline* self);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
-static void _lambda1_ (void* data);
-static void __lambda1__gfunc (void* data, gpointer self);
+static void _lambda0_ (void* data);
+static void __lambda0__gfunc (void* data, gpointer self);
 void scanner_register_symbols (GScanner* scanner, guint scope);
 
-static const Command COMMANDS[] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", _command_pause_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"stop", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}, {NULL}};
+const Command COMMANDS[8] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", _command_pause_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"stop", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}, {NULL}};
 
 
 static void _command_play_command_func (AutoPipeline* ctx, gpointer self) {
@@ -135,7 +135,7 @@ static gpointer _gst_object_ref0 (gpointer self) {
 
 
 static gboolean string_contains (const char* self, const char* needle) {
-	gboolean result;
+	gboolean result = FALSE;
 	g_return_val_if_fail (self != NULL, FALSE);
 	g_return_val_if_fail (needle != NULL, FALSE);
 	result = strstr (self, needle) != NULL;
@@ -143,7 +143,7 @@ static gboolean string_contains (const char* self, const char* needle) {
 }
 
 
-static void _lambda1_ (void* data) {
+static void _lambda0_ (void* data) {
 	void* _tmp0_;
 	GstElement* elem;
 	gboolean _tmp1_ = FALSE;
@@ -161,8 +161,8 @@ static void _lambda1_ (void* data) {
 }
 
 
-static void __lambda1__gfunc (void* data, gpointer self) {
-	_lambda1_ (data);
+static void __lambda0__gfunc (void* data, gpointer self) {
+	_lambda0_ (data);
 }
 
 
@@ -170,7 +170,7 @@ void command_eos (AutoPipeline* ctx) {
 	GstIterator* _tmp0_;
 	g_return_if_fail (ctx != NULL);
 	g_print ("Trying to send eos to the sources\n");
-	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (ctx)), __lambda1__gfunc, NULL);
+	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (ctx)), __lambda0__gfunc, NULL);
 	_gst_iterator_free0 (_tmp0_);
 }
 

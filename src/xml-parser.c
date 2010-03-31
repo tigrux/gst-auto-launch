@@ -81,7 +81,7 @@ static void _xml_parser_text_gmarkup_parser_text_func (GMarkupParseContext* cont
 
 
 char* xml_parser_get (XmlParser* self, const char* key) {
-	char* result;
+	char* result = NULL;
 	g_return_val_if_fail (self != NULL, NULL);
 	g_return_val_if_fail (key != NULL, NULL);
 	result = g_strdup ((const char*) g_hash_table_lookup (self->priv->_ht, key));
@@ -90,7 +90,7 @@ char* xml_parser_get (XmlParser* self, const char* key) {
 
 
 gboolean xml_parser_parse (XmlParser* self, const char* content, GError** error) {
-	gboolean result;
+	gboolean result = FALSE;
 	GError * _inner_error_;
 	gboolean _tmp0_;
 	g_return_val_if_fail (self != NULL, FALSE);
@@ -113,7 +113,7 @@ gboolean xml_parser_parse (XmlParser* self, const char* content, GError** error)
 
 
 gboolean xml_parser_parse_file (XmlParser* self, const char* filename, GError** error) {
-	gboolean result;
+	gboolean result = FALSE;
 	GError * _inner_error_;
 	char* content;
 	char* _tmp2_;
@@ -183,7 +183,7 @@ static void xml_parser_end (XmlParser* self, GMarkupParseContext* context, const
 
 
 static char* string_strip (const char* self) {
-	char* result;
+	char* result = NULL;
 	char* _result_;
 	g_return_val_if_fail (self != NULL, NULL);
 	_result_ = g_strdup (self);
@@ -261,12 +261,14 @@ static void xml_parser_finalize (GObject* obj) {
 
 
 GType xml_parser_get_type (void) {
-	static GType xml_parser_type_id = 0;
-	if (xml_parser_type_id == 0) {
+	static volatile gsize xml_parser_type_id__volatile = 0;
+	if (g_once_init_enter (&xml_parser_type_id__volatile)) {
 		static const GTypeInfo g_define_type_info = { sizeof (XmlParserClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) xml_parser_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (XmlParser), 0, (GInstanceInitFunc) xml_parser_instance_init, NULL };
+		GType xml_parser_type_id;
 		xml_parser_type_id = g_type_register_static (G_TYPE_OBJECT, "XmlParser", &g_define_type_info, 0);
+		g_once_init_leave (&xml_parser_type_id__volatile, xml_parser_type_id);
 	}
-	return xml_parser_type_id;
+	return xml_parser_type_id__volatile;
 }
 
 
