@@ -39,6 +39,7 @@ typedef struct _TaskClass TaskClass;
 #define __g_list_free_g_object_unref0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_object_unref (var), NULL)))
 #define __g_list_free_g_free0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_free (var), NULL)))
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
+#define _g_main_loop_unref0(var) ((var == NULL) ? NULL : (var = (g_main_loop_unref (var), NULL)))
 
 #define TYPE_XML_PARSER (xml_parser_get_type ())
 #define XML_PARSER(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_XML_PARSER, XmlParser))
@@ -83,7 +84,7 @@ GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
 GTimer* auto_pipeline_get_timer (AutoPipeline* self);
 guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
-GMainLoop* auto_pipeline_get_loop (AutoPipeline* self);
+static void _g_main_loop_quit_auto_pipeline_quit (AutoPipeline* _sender, gpointer self);
 gint _vala_main (char** args, int args_length1);
 XmlParser* xml_parser_new (void);
 XmlParser* xml_parser_construct (GType object_type);
@@ -136,6 +137,11 @@ static gpointer _g_object_ref0 (gpointer self) {
 }
 
 
+static void _g_main_loop_quit_auto_pipeline_quit (AutoPipeline* _sender, gpointer self) {
+	g_main_loop_quit (self);
+}
+
+
 gint _vala_main (char** args, int args_length1) {
 	gint result = 0;
 	GError * _inner_error_;
@@ -145,6 +151,7 @@ gint _vala_main (char** args, int args_length1) {
 	GList* effective_args_list;
 	gboolean should_parse_xml;
 	char* pipeline_desc;
+	GMainLoop* loop;
 	_inner_error_ = NULL;
 	auto_pipeline = auto_pipeline_new ();
 	scanner = task_scanner_new ();
@@ -297,7 +304,9 @@ gint _vala_main (char** args, int args_length1) {
 			}
 		}
 	}
-	g_main_loop_run (auto_pipeline_get_loop (auto_pipeline));
+	loop = g_main_loop_new (NULL, FALSE);
+	g_signal_connect (auto_pipeline, "quit", (GCallback) _g_main_loop_quit_auto_pipeline_quit, loop);
+	g_main_loop_run (loop);
 	auto_pipeline_set_state (auto_pipeline, GST_STATE_NULL);
 	result = 0;
 	_g_object_unref0 (auto_pipeline);
@@ -305,6 +314,7 @@ gint _vala_main (char** args, int args_length1) {
 	__g_list_free_g_object_unref0 (tasks);
 	__g_list_free_g_free0 (effective_args_list);
 	_g_free0 (pipeline_desc);
+	_g_main_loop_unref0 (loop);
 	return result;
 }
 

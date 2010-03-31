@@ -21,7 +21,6 @@ typedef struct _AutoPipelineClass AutoPipelineClass;
 typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 #define _g_timer_destroy0(var) ((var == NULL) ? NULL : (var = (g_timer_destroy (var), NULL)))
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
-#define _g_main_loop_unref0(var) ((var == NULL) ? NULL : (var = (g_main_loop_unref (var), NULL)))
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 #define _g_free0(var) (var = (g_free (var), NULL))
 
@@ -47,7 +46,6 @@ struct _AutoPipelineClass {
 struct _AutoPipelinePrivate {
 	GTimer* _timer;
 	GstBin* _pipeline;
-	GMainLoop* _loop;
 };
 
 
@@ -59,7 +57,6 @@ enum  {
 	AUTO_PIPELINE_DUMMY_PROPERTY,
 	AUTO_PIPELINE_STATE,
 	AUTO_PIPELINE_PIPELINE,
-	AUTO_PIPELINE_LOOP,
 	AUTO_PIPELINE_TIMER
 };
 static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* message);
@@ -73,8 +70,6 @@ AutoPipeline* auto_pipeline_new (void);
 AutoPipeline* auto_pipeline_construct (GType object_type);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 void auto_pipeline_set_pipeline (AutoPipeline* self, GstBin* value);
-GMainLoop* auto_pipeline_get_loop (AutoPipeline* self);
-void auto_pipeline_set_loop (AutoPipeline* self, GMainLoop* value);
 GTimer* auto_pipeline_get_timer (AutoPipeline* self);
 static GObject * auto_pipeline_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties);
 static void auto_pipeline_finalize (GObject* obj);
@@ -132,7 +127,7 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 				s = NULL;
 				(gst_message_parse_error (message, &_tmp0_, &_tmp2_), e = (_tmp1_ = _tmp0_, _g_error_free0 (e), _tmp1_));
 				s = (_tmp3_ = _tmp2_, _g_free0 (s), _tmp3_);
-				g_critical ("auto-pipeline.vala:50: Bus error: %s %s\n", e->message, s);
+				g_critical ("auto-pipeline.vala:47: Bus error: %s %s\n", e->message, s);
 				_g_error_free0 (e);
 				_g_free0 (s);
 				break;
@@ -143,7 +138,7 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 			{
 				g_print ("Got eos\n");
 				auto_pipeline_set_state (self, GST_STATE_NULL);
-				g_main_loop_quit (self->priv->_loop);
+				g_signal_emit_by_name (self, "quit");
 				break;
 			}
 		}
@@ -199,27 +194,6 @@ void auto_pipeline_set_pipeline (AutoPipeline* self, GstBin* value) {
 }
 
 
-GMainLoop* auto_pipeline_get_loop (AutoPipeline* self) {
-	GMainLoop* result;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = self->priv->_loop;
-	return result;
-}
-
-
-static gpointer _g_main_loop_ref0 (gpointer self) {
-	return self ? g_main_loop_ref (self) : NULL;
-}
-
-
-void auto_pipeline_set_loop (AutoPipeline* self, GMainLoop* value) {
-	GMainLoop* _tmp0_;
-	g_return_if_fail (self != NULL);
-	self->priv->_loop = (_tmp0_ = _g_main_loop_ref0 (value), _g_main_loop_unref0 (self->priv->_loop), _tmp0_);
-	g_object_notify ((GObject *) self, "loop");
-}
-
-
 GTimer* auto_pipeline_get_timer (AutoPipeline* self) {
 	GTimer* result;
 	g_return_val_if_fail (self != NULL, NULL);
@@ -236,12 +210,10 @@ static GObject * auto_pipeline_constructor (GType type, guint n_construct_proper
 	obj = parent_class->constructor (type, n_construct_properties, construct_properties);
 	self = AUTO_PIPELINE (obj);
 	{
-		GMainLoop* _tmp0_;
 		GTimeVal current_tv = {0};
-		GTimer* _tmp1_;
-		self->priv->_loop = (_tmp0_ = g_main_loop_new (NULL, FALSE), _g_main_loop_unref0 (self->priv->_loop), _tmp0_);
+		GTimer* _tmp0_;
 		g_get_current_time (&current_tv);
-		self->priv->_timer = (_tmp1_ = g_timer_new (), _g_timer_destroy0 (self->priv->_timer), _tmp1_);
+		self->priv->_timer = (_tmp0_ = g_timer_new (), _g_timer_destroy0 (self->priv->_timer), _tmp0_);
 	}
 	return obj;
 }
@@ -256,8 +228,8 @@ static void auto_pipeline_class_init (AutoPipelineClass * klass) {
 	G_OBJECT_CLASS (klass)->finalize = auto_pipeline_finalize;
 	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_STATE, g_param_spec_enum ("state", "state", "state", GST_TYPE_STATE, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_PIPELINE, g_param_spec_object ("pipeline", "pipeline", "pipeline", GST_TYPE_BIN, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
-	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_LOOP, g_param_spec_pointer ("loop", "loop", "loop", G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_TIMER, g_param_spec_pointer ("timer", "timer", "timer", G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
+	g_signal_new ("quit", TYPE_AUTO_PIPELINE, G_SIGNAL_RUN_LAST, 0, NULL, NULL, g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
 }
 
 
@@ -271,7 +243,6 @@ static void auto_pipeline_finalize (GObject* obj) {
 	self = AUTO_PIPELINE (obj);
 	_g_timer_destroy0 (self->priv->_timer);
 	_gst_object_unref0 (self->priv->_pipeline);
-	_g_main_loop_unref0 (self->priv->_loop);
 	G_OBJECT_CLASS (auto_pipeline_parent_class)->finalize (obj);
 }
 
@@ -295,9 +266,6 @@ static void auto_pipeline_get_property (GObject * object, guint property_id, GVa
 		case AUTO_PIPELINE_PIPELINE:
 		g_value_set_object (value, auto_pipeline_get_pipeline (self));
 		break;
-		case AUTO_PIPELINE_LOOP:
-		g_value_set_pointer (value, auto_pipeline_get_loop (self));
-		break;
 		case AUTO_PIPELINE_TIMER:
 		g_value_set_pointer (value, auto_pipeline_get_timer (self));
 		break;
@@ -317,9 +285,6 @@ static void auto_pipeline_set_property (GObject * object, guint property_id, con
 		break;
 		case AUTO_PIPELINE_PIPELINE:
 		auto_pipeline_set_pipeline (self, g_value_get_object (value));
-		break;
-		case AUTO_PIPELINE_LOOP:
-		auto_pipeline_set_loop (self, g_value_get_pointer (value));
 		break;
 		default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);

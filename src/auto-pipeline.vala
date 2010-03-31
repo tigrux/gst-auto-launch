@@ -3,10 +3,12 @@ class AutoPipeline: Object {
     Timer _timer;
 
     construct {
-        _loop = new MainLoop();
         var current_tv = TimeVal();
         _timer = new Timer();
     }
+
+
+    public signal void quit();
 
 
     public Gst.State state {
@@ -17,11 +19,6 @@ class AutoPipeline: Object {
 
 
     public Gst.Bin pipeline {
-        get; set;
-    }
-
-
-    public MainLoop loop {
         get; set;
     }
 
@@ -53,7 +50,7 @@ class AutoPipeline: Object {
             case Gst.MessageType.EOS: {
                 print("Got eos\n");
                 state = Gst.State.NULL;
-                _loop.quit();
+                quit();
                 break;
             }
             default:

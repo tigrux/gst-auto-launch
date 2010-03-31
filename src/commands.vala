@@ -36,7 +36,7 @@ void command_null(AutoPipeline ctx) {
 
 void command_quit(AutoPipeline ctx) {
     print("Quitting\n");
-    ctx.loop.quit();
+    ctx.quit();
 }
 
 

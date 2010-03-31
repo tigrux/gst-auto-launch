@@ -55,7 +55,6 @@ void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
 void command_destroy (Command* self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
-GMainLoop* auto_pipeline_get_loop (AutoPipeline* self);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 static void _lambda1_ (void* data);
 static void __lambda1__gfunc (void* data, gpointer self);
@@ -125,7 +124,7 @@ void command_null (AutoPipeline* ctx) {
 void command_quit (AutoPipeline* ctx) {
 	g_return_if_fail (ctx != NULL);
 	g_print ("Quitting\n");
-	g_main_loop_quit (auto_pipeline_get_loop (ctx));
+	g_signal_emit_by_name (ctx, "quit");
 }
 
 

@@ -76,7 +76,9 @@ int main(string[] args) {
     foreach(var task in tasks)
         auto_pipeline.exec_task(task);
 
-    auto_pipeline.loop.run();
+    var loop = new MainLoop();
+    auto_pipeline.quit += loop.quit;
+    loop.run();
     auto_pipeline.state = Gst.State.NULL;
     return 0;
 }
