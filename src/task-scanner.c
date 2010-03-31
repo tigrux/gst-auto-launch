@@ -111,7 +111,7 @@ GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int arg
 			char* arg;
 			arg = g_strdup (arg_collection[arg_it]);
 			{
-				gint relative = 0;
+				gint relative;
 				GTokenType tok_type;
 				double seconds;
 				Command* p_command;
@@ -121,6 +121,7 @@ GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int arg
 					continue;
 				}
 				g_scanner_input_text ((GScanner*) self, arg, (guint) string_get_length (arg));
+				relative = 0;
 				tok_type = g_scanner_peek_next_token ((GScanner*) self);
 				if (tok_type == G_TOKEN_EOF) {
 					_g_free0 (arg);
@@ -131,8 +132,6 @@ GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int arg
 				} else {
 					if (tok_type == '-') {
 						relative = -1;
-					} else {
-						relative = 0;
 					}
 				}
 				if (relative != 0) {

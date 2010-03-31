@@ -9,6 +9,7 @@ class TaskScanner: Scanner {
         scanner_register_symbols(this, 0);
     }
 
+
     public List<Task> get_tasks_from_args(string[] args) {
         double last_time_seconds = 0;
         var tasks = new List<Task> ();
@@ -19,7 +20,7 @@ class TaskScanner: Scanner {
 
             input_text(arg, (uint)arg.length);
 
-            int relative;
+            var relative = 0;
             var tok_type = peek_next_token();
             if(tok_type == TokenType.EOF)
                 break;
@@ -28,8 +29,6 @@ class TaskScanner: Scanner {
                 relative = 1;
             else if(tok_type == '-')
                 relative = -1;
-            else
-                relative = 0;
             
             if(relative != 0)
                 get_next_token();
@@ -37,7 +36,7 @@ class TaskScanner: Scanner {
             if(peek_next_token() != TokenType.FLOAT)
                 continue;
             get_next_token();
-            double seconds = value.float;
+            var seconds = value.float;
 
             if(relative != 0)
                 seconds = last_time_seconds + relative*seconds;
