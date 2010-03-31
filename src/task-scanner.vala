@@ -11,14 +11,11 @@ class TaskScanner: Scanner {
 
     public List<Task> get_tasks_from_args(string[] args) {
         double last_time_seconds = 0;
-        var remaining_args = new List<string> ();
         var tasks = new List<Task> ();
 
         foreach(var arg in args) {
-            if(arg.has_prefix("--")) {
-                remaining_args.append(arg);
+            if(arg.has_prefix("--"))
                 continue;
-            }
 
             input_text(arg, (uint)arg.length);
 
@@ -37,30 +34,25 @@ class TaskScanner: Scanner {
             if(relative != 0)
                 get_next_token();
 
-            if(peek_next_token() != TokenType.FLOAT) {
-                remaining_args.append(arg);
+            if(peek_next_token() != TokenType.FLOAT)
                 continue;
-            }
             get_next_token();
             double seconds = value.float;
 
             if(relative != 0)
                 seconds = last_time_seconds + relative*seconds;
 
-            if(peek_next_token() != ':') {
-                remaining_args.append(arg);
+            if(peek_next_token() != ':')
                 continue;
-            }
             get_next_token();
 
-            if(peek_next_token() != TokenType.SYMBOL) {
-                remaining_args.append(arg);
+            if(peek_next_token() != TokenType.SYMBOL)
                 continue;
-            }
             get_next_token();
             var p_command = (Command*)value.symbol;
 
-            tasks.append(new Task(seconds, p_command));
+            var task = new Task(seconds, p_command);
+            tasks.append(task);
             last_time_seconds = seconds;
         }
         return tasks;

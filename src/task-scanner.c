@@ -34,7 +34,7 @@ typedef struct _TaskClass TaskClass;
 typedef struct _AutoPipeline AutoPipeline;
 typedef struct _AutoPipelineClass AutoPipelineClass;
 typedef struct _Command Command;
-#define __g_list_free_g_free0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_free (var), NULL)))
+#define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define __g_list_free_g_object_unref0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_object_unref (var), NULL)))
 
 typedef void (*CommandFunc) (AutoPipeline* ctx, void* user_data);
@@ -60,7 +60,6 @@ void command_copy (const Command* self, Command* dest);
 void command_destroy (Command* self);
 Task* task_new (double seconds, Command* command);
 Task* task_construct (GType object_type, double seconds, Command* command);
-static void _g_list_free_g_free (GList* self);
 static void _g_list_free_g_object_unref (GList* self);
 GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int args_length1);
 
@@ -84,9 +83,8 @@ static glong string_get_length (const char* self) {
 }
 
 
-static void _g_list_free_g_free (GList* self) {
-	g_list_foreach (self, (GFunc) g_free, NULL);
-	g_list_free (self);
+static gpointer _g_object_ref0 (gpointer self) {
+	return self ? g_object_ref (self) : NULL;
 }
 
 
@@ -99,11 +97,9 @@ static void _g_list_free_g_object_unref (GList* self) {
 GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int args_length1) {
 	GList* result = NULL;
 	double last_time_seconds;
-	GList* remaining_args;
 	GList* tasks;
 	g_return_val_if_fail (self != NULL, NULL);
 	last_time_seconds = (double) 0;
-	remaining_args = NULL;
 	tasks = NULL;
 	{
 		char** arg_collection;
@@ -119,8 +115,8 @@ GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int arg
 				GTokenType tok_type;
 				double seconds;
 				Command* p_command;
+				Task* task;
 				if (g_str_has_prefix (arg, "--")) {
-					remaining_args = g_list_append (remaining_args, g_strdup (arg));
 					_g_free0 (arg);
 					continue;
 				}
@@ -143,7 +139,6 @@ GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int arg
 					g_scanner_get_next_token ((GScanner*) self);
 				}
 				if (g_scanner_peek_next_token ((GScanner*) self) != G_TOKEN_FLOAT) {
-					remaining_args = g_list_append (remaining_args, g_strdup (arg));
 					_g_free0 (arg);
 					continue;
 				}
@@ -153,26 +148,25 @@ GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int arg
 					seconds = last_time_seconds + (relative * seconds);
 				}
 				if (g_scanner_peek_next_token ((GScanner*) self) != ':') {
-					remaining_args = g_list_append (remaining_args, g_strdup (arg));
 					_g_free0 (arg);
 					continue;
 				}
 				g_scanner_get_next_token ((GScanner*) self);
 				if (g_scanner_peek_next_token ((GScanner*) self) != G_TOKEN_SYMBOL) {
-					remaining_args = g_list_append (remaining_args, g_strdup (arg));
 					_g_free0 (arg);
 					continue;
 				}
 				g_scanner_get_next_token ((GScanner*) self);
 				p_command = (Command*) ((GScanner*) self)->value.v_symbol;
-				tasks = g_list_append (tasks, task_new (seconds, p_command));
+				task = task_new (seconds, p_command);
+				tasks = g_list_append (tasks, _g_object_ref0 (task));
 				last_time_seconds = seconds;
 				_g_free0 (arg);
+				_g_object_unref0 (task);
 			}
 		}
 	}
 	result = tasks;
-	__g_list_free_g_free0 (remaining_args);
 	return result;
 }
 
