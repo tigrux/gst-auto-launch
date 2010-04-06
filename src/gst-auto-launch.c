@@ -22,10 +22,6 @@ typedef struct _AutoPipelineClass AutoPipelineClass;
 typedef GScanner TaskScanner;
 
 #define TYPE_COMMAND (command_get_type ())
-typedef struct _Command Command;
-#define _g_free0(var) (var = (g_free (var), NULL))
-#define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
-#define _g_scanner_destroy0(var) ((var == NULL) ? NULL : (var = (g_scanner_destroy (var), NULL)))
 
 #define TYPE_TASK (task_get_type ())
 #define TASK(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_TASK, Task))
@@ -36,6 +32,10 @@ typedef struct _Command Command;
 
 typedef struct _Task Task;
 typedef struct _TaskClass TaskClass;
+typedef struct _Command Command;
+#define _g_free0(var) (var = (g_free (var), NULL))
+#define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
+#define _g_scanner_destroy0(var) ((var == NULL) ? NULL : (var = (g_scanner_destroy (var), NULL)))
 #define __g_list_free_g_object_unref0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_object_unref (var), NULL)))
 #define __g_list_free_g_free0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_free (var), NULL)))
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
@@ -51,7 +51,7 @@ typedef struct _TaskClass TaskClass;
 typedef struct _XmlParser XmlParser;
 typedef struct _XmlParserClass XmlParserClass;
 
-typedef void (*CommandFunc) (AutoPipeline* ctx, void* user_data);
+typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
@@ -68,13 +68,13 @@ GType auto_pipeline_get_type (void);
 TaskScanner* task_scanner_new (void);
 TaskScanner* task_scanner_new (void);
 GType command_get_type (void);
+GType task_get_type (void);
 Command* command_dup (const Command* self);
 void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
 void command_destroy (Command* self);
 static void _lambda2_ (void* key, void* val);
 static void __lambda2__gh_func (void* key, void* value, gpointer self);
-GType task_get_type (void);
 GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int args_length1);
 gboolean try_to_get_desc_from_xml (char** args, int args_length1, char** pipeline_desc);
 static void _g_list_free_g_object_unref (GList* self);

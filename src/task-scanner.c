@@ -38,7 +38,7 @@ typedef struct _Command Command;
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define __g_list_free_g_object_unref0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_object_unref (var), NULL)))
 
-typedef void (*CommandFunc) (AutoPipeline* ctx, void* user_data);
+typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
@@ -61,8 +61,10 @@ void command_copy (const Command* self, Command* dest);
 void command_destroy (Command* self);
 Task* task_new (double seconds, Command* command);
 Task* task_construct (GType object_type, double seconds, Command* command);
+GValueArray* task_get_arguments (Task* self);
 static void _g_list_free_g_object_unref (GList* self);
 GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int args_length1);
+static int _vala_strcmp0 (const char * str1, const char * str2);
 
 
 
@@ -70,7 +72,6 @@ TaskScanner* task_scanner_new (void) {
 	TaskScanner* self;
 	self = (TaskScanner*) g_scanner_new (NULL);
 	(*((GScanner*) self)->config).scan_identifier_1char = FALSE;
-	(*((GScanner*) self)->config).int_2_float = TRUE;
 	scanner_register_symbols ((GScanner*) self, (guint) 0);
 	return self;
 }
@@ -119,7 +120,8 @@ GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int arg
 			{
 				gint relative;
 				GTokenType tok_type;
-				double seconds;
+				gboolean _tmp0_ = FALSE;
+				double seconds = 0.0;
 				Command* command;
 				Task* task;
 				if (g_str_has_prefix (arg, "--")) {
@@ -143,12 +145,22 @@ GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int arg
 				if (relative != 0) {
 					g_scanner_get_next_token ((GScanner*) self);
 				}
-				if (g_scanner_peek_next_token ((GScanner*) self) != G_TOKEN_FLOAT) {
+				tok_type = g_scanner_peek_next_token ((GScanner*) self);
+				if (tok_type != G_TOKEN_FLOAT) {
+					_tmp0_ = tok_type != G_TOKEN_INT;
+				} else {
+					_tmp0_ = FALSE;
+				}
+				if (_tmp0_) {
 					_g_free0 (arg);
 					continue;
 				}
 				g_scanner_get_next_token ((GScanner*) self);
-				seconds = ((GScanner*) self)->value.v_float;
+				if (tok_type == G_TOKEN_FLOAT) {
+					seconds = ((GScanner*) self)->value.v_float;
+				} else {
+					seconds = (double) ((GScanner*) self)->value.v_int;
+				}
 				if (relative != 0) {
 					seconds = last_time_seconds + (relative * seconds);
 				}
@@ -164,6 +176,54 @@ GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int arg
 				g_scanner_get_next_token ((GScanner*) self);
 				command = _command_dup0 ((Command*) ((GScanner*) self)->value.v_symbol);
 				task = task_new (seconds, command);
+				while (TRUE) {
+					if (!(g_scanner_peek_next_token ((GScanner*) self) == ':')) {
+						break;
+					}
+					g_scanner_get_next_token ((GScanner*) self);
+					tok_type = g_scanner_get_next_token ((GScanner*) self);
+					switch (tok_type) {
+						case G_TOKEN_INT:
+						{
+							GValue _tmp2_;
+							GValue _tmp1_ = {0};
+							g_value_array_append (task_get_arguments (task), (_tmp2_ = (g_value_init (&_tmp1_, G_TYPE_ULONG), g_value_set_ulong (&_tmp1_, ((GScanner*) self)->value.v_int), _tmp1_), &_tmp2_));
+							break;
+						}
+						case G_TOKEN_FLOAT:
+						{
+							GValue _tmp4_;
+							GValue _tmp3_ = {0};
+							g_value_array_append (task_get_arguments (task), (_tmp4_ = (g_value_init (&_tmp3_, G_TYPE_DOUBLE), g_value_set_double (&_tmp3_, ((GScanner*) self)->value.v_float), _tmp3_), &_tmp4_));
+							break;
+						}
+						case G_TOKEN_IDENTIFIER:
+						case G_TOKEN_STRING:
+						{
+							if (_vala_strcmp0 (((GScanner*) self)->value.v_string, "true") == 0) {
+								GValue _tmp6_;
+								GValue _tmp5_ = {0};
+								g_value_array_append (task_get_arguments (task), (_tmp6_ = (g_value_init (&_tmp5_, G_TYPE_BOOLEAN), g_value_set_boolean (&_tmp5_, TRUE), _tmp5_), &_tmp6_));
+							} else {
+								if (_vala_strcmp0 (((GScanner*) self)->value.v_string, "false") == 0) {
+									GValue _tmp8_;
+									GValue _tmp7_ = {0};
+									g_value_array_append (task_get_arguments (task), (_tmp8_ = (g_value_init (&_tmp7_, G_TYPE_BOOLEAN), g_value_set_boolean (&_tmp7_, FALSE), _tmp7_), &_tmp8_));
+								} else {
+									GValue _tmp10_;
+									GValue _tmp9_ = {0};
+									g_value_array_append (task_get_arguments (task), (_tmp10_ = (g_value_init (&_tmp9_, G_TYPE_STRING), g_value_set_string (&_tmp9_, ((GScanner*) self)->value.v_string), _tmp9_), &_tmp10_));
+								}
+							}
+							break;
+						}
+						default:
+						{
+							g_print ("** TokType = %c\n", (gint) tok_type);
+							break;
+						}
+					}
+				}
 				tasks = g_list_append (tasks, _g_object_ref0 (task));
 				last_time_seconds = seconds;
 				_g_free0 (arg);
@@ -174,6 +234,17 @@ GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int arg
 	}
 	result = tasks;
 	return result;
+}
+
+
+static int _vala_strcmp0 (const char * str1, const char * str2) {
+	if (str1 == NULL) {
+		return -(str1 != str2);
+	}
+	if (str2 == NULL) {
+		return str1 != str2;
+	}
+	return strcmp (str1, str2);
 }
 
 

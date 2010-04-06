@@ -33,6 +33,7 @@ typedef struct _TaskPrivate TaskPrivate;
 typedef struct _AutoPipeline AutoPipeline;
 typedef struct _AutoPipelineClass AutoPipelineClass;
 typedef struct _Command Command;
+#define _g_value_array_free0(var) ((var == NULL) ? NULL : (var = (g_value_array_free (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 typedef struct _Block1Data Block1Data;
 
@@ -45,7 +46,7 @@ struct _TaskClass {
 	GObjectClass parent_class;
 };
 
-typedef void (*CommandFunc) (AutoPipeline* ctx, void* user_data);
+typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
@@ -57,6 +58,7 @@ struct _Command {
 struct _TaskPrivate {
 	double _seconds;
 	Command _command;
+	GValueArray* _arguments;
 };
 
 struct _Block1Data {
@@ -78,7 +80,8 @@ void command_destroy (Command* self);
 #define TASK_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), TYPE_TASK, TaskPrivate))
 enum  {
 	TASK_DUMMY_PROPERTY,
-	TASK_SECONDS
+	TASK_SECONDS,
+	TASK_ARGUMENTS
 };
 Task* task_new (double seconds, Command* command);
 Task* task_construct (GType object_type, double seconds, Command* command);
@@ -89,6 +92,7 @@ static gboolean __lambda0__gsource_func (gpointer self);
 static Block1Data* block1_data_ref (Block1Data* _data1_);
 static void block1_data_unref (Block1Data* _data1_);
 guint task_exec (Task* self, AutoPipeline* ctx);
+GValueArray* task_get_arguments (Task* self);
 static void task_finalize (GObject* obj);
 static void task_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
 
@@ -98,9 +102,11 @@ Task* task_construct (GType object_type, double seconds, Command* command) {
 	Task * self;
 	Command _tmp1_;
 	Command _tmp0_ = {0};
+	GValueArray* _tmp2_;
 	self = (Task*) g_object_new (object_type, NULL);
 	self->priv->_seconds = seconds;
 	self->priv->_command = (_tmp1_ = (command_copy (command, &_tmp0_), _tmp0_), command_destroy (&self->priv->_command), _tmp1_);
+	self->priv->_arguments = (_tmp2_ = g_value_array_new ((guint) 0), _g_value_array_free0 (self->priv->_arguments), _tmp2_);
 	return self;
 }
 
@@ -115,7 +121,7 @@ static gboolean _lambda0_ (Block1Data* _data1_) {
 	gboolean result = FALSE;
 	self = _data1_->self;
 	g_print ("Time = %0.3lf\n", g_timer_elapsed (auto_pipeline_get_timer (_data1_->ctx), NULL));
-	self->priv->_command.function (_data1_->ctx, self->priv->_command.function_target);
+	self->priv->_command.function (_data1_->ctx, self, self->priv->_command.function_target);
 	result = FALSE;
 	return result;
 }
@@ -169,12 +175,21 @@ double task_get_seconds (Task* self) {
 }
 
 
+GValueArray* task_get_arguments (Task* self) {
+	GValueArray* result;
+	g_return_val_if_fail (self != NULL, NULL);
+	result = self->priv->_arguments;
+	return result;
+}
+
+
 static void task_class_init (TaskClass * klass) {
 	task_parent_class = g_type_class_peek_parent (klass);
 	g_type_class_add_private (klass, sizeof (TaskPrivate));
 	G_OBJECT_CLASS (klass)->get_property = task_get_property;
 	G_OBJECT_CLASS (klass)->finalize = task_finalize;
 	g_object_class_install_property (G_OBJECT_CLASS (klass), TASK_SECONDS, g_param_spec_double ("seconds", "seconds", "seconds", -G_MAXDOUBLE, G_MAXDOUBLE, 0.0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), TASK_ARGUMENTS, g_param_spec_boxed ("arguments", "arguments", "arguments", G_TYPE_VALUE_ARRAY, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE));
 }
 
 
@@ -187,6 +202,7 @@ static void task_finalize (GObject* obj) {
 	Task * self;
 	self = TASK (obj);
 	command_destroy (&self->priv->_command);
+	_g_value_array_free0 (self->priv->_arguments);
 	G_OBJECT_CLASS (task_parent_class)->finalize (obj);
 }
 
@@ -209,6 +225,9 @@ static void task_get_property (GObject * object, guint property_id, GValue * val
 	switch (property_id) {
 		case TASK_SECONDS:
 		g_value_set_double (value, task_get_seconds (self));
+		break;
+		case TASK_ARGUMENTS:
+		g_value_set_boxed (value, task_get_arguments (self));
 		break;
 		default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);

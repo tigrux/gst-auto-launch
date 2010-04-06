@@ -18,11 +18,21 @@
 typedef struct _AutoPipeline AutoPipeline;
 typedef struct _AutoPipelineClass AutoPipelineClass;
 
+#define TYPE_TASK (task_get_type ())
+#define TASK(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_TASK, Task))
+#define TASK_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_TASK, TaskClass))
+#define IS_TASK(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_TASK))
+#define IS_TASK_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TYPE_TASK))
+#define TASK_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), TYPE_TASK, TaskClass))
+
+typedef struct _Task Task;
+typedef struct _TaskClass TaskClass;
+
 #define TYPE_COMMAND (command_get_type ())
 typedef struct _Command Command;
 #define _g_free0(var) (var = (g_free (var), NULL))
 
-typedef void (*CommandFunc) (AutoPipeline* ctx, void* user_data);
+typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
@@ -34,6 +44,7 @@ struct _Command {
 
 
 GType auto_pipeline_get_type (void);
+GType task_get_type (void);
 GType command_get_type (void);
 Command* command_dup (const Command* self);
 void command_free (Command* self);

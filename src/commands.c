@@ -20,12 +20,23 @@
 typedef struct _AutoPipeline AutoPipeline;
 typedef struct _AutoPipelineClass AutoPipelineClass;
 
+#define TYPE_TASK (task_get_type ())
+#define TASK(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_TASK, Task))
+#define TASK_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_TASK, TaskClass))
+#define IS_TASK(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_TASK))
+#define IS_TASK_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TYPE_TASK))
+#define TASK_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), TYPE_TASK, TaskClass))
+
+typedef struct _Task Task;
+typedef struct _TaskClass TaskClass;
+
 #define TYPE_COMMAND (command_get_type ())
 typedef struct _Command Command;
+#define _g_free0(var) (var = (g_free (var), NULL))
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
 #define _gst_iterator_free0(var) ((var == NULL) ? NULL : (var = (gst_iterator_free (var), NULL)))
 
-typedef void (*CommandFunc) (AutoPipeline* ctx, void* user_data);
+typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
@@ -37,94 +48,152 @@ struct _Command {
 
 
 GType auto_pipeline_get_type (void);
-void command_play (AutoPipeline* ctx);
-static void _command_play_command_func (AutoPipeline* ctx, gpointer self);
-void command_pause (AutoPipeline* ctx);
-static void _command_pause_command_func (AutoPipeline* ctx, gpointer self);
-void command_ready (AutoPipeline* ctx);
-static void _command_ready_command_func (AutoPipeline* ctx, gpointer self);
-void command_null (AutoPipeline* ctx);
-static void _command_null_command_func (AutoPipeline* ctx, gpointer self);
-void command_eos (AutoPipeline* ctx);
-static void _command_eos_command_func (AutoPipeline* ctx, gpointer self);
-void command_quit (AutoPipeline* ctx);
-static void _command_quit_command_func (AutoPipeline* ctx, gpointer self);
+GType task_get_type (void);
+void command_play (AutoPipeline* ctx, Task* task);
+static void _command_play_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+void command_pause (AutoPipeline* ctx, Task* task);
+static void _command_pause_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+void command_ready (AutoPipeline* ctx, Task* task);
+static void _command_ready_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+void command_null (AutoPipeline* ctx, Task* task);
+static void _command_null_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+void command_eos (AutoPipeline* ctx, Task* task);
+static void _command_eos_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+void command_quit (AutoPipeline* ctx, Task* task);
+static void _command_quit_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+void command_set (AutoPipeline* ctx, Task* task);
+static void _command_set_command_func (AutoPipeline* ctx, Task* task, gpointer self);
 GType command_get_type (void);
 Command* command_dup (const Command* self);
 void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
 void command_destroy (Command* self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
+GValueArray* task_get_arguments (Task* self);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 static void _lambda1_ (void* data);
 static void __lambda1__gfunc (void* data, gpointer self);
 void scanner_register_symbols (GScanner* scanner, guint scope);
 
-const Command COMMANDS[8] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", _command_pause_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"stop", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}, {NULL}};
+const Command COMMANDS[9] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", _command_pause_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"stop", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}, {"set", "Set properties of an object", _command_set_command_func}, {NULL}};
 
 
-static void _command_play_command_func (AutoPipeline* ctx, gpointer self) {
-	command_play (ctx);
+static void _command_play_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
+	command_play (ctx, task);
 }
 
 
-static void _command_pause_command_func (AutoPipeline* ctx, gpointer self) {
-	command_pause (ctx);
+static void _command_pause_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
+	command_pause (ctx, task);
 }
 
 
-static void _command_ready_command_func (AutoPipeline* ctx, gpointer self) {
-	command_ready (ctx);
+static void _command_ready_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
+	command_ready (ctx, task);
 }
 
 
-static void _command_null_command_func (AutoPipeline* ctx, gpointer self) {
-	command_null (ctx);
+static void _command_null_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
+	command_null (ctx, task);
 }
 
 
-static void _command_eos_command_func (AutoPipeline* ctx, gpointer self) {
-	command_eos (ctx);
+static void _command_eos_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
+	command_eos (ctx, task);
 }
 
 
-static void _command_quit_command_func (AutoPipeline* ctx, gpointer self) {
-	command_quit (ctx);
+static void _command_quit_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
+	command_quit (ctx, task);
 }
 
 
-void command_play (AutoPipeline* ctx) {
+static void _command_set_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
+	command_set (ctx, task);
+}
+
+
+void command_play (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
+	g_return_if_fail (task != NULL);
 	g_print ("Changing to PLAYING\n");
 	auto_pipeline_set_state (ctx, GST_STATE_PLAYING);
 }
 
 
-void command_pause (AutoPipeline* ctx) {
+void command_pause (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
+	g_return_if_fail (task != NULL);
 	g_print ("Changing to PAUSED\n");
 	auto_pipeline_set_state (ctx, GST_STATE_PAUSED);
 }
 
 
-void command_ready (AutoPipeline* ctx) {
+void command_ready (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
+	g_return_if_fail (task != NULL);
 	g_print ("Changing to READY\n");
 	auto_pipeline_set_state (ctx, GST_STATE_READY);
 }
 
 
-void command_null (AutoPipeline* ctx) {
+void command_null (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
+	g_return_if_fail (task != NULL);
 	g_print ("Changing to NULL\n");
 	auto_pipeline_set_state (ctx, GST_STATE_NULL);
 }
 
 
-void command_quit (AutoPipeline* ctx) {
+void command_quit (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
+	g_return_if_fail (task != NULL);
 	g_print ("Quitting\n");
 	g_signal_emit_by_name (ctx, "quit");
+}
+
+
+void command_set (AutoPipeline* ctx, Task* task) {
+	GValue _tmp0_;
+	GValue _tmp1_;
+	char* element_name;
+	GValue _tmp2_;
+	GValue _tmp3_;
+	char* prop_name;
+	GstElement* element;
+	GValue _tmp4_ = {0};
+	GValue prop_value;
+	g_return_if_fail (ctx != NULL);
+	g_return_if_fail (task != NULL);
+	if (task_get_arguments (task)->n_values != 3) {
+		g_print ("Command set takes exactly 3 arguments\n");
+		return;
+	}
+	if (!G_VALUE_HOLDS ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_), G_TYPE_STRING)) {
+		g_print ("Element name (arg 0) for command 'set' must be a string\n");
+		return;
+	}
+	element_name = g_strdup (g_value_get_string ((_tmp1_ = task_get_arguments (task)->values[0], &_tmp1_)));
+	if (!G_VALUE_HOLDS ((_tmp2_ = task_get_arguments (task)->values[1], &_tmp2_), G_TYPE_STRING)) {
+		g_print ("Property name (arg 1) for command 'set' must be a string\n");
+		_g_free0 (element_name);
+		return;
+	}
+	prop_name = g_strdup (g_value_get_string ((_tmp3_ = task_get_arguments (task)->values[1], &_tmp3_)));
+	element = gst_bin_get_by_name (auto_pipeline_get_pipeline (ctx), element_name);
+	if (element == NULL) {
+		g_print ("There is no element named '%s'\n", element_name);
+		_g_free0 (element_name);
+		_g_free0 (prop_name);
+		_gst_object_unref0 (element);
+		return;
+	}
+	prop_value = G_IS_VALUE (&task_get_arguments (task)->values[2]) ? (g_value_init (&_tmp4_, G_VALUE_TYPE (&task_get_arguments (task)->values[2])), g_value_copy (&task_get_arguments (task)->values[2], &_tmp4_), _tmp4_) : task_get_arguments (task)->values[2];
+	g_object_set_property ((GObject*) element, prop_name, &prop_value);
+	_g_free0 (element_name);
+	_g_free0 (prop_name);
+	_gst_object_unref0 (element);
+	G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL;
 }
 
 
@@ -165,9 +234,10 @@ static void __lambda1__gfunc (void* data, gpointer self) {
 }
 
 
-void command_eos (AutoPipeline* ctx) {
+void command_eos (AutoPipeline* ctx, Task* task) {
 	GstIterator* _tmp0_;
 	g_return_if_fail (ctx != NULL);
+	g_return_if_fail (task != NULL);
 	g_print ("Trying to send eos to the sources\n");
 	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (ctx)), __lambda1__gfunc, NULL);
 	_gst_iterator_free0 (_tmp0_);

@@ -1,6 +1,7 @@
 class Task: Object {
     double _seconds;
     Command _command;
+    ValueArray _arguments;
 
 
     public double seconds {
@@ -10,17 +11,25 @@ class Task: Object {
     }
 
 
+    public ValueArray arguments {
+        get {
+            return _arguments;
+        }
+    }
+
+
     public Task(double seconds, Command command) {
         _seconds = seconds;
         _command = command;
+        _arguments = new ValueArray(0);
     }
 
-    
+
     public uint exec(AutoPipeline ctx) {
         return Timeout.add((uint)(seconds*1000),
             () => {
             print("Time = %0.3lf\n", ctx.timer.elapsed());
-            _command.function(ctx);
+            _command.function(ctx, this);
             return false;
         });
     }

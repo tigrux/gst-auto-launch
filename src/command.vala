@@ -1,4 +1,4 @@
-delegate void CommandFunc(AutoPipeline ctx);
+delegate void CommandFunc(AutoPipeline ctx, Task task);
 
 
 struct Command {

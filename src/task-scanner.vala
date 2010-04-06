@@ -1,11 +1,8 @@
-
-
 class TaskScanner: Scanner {
 
     public TaskScanner() {
         base(null);
         config.scan_identifier_1char = false;
-        config.int_2_float = true;
         scanner_register_symbols(this, 0);
     }
 
@@ -33,10 +30,16 @@ class TaskScanner: Scanner {
             if(relative != 0)
                 get_next_token();
 
-            if(peek_next_token() != TokenType.FLOAT)
+            tok_type = peek_next_token();
+            if(tok_type != TokenType.FLOAT && tok_type != TokenType.INT)
                 continue;
             get_next_token();
-            var seconds = value.float;
+
+            double seconds;
+            if(tok_type == TokenType.FLOAT)
+                seconds = value.float;
+            else
+                seconds = value.int;
 
             if(relative != 0)
                 seconds = last_time_seconds + relative*seconds;
@@ -51,6 +54,32 @@ class TaskScanner: Scanner {
             var command = (Command?)value.symbol;
 
             var task = new Task(seconds, command);
+
+            while(peek_next_token() == ':') {
+                get_next_token();
+                tok_type = get_next_token();
+                switch(tok_type) {
+                    case TokenType.INT:
+                        task.arguments.append(value.int);
+                        break;
+                    case TokenType.FLOAT:
+                        task.arguments.append(value.float);
+                        break;
+                    case TokenType.IDENTIFIER:
+                    case TokenType.STRING:
+                        if(value.string == "true")
+                            task.arguments.append(true);
+                        else if(value.string == "false")
+                            task.arguments.append(false);
+                        else
+                            task.arguments.append(value.string);
+                        break;
+                    default:
+                        print("** TokType = %c\n", tok_type);
+                        break;
+                }
+            }
+
             tasks.append(task);
             last_time_seconds = seconds;
         }
