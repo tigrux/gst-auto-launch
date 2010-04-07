@@ -19,7 +19,7 @@ gst_auto_launch_SOURCES = \
 gst_auto_launch_LDADD = \
 	$(PROGRAM_LIBS)
 
-vala.stamp:
+vala.stamp: $(gst_auto_launch_VALASOURCES)
 	$(VALAC) -C $(VALAFLAGS) $(gst_auto_launch_VALASOURCES)
 	touch $@
 
