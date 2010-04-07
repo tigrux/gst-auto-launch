@@ -229,7 +229,7 @@ void command_seek (AutoPipeline* ctx, Task* task) {
 	position_seconds = g_value_get_double (&position_value);
 	position_useconds = (gint64) (position_seconds * GST_SECOND);
 	g_print ("Seeking to %.3lf\n", position_seconds);
-	seek_event = gst_event_new_seek (1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE, GST_SEEK_TYPE_SET, position_useconds, GST_SEEK_TYPE_NONE, (gint64) 0);
+	seek_event = gst_event_new_seek (1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT, GST_SEEK_TYPE_SET, position_useconds, GST_SEEK_TYPE_NONE, (gint64) 0);
 	gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (ctx), _gst_event_ref0 (seek_event));
 	G_IS_VALUE (&position_value) ? (g_value_unset (&position_value), NULL) : NULL;
 	_gst_event_unref0 (seek_event);

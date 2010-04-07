@@ -89,7 +89,7 @@ void command_seek(AutoPipeline ctx, Task task) {
     var seek_event =
         new Gst.Event.seek(
             1.0, Gst.Format.TIME,
-            Gst.SeekFlags.FLUSH | Gst.SeekFlags.ACCURATE,
+            Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT,
             Gst.SeekType.SET,  position_useconds,
             Gst.SeekType.NONE, 0);
     ctx.pipeline.send_event(seek_event);
