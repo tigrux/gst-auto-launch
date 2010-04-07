@@ -7,6 +7,7 @@ const Command[] COMMANDS = {
     {"eos", "Send eos to the source elements", command_eos},
     {"quit", "Quit the event loop", command_quit},
     {"set", "Set properties of an object", command_set},
+    {"seek", "Seek to the specified time", command_seek},
     {null}
 };
 
@@ -70,6 +71,28 @@ void command_set(AutoPipeline ctx, Task task) {
     
     var prop_value = task.arguments.values[2];
     element.set_property(prop_name, prop_value);
+}
+
+
+void command_seek(AutoPipeline ctx, Task task) {
+    if(task.arguments.n_values != 1) {
+        print("Command 'seek' takes exactly 1 argument\n");
+        return;
+    }
+
+    var position_value = Value(typeof(double));
+    task.arguments.values[0].transform(ref position_value);
+    var position_seconds = position_value.get_double();
+    var position_useconds = (int64)(position_seconds * Gst.SECOND);
+
+    print("Seeking to %.3lf\n", position_seconds);
+    var seek_event =
+        new Gst.Event.seek(
+            1.0, Gst.Format.TIME,
+            Gst.SeekFlags.FLUSH | Gst.SeekFlags.ACCURATE,
+            Gst.SeekType.SET,  position_useconds,
+            Gst.SeekType.NONE, 0);
+    ctx.pipeline.send_event(seek_event);
 }
 
 

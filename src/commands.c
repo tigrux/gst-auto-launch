@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gst/gst.h>
+#include <float.h>
+#include <math.h>
 #include <gst/base/gstbasesrc.h>
 
 
@@ -34,6 +36,7 @@ typedef struct _TaskClass TaskClass;
 typedef struct _Command Command;
 #define _g_free0(var) (var = (g_free (var), NULL))
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
+#define _gst_event_unref0(var) ((var == NULL) ? NULL : (var = (gst_event_unref (var), NULL)))
 #define _gst_iterator_free0(var) ((var == NULL) ? NULL : (var = (gst_iterator_free (var), NULL)))
 
 typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
@@ -63,6 +66,8 @@ void command_quit (AutoPipeline* ctx, Task* task);
 static void _command_quit_command_func (AutoPipeline* ctx, Task* task, gpointer self);
 void command_set (AutoPipeline* ctx, Task* task);
 static void _command_set_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+void command_seek (AutoPipeline* ctx, Task* task);
+static void _command_seek_command_func (AutoPipeline* ctx, Task* task, gpointer self);
 GType command_get_type (void);
 Command* command_dup (const Command* self);
 void command_free (Command* self);
@@ -75,7 +80,7 @@ static void _lambda1_ (void* data);
 static void __lambda1__gfunc (void* data, gpointer self);
 void scanner_register_symbols (GScanner* scanner, guint scope);
 
-const Command COMMANDS[9] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", _command_pause_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"stop", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}, {"set", "Set properties of an object", _command_set_command_func}, {NULL}};
+const Command COMMANDS[10] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", _command_pause_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"stop", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}, {"set", "Set properties of an object", _command_set_command_func}, {"seek", "Seek to the specified time", _command_seek_command_func}, {NULL}};
 
 
 static void _command_play_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
@@ -110,6 +115,11 @@ static void _command_quit_command_func (AutoPipeline* ctx, Task* task, gpointer 
 
 static void _command_set_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
 	command_set (ctx, task);
+}
+
+
+static void _command_seek_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
+	command_seek (ctx, task);
 }
 
 
@@ -166,7 +176,7 @@ void command_set (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
 	if (task_get_arguments (task)->n_values != 3) {
-		g_print ("Command set takes exactly 3 arguments\n");
+		g_print ("Command 'set' takes exactly 3 arguments\n");
 		return;
 	}
 	if (!G_VALUE_HOLDS ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_), G_TYPE_STRING)) {
@@ -194,6 +204,35 @@ void command_set (AutoPipeline* ctx, Task* task) {
 	_g_free0 (prop_name);
 	_gst_object_unref0 (element);
 	G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL;
+}
+
+
+static gpointer _gst_event_ref0 (gpointer self) {
+	return self ? gst_event_ref (self) : NULL;
+}
+
+
+void command_seek (AutoPipeline* ctx, Task* task) {
+	GValue position_value = {0};
+	GValue _tmp0_;
+	double position_seconds;
+	gint64 position_useconds;
+	GstEvent* seek_event;
+	g_return_if_fail (ctx != NULL);
+	g_return_if_fail (task != NULL);
+	if (task_get_arguments (task)->n_values != 1) {
+		g_print ("Command 'seek' takes exactly 1 argument\n");
+		return;
+	}
+	g_value_init (&position_value, G_TYPE_DOUBLE);
+	g_value_transform ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_), &position_value);
+	position_seconds = g_value_get_double (&position_value);
+	position_useconds = (gint64) (position_seconds * GST_SECOND);
+	g_print ("Seeking to %.3lf\n", position_seconds);
+	seek_event = gst_event_new_seek (1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE, GST_SEEK_TYPE_SET, position_useconds, GST_SEEK_TYPE_NONE, (gint64) 0);
+	gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (ctx), _gst_event_ref0 (seek_event));
+	G_IS_VALUE (&position_value) ? (g_value_unset (&position_value), NULL) : NULL;
+	_gst_event_unref0 (seek_event);
 }
 
 
