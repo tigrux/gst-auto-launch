@@ -113,7 +113,7 @@ void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GE
 static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* message) {
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (message != NULL);
-	switch (message->type) {
+	switch (GST_MESSAGE_TYPE (message)) {
 		case GST_MESSAGE_ERROR:
 		{
 			{

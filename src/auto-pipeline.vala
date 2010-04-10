@@ -39,7 +39,7 @@ class AutoPipeline: Object {
 
 
     void on_bus_message(Gst.Message message) {
-        switch(message.type) {
+        switch(message.type()) {
             case Gst.MessageType.ERROR: {
                 Error e;
                 string s;
