@@ -29,8 +29,7 @@ class TaskScanner: Scanner {
                 relative = -1;
                 get_next_token();
 
-                tok_type = peek_next_token();
-                if(tok_type == TokenType.SYMBOL) {
+                if(peek_next_token() == TokenType.SYMBOL) {
                     get_next_token();
                     var command = (Command?)value.symbol;
                     var task = new Task(0, command);
@@ -38,7 +37,8 @@ class TaskScanner: Scanner {
                     continue;
                 }
             }
-            
+
+            tok_type = peek_next_token();
             if(tok_type != TokenType.FLOAT && tok_type != TokenType.INT)
                 continue;
             get_next_token();
