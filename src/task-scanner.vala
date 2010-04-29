@@ -1,5 +1,4 @@
 class TaskScanner: Scanner {
-
     public TaskScanner() {
         base(null);
         config.scan_identifier_1char = false;
@@ -27,10 +26,18 @@ class TaskScanner: Scanner {
             else if(tok_type == '-')
                 relative = -1;
             
-            if(relative != 0)
+            if(relative != 0) {
                 get_next_token();
 
-            tok_type = peek_next_token();
+                tok_type = peek_next_token();
+                if(tok_type == TokenType.SYMBOL) {
+                    get_next_token();
+                    var command = (Command?)value.symbol;
+                    var task = new Task(0, command);
+                    tasks.append(task);
+                }
+            }
+            
             if(tok_type != TokenType.FLOAT && tok_type != TokenType.INT)
                 continue;
             get_next_token();

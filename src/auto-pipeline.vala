@@ -1,6 +1,7 @@
 class AutoPipeline: Object {
 
     Timer _timer;
+    bool _print_messages;
 
     construct {
         var current_tv = TimeVal();
@@ -9,6 +10,13 @@ class AutoPipeline: Object {
 
 
     public signal void quit();
+
+
+    public bool print_messages {
+        set {
+            _print_messages = value;
+        }
+    }
 
 
     public Gst.State state {
@@ -39,6 +47,42 @@ class AutoPipeline: Object {
 
 
     void on_bus_message(Gst.Message message) {
+        if(_print_messages) {
+            var seq_num = message.get_seqnum();
+            var src_obj = message.src();
+            var s = message.get_structure();
+            unowned string obj_type;
+            string obj_name;
+            
+            if(src_obj is Gst.Element) {
+                obj_type = "element";
+                obj_name = src_obj.name;
+            }
+            else if(src_obj is Gst.Pad) {
+                obj_type = "pad";
+                var pad = (Gst.Pad)src_obj;
+                var pad_name = pad.name;
+                var parent_name = pad.get_parent_element().name;
+                obj_name = "%s:%s".printf(pad_name, parent_name);
+            }
+            else if(src_obj is Gst.Object) {
+                obj_type = "object";
+                obj_name = src_obj.name;
+            }
+            else
+                obj_type = obj_name = "(unknown)";
+
+            var ts = Gst.util_get_timestamp();
+            print("Got message #%u from %s \"%s\" (%s) at %s\n",
+                seq_num, obj_type, obj_name,
+                message.type().to_string(),
+                ts.to_string()
+            );
+
+            if(s != null)
+                print("%s\n", s.to_string());
+        }
+
         switch(message.type()) {
             case Gst.MessageType.ERROR: {
                 Error e;

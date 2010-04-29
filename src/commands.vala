@@ -8,6 +8,8 @@ const Command[] COMMANDS = {
     {"quit", "Quit the event loop", command_quit},
     {"set", "Set properties of an object", command_set},
     {"seek", "Seek to the specified time", command_seek},
+    {"seek", "Seek to the specified time", command_seek},
+    {"m", "Enable print messages", command_enable_messages},
     {null}
 };
 
@@ -106,6 +108,12 @@ void command_eos(AutoPipeline ctx, Task task) {
                 elem.send_event(new Gst.Event.eos());
             }
         });
+}
+
+
+void command_enable_messages(AutoPipeline ctx, Task task) {
+    print("Enabling print messages\n");
+    ctx.print_messages = true;
 }
 
 

@@ -63,7 +63,7 @@ void command_copy (const Command* self, Command* dest) {
 void command_destroy (Command* self) {
 	_g_free0 (self->name);
 	_g_free0 (self->description);
-	((*self).function_target_destroy_notify == NULL) ? NULL : (*self).function_target_destroy_notify ((*self).function_target);
+	((*self).function_target_destroy_notify == NULL) ? NULL : ((*self).function_target_destroy_notify ((*self).function_target), NULL);
 	self->function = NULL;
 	(*self).function_target = NULL;
 	(*self).function_target_destroy_notify = NULL;

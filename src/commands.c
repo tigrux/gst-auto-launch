@@ -68,6 +68,8 @@ void command_set (AutoPipeline* ctx, Task* task);
 static void _command_set_command_func (AutoPipeline* ctx, Task* task, gpointer self);
 void command_seek (AutoPipeline* ctx, Task* task);
 static void _command_seek_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+void command_enable_messages (AutoPipeline* ctx, Task* task);
+static void _command_enable_messages_command_func (AutoPipeline* ctx, Task* task, gpointer self);
 GType command_get_type (void);
 Command* command_dup (const Command* self);
 void command_free (Command* self);
@@ -78,9 +80,10 @@ GValueArray* task_get_arguments (Task* self);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 static void _lambda1_ (void* data);
 static void __lambda1__gfunc (void* data, gpointer self);
+void auto_pipeline_set_print_messages (AutoPipeline* self, gboolean value);
 void scanner_register_symbols (GScanner* scanner, guint scope);
 
-const Command COMMANDS[10] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", _command_pause_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"stop", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}, {"set", "Set properties of an object", _command_set_command_func}, {"seek", "Seek to the specified time", _command_seek_command_func}, {NULL}};
+const Command COMMANDS[12] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", _command_pause_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"stop", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}, {"set", "Set properties of an object", _command_set_command_func}, {"seek", "Seek to the specified time", _command_seek_command_func}, {"seek", "Seek to the specified time", _command_seek_command_func}, {"m", "Enable print messages", _command_enable_messages_command_func}, {NULL}};
 
 
 static void _command_play_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
@@ -120,6 +123,11 @@ static void _command_set_command_func (AutoPipeline* ctx, Task* task, gpointer s
 
 static void _command_seek_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
 	command_seek (ctx, task);
+}
+
+
+static void _command_enable_messages_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
+	command_enable_messages (ctx, task);
 }
 
 
@@ -280,6 +288,14 @@ void command_eos (AutoPipeline* ctx, Task* task) {
 	g_print ("Trying to send eos to the sources\n");
 	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (ctx)), __lambda1__gfunc, NULL);
 	_gst_iterator_free0 (_tmp0_);
+}
+
+
+void command_enable_messages (AutoPipeline* ctx, Task* task) {
+	g_return_if_fail (ctx != NULL);
+	g_return_if_fail (task != NULL);
+	g_print ("Enabling print messages\n");
+	auto_pipeline_set_print_messages (ctx, TRUE);
 }
 
 

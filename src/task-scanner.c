@@ -144,8 +144,18 @@ GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int arg
 				}
 				if (relative != 0) {
 					g_scanner_get_next_token ((GScanner*) self);
+					tok_type = g_scanner_peek_next_token ((GScanner*) self);
+					if (tok_type == G_TOKEN_SYMBOL) {
+						Command* command;
+						Task* task;
+						g_scanner_get_next_token ((GScanner*) self);
+						command = _command_dup0 ((Command*) ((GScanner*) self)->value.v_symbol);
+						task = task_new ((double) 0, command);
+						tasks = g_list_append (tasks, _g_object_ref0 (task));
+						_command_free0 (command);
+						_g_object_unref0 (task);
+					}
 				}
-				tok_type = g_scanner_peek_next_token ((GScanner*) self);
 				if (tok_type != G_TOKEN_FLOAT) {
 					_tmp0_ = tok_type != G_TOKEN_INT;
 				} else {
