@@ -21,12 +21,12 @@ class TaskScanner: Scanner {
             if(tok_type == TokenType.EOF)
                 break;
             
-            if(tok_type == '+')
+            if(tok_type == '+') {
                 relative = 1;
-            else if(tok_type == '-')
+                get_next_token();
+            }
+            else if(tok_type == '-') {
                 relative = -1;
-            
-            if(relative != 0) {
                 get_next_token();
 
                 tok_type = peek_next_token();
@@ -35,6 +35,7 @@ class TaskScanner: Scanner {
                     var command = (Command?)value.symbol;
                     var task = new Task(0, command);
                     tasks.append(task);
+                    continue;
                 }
             }
             
