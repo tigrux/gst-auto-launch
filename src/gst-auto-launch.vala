@@ -24,6 +24,17 @@ int main(string[] args) {
     }
 
     var tasks = scanner.get_tasks_from_args(args);
+    if(tasks.length() == 0) {
+        var auto_symbol = "play";
+        print("No commands given, will exec '%s' automatically\n", auto_symbol);
+        var auto_command = (Command?)scanner.lookup_symbol(auto_symbol);
+        if(auto_command != null) {
+            var auto_task = new Task(0, auto_command);
+            tasks.append(auto_task);
+        }
+        else
+            print("Could not find a command named '%s'\n", auto_symbol);
+    }
 
     var effective_args_list = new List<string> ();
     foreach(var arg in args[1:args.length])

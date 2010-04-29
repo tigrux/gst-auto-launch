@@ -6,6 +6,8 @@
 #include <glib-object.h>
 #include <stdlib.h>
 #include <string.h>
+#include <float.h>
+#include <math.h>
 #include <gst/gst.h>
 #include <glib/gstdio.h>
 
@@ -36,6 +38,7 @@ typedef struct _Command Command;
 #define _g_free0(var) (var = (g_free (var), NULL))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _g_scanner_destroy0(var) ((var == NULL) ? NULL : (var = (g_scanner_destroy (var), NULL)))
+#define _command_free0(var) ((var == NULL) ? NULL : (var = (command_free (var), NULL)))
 #define __g_list_free_g_object_unref0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_object_unref (var), NULL)))
 #define __g_list_free_g_free0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_free (var), NULL)))
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
@@ -76,6 +79,8 @@ void command_destroy (Command* self);
 static void _lambda2_ (void* key, void* val);
 static void __lambda2__gh_func (void* key, void* value, gpointer self);
 GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int args_length1);
+Task* task_new (double seconds, Command* command);
+Task* task_construct (GType object_type, double seconds, Command* command);
 gboolean try_to_get_desc_from_xml (char** args, int args_length1, char** pipeline_desc);
 static void _g_list_free_g_object_unref (GList* self);
 static void _g_list_free_g_free (GList* self);
@@ -111,6 +116,16 @@ static void __lambda2__gh_func (void* key, void* value, gpointer self) {
 }
 
 
+static gpointer _command_dup0 (gpointer self) {
+	return self ? command_dup (self) : NULL;
+}
+
+
+static gpointer _g_object_ref0 (gpointer self) {
+	return self ? g_object_ref (self) : NULL;
+}
+
+
 static gboolean string_contains (const char* self, const char* needle) {
 	gboolean result = FALSE;
 	g_return_val_if_fail (self != NULL, FALSE);
@@ -129,11 +144,6 @@ static void _g_list_free_g_object_unref (GList* self) {
 static void _g_list_free_g_free (GList* self) {
 	g_list_foreach (self, (GFunc) g_free, NULL);
 	g_list_free (self);
-}
-
-
-static gpointer _g_object_ref0 (gpointer self) {
-	return self ? g_object_ref (self) : NULL;
 }
 
 
@@ -173,6 +183,23 @@ gint _vala_main (char** args, int args_length1) {
 		return result;
 	}
 	tasks = task_scanner_get_tasks_from_args (scanner, args, args_length1);
+	if (g_list_length (tasks) == 0) {
+		char* auto_symbol;
+		Command* auto_command;
+		auto_symbol = g_strdup ("play");
+		g_print ("No commands given, will exec '%s' automatically\n", auto_symbol);
+		auto_command = _command_dup0 ((Command*) g_scanner_lookup_symbol ((GScanner*) scanner, auto_symbol));
+		if (auto_command != NULL) {
+			Task* auto_task;
+			auto_task = task_new ((double) 0, auto_command);
+			tasks = g_list_append (tasks, _g_object_ref0 (auto_task));
+			_g_object_unref0 (auto_task);
+		} else {
+			g_print ("Could not find a command named '%s'\n", auto_symbol);
+		}
+		_g_free0 (auto_symbol);
+		_command_free0 (auto_command);
+	}
 	effective_args_list = NULL;
 	{
 		char** _tmp1_ = NULL;
