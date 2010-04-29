@@ -72,11 +72,10 @@ class AutoPipeline: Object {
             else
                 obj_type = obj_name = "(unknown)";
 
-            var ts = Gst.util_get_timestamp();
-            print("Got message #%u from %s \"%s\" (%s) at %s\n",
+            print("Got message #%u from %s \"%s\" (%s) at %.06lf\n",
                 seq_num, obj_type, obj_name,
                 message.type().to_string(),
-                ts.to_string()
+                timer.elapsed()
             );
 
             if(s != null)

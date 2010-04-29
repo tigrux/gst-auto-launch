@@ -65,6 +65,7 @@ enum  {
 static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* message);
 static void _auto_pipeline_on_bus_message_gst_bus_message (GstBus* _sender, GstMessage* message, gpointer self);
 void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GError** error);
+GTimer* auto_pipeline_get_timer (AutoPipeline* self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
 GType task_get_type (void);
 guint task_exec (Task* self, AutoPipeline* ctx);
@@ -74,7 +75,6 @@ AutoPipeline* auto_pipeline_construct (GType object_type);
 void auto_pipeline_set_print_messages (AutoPipeline* self, gboolean value);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 void auto_pipeline_set_pipeline (AutoPipeline* self, GstBin* value);
-GTimer* auto_pipeline_get_timer (AutoPipeline* self);
 static GObject * auto_pipeline_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties);
 static void auto_pipeline_finalize (GObject* obj);
 static void auto_pipeline_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
@@ -119,15 +119,6 @@ static gpointer _gst_structure_copy0 (gpointer self) {
 }
 
 
-static char* gst_clock_time_to_string (GstClockTime self) {
-	char* result = NULL;
-	char* _tmp0_;
-	char* _tmp1_;
-	result = (_tmp1_ = g_strdup_printf (_tmp0_ = g_strconcat ("%", GST_TIME_FORMAT, NULL), GST_TIME_ARGS (self)), _g_free0 (_tmp0_), _tmp1_);
-	return result;
-}
-
-
 static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* message) {
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (message != NULL);
@@ -137,8 +128,6 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 		GstStructure* s;
 		const char* obj_type;
 		char* obj_name;
-		GstClockTime ts;
-		char* _tmp4_;
 		seq_num = gst_message_get_seqnum (message);
 		src_obj = _gst_object_ref0 (GST_MESSAGE_SRC (message));
 		s = _gst_structure_copy0 (gst_message_get_structure (message));
@@ -173,13 +162,11 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 				}
 			}
 		}
-		ts = gst_util_get_timestamp ();
-		g_print ("Got message #%u from %s \"%s\" (%s) at %s\n", (guint) seq_num, obj_type, obj_name, gst_message_type_get_name (GST_MESSAGE_TYPE (message)), _tmp4_ = gst_clock_time_to_string (ts));
-		_g_free0 (_tmp4_);
+		g_print ("Got message #%u from %s \"%s\" (%s) at %.06lf\n", (guint) seq_num, obj_type, obj_name, gst_message_type_get_name (GST_MESSAGE_TYPE (message)), g_timer_elapsed (auto_pipeline_get_timer (self), NULL));
 		if (s != NULL) {
-			char* _tmp5_;
-			g_print ("%s\n", _tmp5_ = gst_structure_to_string (s));
-			_g_free0 (_tmp5_);
+			char* _tmp4_;
+			g_print ("%s\n", _tmp4_ = gst_structure_to_string (s));
+			_g_free0 (_tmp4_);
 		}
 		_gst_object_unref0 (src_obj);
 		_gst_structure_free0 (s);
@@ -191,15 +178,15 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 			{
 				GError* e;
 				char* s;
-				char* _tmp9_;
-				char* _tmp8_ = NULL;
-				GError* _tmp7_;
-				GError* _tmp6_ = NULL;
+				char* _tmp8_;
+				char* _tmp7_ = NULL;
+				GError* _tmp6_;
+				GError* _tmp5_ = NULL;
 				e = NULL;
 				s = NULL;
-				(gst_message_parse_error (message, &_tmp6_, &_tmp8_), e = (_tmp7_ = _tmp6_, _g_error_free0 (e), _tmp7_));
-				s = (_tmp9_ = _tmp8_, _g_free0 (s), _tmp9_);
-				g_critical ("auto-pipeline.vala:91: Bus error: %s %s\n", e->message, s);
+				(gst_message_parse_error (message, &_tmp5_, &_tmp7_), e = (_tmp6_ = _tmp5_, _g_error_free0 (e), _tmp6_));
+				s = (_tmp8_ = _tmp7_, _g_free0 (s), _tmp8_);
+				g_critical ("auto-pipeline.vala:90: Bus error: %s %s\n", e->message, s);
 				_g_error_free0 (e);
 				_g_free0 (s);
 				break;
