@@ -86,7 +86,6 @@ enum  {
 Task* task_new (double seconds, Command* command);
 Task* task_construct (GType object_type, double seconds, Command* command);
 double task_get_seconds (Task* self);
-GTimer* auto_pipeline_get_timer (AutoPipeline* self);
 static gboolean _lambda0_ (Block1Data* _data1_);
 static gboolean __lambda0__gsource_func (gpointer self);
 static Block1Data* block1_data_ref (Block1Data* _data1_);
@@ -120,7 +119,6 @@ static gboolean _lambda0_ (Block1Data* _data1_) {
 	Task * self;
 	gboolean result = FALSE;
 	self = _data1_->self;
-	g_print ("Time = %0.3lf\n", g_timer_elapsed (auto_pipeline_get_timer (_data1_->ctx), NULL));
 	self->priv->_command.function (_data1_->ctx, self, self->priv->_command.function_target);
 	result = FALSE;
 	return result;

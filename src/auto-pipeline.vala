@@ -1,11 +1,9 @@
 class AutoPipeline: Object {
 
-    Timer _timer;
     bool _print_messages;
 
     construct {
         var current_tv = TimeVal();
-        _timer = new Timer();
     }
 
 
@@ -28,13 +26,6 @@ class AutoPipeline: Object {
 
     public Gst.Bin pipeline {
         get; set;
-    }
-
-
-    public Timer timer {
-        get {
-            return _timer;
-        }
     }
 
 
@@ -72,14 +63,15 @@ class AutoPipeline: Object {
             else
                 obj_type = obj_name = "(unknown)";
 
-            print("Got message #%u from %s \"%s\" (%s) at %.06lf\n",
+            print("Got message #%u from %s \"%s\" (%s)",
                 seq_num, obj_type, obj_name,
-                message.type().to_string(),
-                timer.elapsed()
+                message.type().to_string()
             );
 
             if(s != null)
-                print("%s\n", s.to_string());
+                print(": %s\n", s.to_string());
+            else
+                print("\n");
         }
 
         switch(message.type()) {

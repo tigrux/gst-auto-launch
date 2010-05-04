@@ -87,7 +87,6 @@ static void _g_list_free_g_free (GList* self);
 void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GError** error);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
-GTimer* auto_pipeline_get_timer (AutoPipeline* self);
 guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
 static void _g_main_loop_quit_auto_pipeline_quit (AutoPipeline* _sender, gpointer self);
 gint _vala_main (char** args, int args_length1);
@@ -317,7 +316,6 @@ gint _vala_main (char** args, int args_length1) {
 		g_clear_error (&_inner_error_);
 		return 0;
 	}
-	g_timer_start (auto_pipeline_get_timer (auto_pipeline));
 	{
 		GList* task_collection;
 		GList* task_it;

@@ -83,7 +83,6 @@ int main(string[] args) {
         return 1;
     }
 
-    auto_pipeline.timer.start();
     foreach(var task in tasks)
         auto_pipeline.exec_task(task);
 
