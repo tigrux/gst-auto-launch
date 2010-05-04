@@ -63,7 +63,7 @@ class AutoPipeline: Object {
                 var pad = (Gst.Pad)src_obj;
                 var pad_name = pad.name;
                 var parent_name = pad.get_parent_element().name;
-                obj_name = "%s:%s".printf(pad_name, parent_name);
+                obj_name = "%s:%s".printf(parent_name, pad_name);
             }
             else if(src_obj is Gst.Object) {
                 obj_type = "object";

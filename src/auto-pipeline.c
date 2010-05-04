@@ -147,7 +147,7 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 				pad = _gst_object_ref0 (GST_PAD (src_obj));
 				pad_name = g_strdup (gst_object_get_name ((GstObject*) pad));
 				parent_name = g_strdup (gst_object_get_name ((GstObject*) gst_pad_get_parent_element (pad)));
-				obj_name = (_tmp1_ = g_strdup_printf ("%s:%s", pad_name, parent_name), _g_free0 (obj_name), _tmp1_);
+				obj_name = (_tmp1_ = g_strdup_printf ("%s:%s", parent_name, pad_name), _g_free0 (obj_name), _tmp1_);
 				_gst_object_unref0 (pad);
 				_g_free0 (pad_name);
 				_g_free0 (parent_name);
