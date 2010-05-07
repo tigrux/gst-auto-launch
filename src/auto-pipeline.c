@@ -71,7 +71,6 @@ AutoPipeline* auto_pipeline_construct (GType object_type);
 void auto_pipeline_set_print_messages (AutoPipeline* self, gboolean value);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 void auto_pipeline_set_pipeline (AutoPipeline* self, GstBin* value);
-static GObject * auto_pipeline_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties);
 static void auto_pipeline_finalize (GObject* obj);
 static void auto_pipeline_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
 static void auto_pipeline_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
@@ -124,6 +123,7 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 		GstStructure* s;
 		const char* obj_type;
 		char* obj_name;
+		GTimeVal tv = {0};
 		seq_num = gst_message_get_seqnum (message);
 		src_obj = _gst_object_ref0 (GST_MESSAGE_SRC (message));
 		s = _gst_structure_copy0 (gst_message_get_structure (message));
@@ -158,7 +158,8 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 				}
 			}
 		}
-		g_print ("Got message #%u from %s \"%s\" (%s)", (guint) seq_num, obj_type, obj_name, gst_message_type_get_name (GST_MESSAGE_TYPE (message)));
+		g_get_current_time (&tv);
+		g_print ("[%lu.%06lu] Got message #%u from %s \"%s\" (%s)", (gulong) tv.tv_sec, (gulong) tv.tv_usec, (guint) seq_num, obj_type, obj_name, gst_message_type_get_name (GST_MESSAGE_TYPE (message)));
 		if (s != NULL) {
 			char* _tmp4_;
 			g_print (": %s\n", _tmp4_ = gst_structure_to_string (s));
@@ -184,7 +185,7 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 				s = NULL;
 				(gst_message_parse_error (message, &_tmp5_, &_tmp7_), e = (_tmp6_ = _tmp5_, _g_error_free0 (e), _tmp6_));
 				s = (_tmp8_ = _tmp7_, _g_free0 (s), _tmp8_);
-				g_critical ("auto-pipeline.vala:82: Bus error: %s %s\n", e->message, s);
+				g_critical ("auto-pipeline.vala:80: Bus error: %s %s\n", e->message, s);
 				_g_error_free0 (e);
 				_g_free0 (s);
 				break;
@@ -218,7 +219,7 @@ guint auto_pipeline_exec_task (AutoPipeline* self, Task* task) {
 
 AutoPipeline* auto_pipeline_construct (GType object_type) {
 	AutoPipeline * self;
-	self = g_object_newv (object_type, 0, NULL);
+	self = (AutoPipeline*) g_object_new (object_type, NULL);
 	return self;
 }
 
@@ -258,27 +259,11 @@ void auto_pipeline_set_pipeline (AutoPipeline* self, GstBin* value) {
 }
 
 
-static GObject * auto_pipeline_constructor (GType type, guint n_construct_properties, GObjectConstructParam * construct_properties) {
-	GObject * obj;
-	GObjectClass * parent_class;
-	AutoPipeline * self;
-	parent_class = G_OBJECT_CLASS (auto_pipeline_parent_class);
-	obj = parent_class->constructor (type, n_construct_properties, construct_properties);
-	self = AUTO_PIPELINE (obj);
-	{
-		GTimeVal current_tv = {0};
-		g_get_current_time (&current_tv);
-	}
-	return obj;
-}
-
-
 static void auto_pipeline_class_init (AutoPipelineClass * klass) {
 	auto_pipeline_parent_class = g_type_class_peek_parent (klass);
 	g_type_class_add_private (klass, sizeof (AutoPipelinePrivate));
 	G_OBJECT_CLASS (klass)->get_property = auto_pipeline_get_property;
 	G_OBJECT_CLASS (klass)->set_property = auto_pipeline_set_property;
-	G_OBJECT_CLASS (klass)->constructor = auto_pipeline_constructor;
 	G_OBJECT_CLASS (klass)->finalize = auto_pipeline_finalize;
 	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_PRINT_MESSAGES, g_param_spec_boolean ("print-messages", "print-messages", "print-messages", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_STATE, g_param_spec_enum ("state", "state", "state", GST_TYPE_STATE, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_WRITABLE));

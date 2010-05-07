@@ -154,14 +154,20 @@ static void _g_main_loop_quit_auto_pipeline_quit (AutoPipeline* _sender, gpointe
 gint _vala_main (char** args, int args_length1) {
 	gint result = 0;
 	GError * _inner_error_;
+	GTimeVal tv = {0};
 	AutoPipeline* auto_pipeline;
 	TaskScanner* scanner;
 	GList* tasks;
 	GList* effective_args_list;
 	gboolean should_parse_xml;
 	char* pipeline_desc;
+	GTimeVal _tmp7_ = {0};
+	GTimeVal _tmp8_ = {0};
 	GMainLoop* loop;
+	GTimeVal _tmp10_ = {0};
 	_inner_error_ = NULL;
+	g_get_current_time (&tv);
+	g_print ("[%lu.%06lu] Start time\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
 	auto_pipeline = auto_pipeline_new ();
 	scanner = task_scanner_new ();
 	if (args_length1 < 2) {
@@ -276,13 +282,19 @@ gint _vala_main (char** args, int args_length1) {
 		}
 		effective_args = (_vala_array_free (effective_args, effective_args_length1, (GDestroyNotify) g_free), NULL);
 	}
+	tv = (g_get_current_time (&_tmp7_), _tmp7_);
 	gst_init (&args_length1, &args);
+	tv = (g_get_current_time (&_tmp8_), _tmp8_);
+	g_print ("[%lu.%06lu] gst_init called\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
 	{
+		GTimeVal _tmp9_ = {0};
 		g_print ("Pipeline to use is:\n%s\n\n", pipeline_desc);
 		auto_pipeline_parse_launch (auto_pipeline, pipeline_desc, &_inner_error_);
 		if (_inner_error_ != NULL) {
 			goto __catch0_g_error;
 		}
+		tv = (g_get_current_time (&_tmp9_), _tmp9_);
+		g_print ("[%lu.%06lu] gst_parse_launch called\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
 	}
 	goto __finally0;
 	__catch0_g_error:
@@ -333,6 +345,8 @@ gint _vala_main (char** args, int args_length1) {
 	g_signal_connect (auto_pipeline, "quit", (GCallback) _g_main_loop_quit_auto_pipeline_quit, loop);
 	g_main_loop_run (loop);
 	auto_pipeline_set_state (auto_pipeline, GST_STATE_NULL);
+	tv = (g_get_current_time (&_tmp10_), _tmp10_);
+	g_print ("[%lu.%06lu] End time\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
 	result = 0;
 	_g_object_unref0 (auto_pipeline);
 	_g_scanner_destroy0 (scanner);

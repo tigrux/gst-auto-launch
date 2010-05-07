@@ -1,4 +1,8 @@
 int main(string[] args) {
+
+    var tv = TimeVal();
+    print("[%lu.%06lu] Start time\n", tv.tv_sec, tv.tv_usec);
+
     var auto_pipeline = new AutoPipeline();
     var scanner = new TaskScanner();
 
@@ -70,11 +74,17 @@ int main(string[] args) {
         }
     }
 
+    tv = TimeVal();
     Gst.init(ref args);
+    tv = TimeVal();
+    print("[%lu.%06lu] gst_init called\n", tv.tv_sec, tv.tv_usec);
+
 
     try {
         print("Pipeline to use is:\n%s\n\n", pipeline_desc);
         auto_pipeline.parse_launch(pipeline_desc);
+        tv = TimeVal();
+        print("[%lu.%06lu] gst_parse_launch called\n", tv.tv_sec, tv.tv_usec);
     }
     catch(Error e) {
         print("Error: %s\n", e.message);
@@ -90,6 +100,8 @@ int main(string[] args) {
     auto_pipeline.quit += loop.quit;
     loop.run();
     auto_pipeline.state = Gst.State.NULL;
+    tv = TimeVal();
+    print("[%lu.%06lu] End time\n", tv.tv_sec, tv.tv_usec);
     return 0;
 }
 

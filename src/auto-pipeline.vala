@@ -2,10 +2,6 @@ class AutoPipeline: Object {
 
     bool _print_messages;
 
-    construct {
-        var current_tv = TimeVal();
-    }
-
 
     public signal void quit();
 
@@ -63,7 +59,9 @@ class AutoPipeline: Object {
             else
                 obj_type = obj_name = "(unknown)";
 
-            print("Got message #%u from %s \"%s\" (%s)",
+            var tv = TimeVal();
+            print("[%lu.%06lu] Got message #%u from %s \"%s\" (%s)",
+                tv.tv_sec, tv.tv_usec,
                 seq_num, obj_type, obj_name,
                 message.type().to_string()
             );
