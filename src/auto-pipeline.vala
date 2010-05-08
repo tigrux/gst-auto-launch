@@ -1,6 +1,6 @@
 class AutoPipeline: Object {
 
-    bool _print_messages;
+    bool _print_messages = true;
 
 
     public signal void quit();
@@ -9,6 +9,9 @@ class AutoPipeline: Object {
     public bool print_messages {
         set {
             _print_messages = value;
+        }
+        get {
+            return _print_messages;
         }
     }
 
@@ -35,41 +38,42 @@ class AutoPipeline: Object {
 
     void on_bus_message(Gst.Message message) {
         if(_print_messages) {
-            var seq_num = message.get_seqnum();
-            var src_obj = message.src();
+            var seqnum = message.get_seqnum();
+            var src = message.src();
             var s = message.get_structure();
-            unowned string obj_type;
-            string obj_name;
+            string src_name = null;
             
-            if(src_obj is Gst.Element) {
-                obj_type = "element";
-                obj_name = src_obj.name;
-            }
-            else if(src_obj is Gst.Pad) {
-                obj_type = "pad";
-                var pad = (Gst.Pad)src_obj;
+            if(src is Gst.Element)
+                src_name = src.name;
+            else if(src is Gst.Pad) {
+                var pad = (Gst.Pad)src;
                 var pad_name = pad.name;
                 var parent_name = pad.get_parent_element().name;
-                obj_name = "%s:%s".printf(parent_name, pad_name);
+                src_name = "%s:%s".printf(parent_name, pad_name);
             }
-            else if(src_obj is Gst.Object) {
-                obj_type = "object";
-                obj_name = src_obj.name;
-            }
-            else
-                obj_type = obj_name = "(unknown)";
+            else if(src is Gst.Object)
+                src_name = src.name;
 
+            print("  {\n");
+            print("   'seqnum' : %u,\n", seqnum);
+            print("   'type' : '%s',\n", message.type().to_string());
             var tv = TimeVal();
-            print("[%lu.%06lu] Got message #%u from %s \"%s\" (%s)",
-                tv.tv_sec, tv.tv_usec,
-                seq_num, obj_type, obj_name,
-                message.type().to_string()
-            );
+            print("   'time' : %lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
+            if(src_name != null)
+                print("   'src' : '%s',\n", src_name);
+            if(s != null) {
+                print("   'structure' : {\n");
+                s.foreach(
+                    (q, v) => {
+                        Value vs = "";
+                        v.transform(ref vs);
+                        print("    '%s' : '%s',\n", q.to_string(), vs.get_string());
+                        return true;
+                });
+                print("   }\n");
+            }
+            print("  },\n");
 
-            if(s != null)
-                print(": %s\n", s.to_string());
-            else
-                print("\n");
         }
 
         switch(message.type()) {
@@ -81,7 +85,6 @@ class AutoPipeline: Object {
                 break;
             }
             case Gst.MessageType.EOS: {
-                print("Got eos\n");
                 state = Gst.State.NULL;
                 quit();
                 break;

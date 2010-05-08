@@ -1,28 +1,29 @@
 int main(string[] args) {
 
     var tv = TimeVal();
-    print("[%lu.%06lu] Start time\n", tv.tv_sec, tv.tv_usec);
+    print("{\n");
+    print(" 'start' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
 
     var auto_pipeline = new AutoPipeline();
     var scanner = new TaskScanner();
 
     if(args.length < 2) {
-        print("Usage: %s <pipelines.xml> <pipeline_id> <commands>\n", args[0]);
-        print("Where each command is of the form <seconds>:<name>\n");
-        print("Supported commands are:\n");
+        printerr("Usage: %s <pipelines.xml> <pipeline_id> <commands>\n", args[0]);
+        printerr("Where each command is of the form <seconds>:<name>\n");
+        printerr("Supported commands are:\n");
 
         scanner.scope_foreach_symbol(0,
             (key, val) => {
                 var name = (string)key;
                 var command = (Command*)val;
-                print("  %s:\n    %s\n", name, command->description);
+                printerr("  %s:\n    %s\n", name, command->description);
             }
         );
 
-        print("\nIf no xml file can be parsed, it will get the pipeline from the command line\n\n");
-        print("Examples:\n");
-        print("  %s pipelines.xml videotest 0:pause 1:play +5:eos\n", args[0]);
-        print("  %s videotestsrc ! autovideosink 0:pause 1:play +5:eos\n", args[0]);
+        printerr("\nIf no xml file can be parsed, it will get the pipeline from the command line\n\n");
+        printerr("Examples:\n");
+        printerr("  %s pipelines.xml videotest 0:pause 1:play +5:eos\n", args[0]);
+        printerr("  %s videotestsrc ! autovideosink 0:pause 1:play +5:eos\n", args[0]);
 
         return 1;
     }
@@ -30,14 +31,14 @@ int main(string[] args) {
     var tasks = scanner.get_tasks_from_args(args);
     if(tasks.length() == 0) {
         var auto_symbol = "play";
-        print("No commands given, will exec '%s' automatically\n", auto_symbol);
+        printerr("No commands given, will exec '%s' automatically\n", auto_symbol);
         var auto_command = (Command?)scanner.lookup_symbol(auto_symbol);
         if(auto_command != null) {
             var auto_task = new Task(0, auto_command);
             tasks.append(auto_task);
         }
         else
-            print("Could not find a command named '%s'\n", auto_symbol);
+            printerr("Could not find a command named '%s'\n", auto_symbol);
     }
 
     var effective_args_list = new List<string> ();
@@ -59,7 +60,7 @@ int main(string[] args) {
     }
 
     if(!should_parse_xml) {
-        print("Getting pipeline description from the command line\n");
+        printerr("Getting pipeline description from the command line\n");
 
         uint i = 0;
         var effective_args = new string[effective_args_list.length()];
@@ -69,7 +70,7 @@ int main(string[] args) {
         }
         pipeline_desc = string.joinv(" ", effective_args);
         if(!pipeline_desc.contains("!")) {
-            print("Not a valid pipeline\n");
+            printerr("Not a valid pipeline\n");
             return 1;
         }
     }
@@ -77,17 +78,17 @@ int main(string[] args) {
     tv = TimeVal();
     Gst.init(ref args);
     tv = TimeVal();
-    print("[%lu.%06lu] gst_init called\n", tv.tv_sec, tv.tv_usec);
+    print(" 'init' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
 
 
     try {
-        print("Pipeline to use is:\n%s\n\n", pipeline_desc);
+        print(" 'description' : '%s',\n", pipeline_desc);
         auto_pipeline.parse_launch(pipeline_desc);
         tv = TimeVal();
-        print("[%lu.%06lu] gst_parse_launch called\n", tv.tv_sec, tv.tv_usec);
+        print(" 'launch' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
     }
     catch(Error e) {
-        print("Error: %s\n", e.message);
+        printerr("Error: %s\n", e.message);
         if(auto_pipeline.pipeline != null)
             auto_pipeline.state = Gst.State.NULL;
         return 1;
@@ -98,10 +99,15 @@ int main(string[] args) {
 
     var loop = new MainLoop();
     auto_pipeline.quit += loop.quit;
+    if(auto_pipeline.print_messages)
+        print(" 'message' : [\n");
     loop.run();
+    if(auto_pipeline.print_messages)
+        print(" ],\n");
     auto_pipeline.state = Gst.State.NULL;
     tv = TimeVal();
-    print("[%lu.%06lu] End time\n", tv.tv_sec, tv.tv_usec);
+    print(" 'end' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
+    print("}\n");
     return 0;
 }
 
@@ -109,7 +115,7 @@ int main(string[] args) {
 bool try_to_get_desc_from_xml(string[] args, ref string pipeline_desc) {
     var xml_file = args[1];
     if(!FileUtils.test(xml_file, FileTest.IS_REGULAR)) {
-        print("'%s' is not a regular file\n", xml_file);
+        printerr("'%s' is not a regular file\n", xml_file);
         return false;
     }
 
@@ -120,12 +126,12 @@ bool try_to_get_desc_from_xml(string[] args, ref string pipeline_desc) {
         parsed = parser.parse_file(xml_file);
     }
     catch(Error e) {
-        print("Error: %s\n", e.message);
+        printerr("Error: %s\n", e.message);
         return false;
     }
 
     if(!parsed) {
-        print("Could not parse file '%s'\n", xml_file);
+        printerr("Could not parse file '%s'\n", xml_file);
         return false;
     }
 
@@ -133,11 +139,11 @@ bool try_to_get_desc_from_xml(string[] args, ref string pipeline_desc) {
 
     pipeline_desc = parser[pipeline_id];
     if(pipeline_desc == null) {
-        print("No pipeline found for id '%s'\n", pipeline_id);
+        printerr("No pipeline found for id '%s'\n", pipeline_id);
         return false;
     }
 
-    print("Getting pipeline description from file '%s'\n", xml_file);
+    printerr("Getting pipeline description from file '%s'\n", xml_file);
     return true;
 }
 

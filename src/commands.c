@@ -68,8 +68,6 @@ void command_set (AutoPipeline* ctx, Task* task);
 static void _command_set_command_func (AutoPipeline* ctx, Task* task, gpointer self);
 void command_seek (AutoPipeline* ctx, Task* task);
 static void _command_seek_command_func (AutoPipeline* ctx, Task* task, gpointer self);
-void command_enable_messages (AutoPipeline* ctx, Task* task);
-static void _command_enable_messages_command_func (AutoPipeline* ctx, Task* task, gpointer self);
 GType command_get_type (void);
 Command* command_dup (const Command* self);
 void command_free (Command* self);
@@ -78,12 +76,11 @@ void command_destroy (Command* self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
 GValueArray* task_get_arguments (Task* self);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
-static void _lambda1_ (void* data);
-static void __lambda1__gfunc (void* data, gpointer self);
-void auto_pipeline_set_print_messages (AutoPipeline* self, gboolean value);
+static void _lambda2_ (void* data);
+static void __lambda2__gfunc (void* data, gpointer self);
 void scanner_register_symbols (GScanner* scanner, guint scope);
 
-const Command COMMANDS[12] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", _command_pause_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"stop", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}, {"set", "Set properties of an object", _command_set_command_func}, {"seek", "Seek to the specified time", _command_seek_command_func}, {"seek", "Seek to the specified time", _command_seek_command_func}, {"m", "Enable print messages", _command_enable_messages_command_func}, {NULL}};
+const Command COMMANDS[11] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", _command_pause_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"stop", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}, {"set", "Set properties of an object", _command_set_command_func}, {"seek", "Seek to the specified time", _command_seek_command_func}, {"seek", "Seek to the specified time", _command_seek_command_func}, {NULL}};
 
 
 static void _command_play_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
@@ -126,15 +123,9 @@ static void _command_seek_command_func (AutoPipeline* ctx, Task* task, gpointer 
 }
 
 
-static void _command_enable_messages_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
-	command_enable_messages (ctx, task);
-}
-
-
 void command_play (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
-	g_print ("Changing to PLAYING\n");
 	auto_pipeline_set_state (ctx, GST_STATE_PLAYING);
 }
 
@@ -142,7 +133,6 @@ void command_play (AutoPipeline* ctx, Task* task) {
 void command_pause (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
-	g_print ("Changing to PAUSED\n");
 	auto_pipeline_set_state (ctx, GST_STATE_PAUSED);
 }
 
@@ -150,7 +140,6 @@ void command_pause (AutoPipeline* ctx, Task* task) {
 void command_ready (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
-	g_print ("Changing to READY\n");
 	auto_pipeline_set_state (ctx, GST_STATE_READY);
 }
 
@@ -158,7 +147,6 @@ void command_ready (AutoPipeline* ctx, Task* task) {
 void command_null (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
-	g_print ("Changing to NULL\n");
 	auto_pipeline_set_state (ctx, GST_STATE_NULL);
 }
 
@@ -166,7 +154,6 @@ void command_null (AutoPipeline* ctx, Task* task) {
 void command_quit (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
-	g_print ("Quitting\n");
 	g_signal_emit_by_name (ctx, "quit");
 }
 
@@ -184,23 +171,23 @@ void command_set (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
 	if (task_get_arguments (task)->n_values != 3) {
-		g_print ("Command 'set' takes exactly 3 arguments\n");
+		g_printerr ("Command 'set' takes exactly 3 arguments\n");
 		return;
 	}
 	if (!G_VALUE_HOLDS ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_), G_TYPE_STRING)) {
-		g_print ("Element name (arg 0) for command 'set' must be a string\n");
+		g_printerr ("Element name (arg 0) for command 'set' must be a string\n");
 		return;
 	}
 	element_name = g_strdup (g_value_get_string ((_tmp1_ = task_get_arguments (task)->values[0], &_tmp1_)));
 	if (!G_VALUE_HOLDS ((_tmp2_ = task_get_arguments (task)->values[1], &_tmp2_), G_TYPE_STRING)) {
-		g_print ("Property name (arg 1) for command 'set' must be a string\n");
+		g_printerr ("Property name (arg 1) for command 'set' must be a string\n");
 		_g_free0 (element_name);
 		return;
 	}
 	prop_name = g_strdup (g_value_get_string ((_tmp3_ = task_get_arguments (task)->values[1], &_tmp3_)));
 	element = gst_bin_get_by_name (auto_pipeline_get_pipeline (ctx), element_name);
 	if (element == NULL) {
-		g_print ("There is no element named '%s'\n", element_name);
+		g_printerr ("There is no element named '%s'\n", element_name);
 		_g_free0 (element_name);
 		_g_free0 (prop_name);
 		_gst_object_unref0 (element);
@@ -229,14 +216,13 @@ void command_seek (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
 	if (task_get_arguments (task)->n_values != 1) {
-		g_print ("Command 'seek' takes exactly 1 argument\n");
+		g_printerr ("Command 'seek' takes exactly 1 argument\n");
 		return;
 	}
 	g_value_init (&position_value, G_TYPE_DOUBLE);
 	g_value_transform ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_), &position_value);
 	position_seconds = g_value_get_double (&position_value);
 	position_useconds = (gint64) (position_seconds * GST_SECOND);
-	g_print ("Seeking to %.3lf\n", position_seconds);
 	seek_event = gst_event_new_seek (1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT, GST_SEEK_TYPE_SET, position_useconds, GST_SEEK_TYPE_NONE, (gint64) 0);
 	gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (ctx), _gst_event_ref0 (seek_event));
 	G_IS_VALUE (&position_value) ? (g_value_unset (&position_value), NULL) : NULL;
@@ -258,7 +244,7 @@ static gboolean string_contains (const char* self, const char* needle) {
 }
 
 
-static void _lambda1_ (void* data) {
+static void _lambda2_ (void* data) {
 	void* _tmp0_;
 	GstElement* elem;
 	gboolean _tmp1_ = FALSE;
@@ -269,15 +255,14 @@ static void _lambda1_ (void* data) {
 		_tmp1_ = GST_IS_BASE_SRC (elem);
 	}
 	if (_tmp1_) {
-		g_print ("Sending eos to %s\n", gst_object_get_name ((GstObject*) elem));
 		gst_element_send_event (elem, gst_event_new_eos ());
 	}
 	_gst_object_unref0 (elem);
 }
 
 
-static void __lambda1__gfunc (void* data, gpointer self) {
-	_lambda1_ (data);
+static void __lambda2__gfunc (void* data, gpointer self) {
+	_lambda2_ (data);
 }
 
 
@@ -285,17 +270,8 @@ void command_eos (AutoPipeline* ctx, Task* task) {
 	GstIterator* _tmp0_;
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
-	g_print ("Trying to send eos to the sources\n");
-	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (ctx)), __lambda1__gfunc, NULL);
+	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (ctx)), __lambda2__gfunc, NULL);
 	_gst_iterator_free0 (_tmp0_);
-}
-
-
-void command_enable_messages (AutoPipeline* ctx, Task* task) {
-	g_return_if_fail (ctx != NULL);
-	g_return_if_fail (task != NULL);
-	g_print ("Enabling print messages\n");
-	auto_pipeline_set_print_messages (ctx, TRUE);
 }
 
 

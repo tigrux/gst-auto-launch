@@ -9,56 +9,50 @@ const Command[] COMMANDS = {
     {"set", "Set properties of an object", command_set},
     {"seek", "Seek to the specified time", command_seek},
     {"seek", "Seek to the specified time", command_seek},
-    {"m", "Enable print messages", command_enable_messages},
     {null}
 };
 
 
 void command_play(AutoPipeline ctx, Task task) {
-    print("Changing to PLAYING\n");
     ctx.state = Gst.State.PLAYING;
 }
 
 
 void command_pause(AutoPipeline ctx, Task task) {
-    print("Changing to PAUSED\n");
     ctx.state = Gst.State.PAUSED;
 }
 
 
 void command_ready(AutoPipeline ctx, Task task) {
-    print("Changing to READY\n");
     ctx.state = Gst.State.READY;
 }
 
 
 void command_null(AutoPipeline ctx, Task task) {
-    print("Changing to NULL\n");
     ctx.state = Gst.State.NULL;
 }
 
 
 void command_quit(AutoPipeline ctx, Task task) {
-    print("Quitting\n");
     ctx.quit();
 }
 
 
 void command_set(AutoPipeline ctx, Task task) {
     if(task.arguments.n_values != 3) {
-        print("Command 'set' takes exactly 3 arguments\n");
+        printerr("Command 'set' takes exactly 3 arguments\n");
         return;
     }
 
     if(!task.arguments.values[0].holds(typeof(string))) {
-        print("Element name (arg 0) for command 'set' must be a string\n");
+        printerr("Element name (arg 0) for command 'set' must be a string\n");
         return;
     }
 
     var element_name = task.arguments.values[0].get_string();
 
     if(!task.arguments.values[1].holds(typeof(string))) {
-        print("Property name (arg 1) for command 'set' must be a string\n");
+        printerr("Property name (arg 1) for command 'set' must be a string\n");
         return;
     }
 
@@ -67,7 +61,7 @@ void command_set(AutoPipeline ctx, Task task) {
     var element = ctx.pipeline.get_by_name(element_name);
     
     if(element == null) {
-        print("There is no element named '%s'\n", element_name);
+        printerr("There is no element named '%s'\n", element_name);
         return;
     }
     
@@ -78,7 +72,7 @@ void command_set(AutoPipeline ctx, Task task) {
 
 void command_seek(AutoPipeline ctx, Task task) {
     if(task.arguments.n_values != 1) {
-        print("Command 'seek' takes exactly 1 argument\n");
+        printerr("Command 'seek' takes exactly 1 argument\n");
         return;
     }
 
@@ -87,7 +81,6 @@ void command_seek(AutoPipeline ctx, Task task) {
     var position_seconds = position_value.get_double();
     var position_useconds = (int64)(position_seconds * Gst.SECOND);
 
-    print("Seeking to %.3lf\n", position_seconds);
     var seek_event =
         new Gst.Event.seek(
             1.0, Gst.Format.TIME,
@@ -99,21 +92,12 @@ void command_seek(AutoPipeline ctx, Task task) {
 
 
 void command_eos(AutoPipeline ctx, Task task) {
-    print("Trying to send eos to the sources\n");
     ctx.pipeline.iterate_elements().foreach(
         (data) => {
             var elem = data as Gst.Element;
-            if("src" in elem.name || elem is Gst.BaseSrc) {
-                print("Sending eos to %s\n", elem.name);
+            if("src" in elem.name || elem is Gst.BaseSrc)
                 elem.send_event(new Gst.Event.eos());
-            }
         });
-}
-
-
-void command_enable_messages(AutoPipeline ctx, Task task) {
-    print("Enabling print messages\n");
-    ctx.print_messages = true;
 }
 
 

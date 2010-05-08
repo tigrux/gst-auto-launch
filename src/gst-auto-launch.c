@@ -76,8 +76,8 @@ Command* command_dup (const Command* self);
 void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
 void command_destroy (Command* self);
-static void _lambda2_ (void* key, void* val);
-static void __lambda2__gh_func (void* key, void* value, gpointer self);
+static void _lambda3_ (void* key, void* val);
+static void __lambda3__gh_func (void* key, void* value, gpointer self);
 GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int args_length1);
 Task* task_new (double seconds, Command* command);
 Task* task_construct (GType object_type, double seconds, Command* command);
@@ -89,6 +89,7 @@ GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
 guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
 static void _g_main_loop_quit_auto_pipeline_quit (AutoPipeline* _sender, gpointer self);
+gboolean auto_pipeline_get_print_messages (AutoPipeline* self);
 gint _vala_main (char** args, int args_length1);
 XmlParser* xml_parser_new (void);
 XmlParser* xml_parser_construct (GType object_type);
@@ -100,18 +101,18 @@ static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify 
 
 
 
-static void _lambda2_ (void* key, void* val) {
+static void _lambda3_ (void* key, void* val) {
 	char* name;
 	Command* command;
 	name = g_strdup ((const char*) key);
 	command = (Command*) val;
-	g_print ("  %s:\n    %s\n", name, (*command).description);
+	g_printerr ("  %s:\n    %s\n", name, (*command).description);
 	_g_free0 (name);
 }
 
 
-static void __lambda2__gh_func (void* key, void* value, gpointer self) {
-	_lambda2_ (key, value);
+static void __lambda3__gh_func (void* key, void* value, gpointer self) {
+	_lambda3_ (key, value);
 }
 
 
@@ -167,21 +168,22 @@ gint _vala_main (char** args, int args_length1) {
 	GTimeVal _tmp10_ = {0};
 	_inner_error_ = NULL;
 	g_get_current_time (&tv);
-	g_print ("[%lu.%06lu] Start time\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
+	g_print ("{\n");
+	g_print (" 'start' : %6lu.%06lu,\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
 	auto_pipeline = auto_pipeline_new ();
 	scanner = task_scanner_new ();
 	if (args_length1 < 2) {
-		g_print ("Usage: %s <pipelines.xml> <pipeline_id> <commands>\n", args[0]);
-		g_print ("Where each command is of the form <seconds>:<name>\n");
-		g_print ("Supported commands are:\n");
-		g_scanner_scope_foreach_symbol ((GScanner*) scanner, (guint) 0, __lambda2__gh_func, NULL);
-		g_print ("\n" \
+		g_printerr ("Usage: %s <pipelines.xml> <pipeline_id> <commands>\n", args[0]);
+		g_printerr ("Where each command is of the form <seconds>:<name>\n");
+		g_printerr ("Supported commands are:\n");
+		g_scanner_scope_foreach_symbol ((GScanner*) scanner, (guint) 0, __lambda3__gh_func, NULL);
+		g_printerr ("\n" \
 "If no xml file can be parsed, it will get the pipeline from the comman" \
 "d line\n" \
 "\n");
-		g_print ("Examples:\n");
-		g_print ("  %s pipelines.xml videotest 0:pause 1:play +5:eos\n", args[0]);
-		g_print ("  %s videotestsrc ! autovideosink 0:pause 1:play +5:eos\n", args[0]);
+		g_printerr ("Examples:\n");
+		g_printerr ("  %s pipelines.xml videotest 0:pause 1:play +5:eos\n", args[0]);
+		g_printerr ("  %s videotestsrc ! autovideosink 0:pause 1:play +5:eos\n", args[0]);
 		result = 1;
 		_g_object_unref0 (auto_pipeline);
 		_g_scanner_destroy0 (scanner);
@@ -192,7 +194,7 @@ gint _vala_main (char** args, int args_length1) {
 		char* auto_symbol;
 		Command* auto_command;
 		auto_symbol = g_strdup ("play");
-		g_print ("No commands given, will exec '%s' automatically\n", auto_symbol);
+		g_printerr ("No commands given, will exec '%s' automatically\n", auto_symbol);
 		auto_command = _command_dup0 ((Command*) g_scanner_lookup_symbol ((GScanner*) scanner, auto_symbol));
 		if (auto_command != NULL) {
 			Task* auto_task;
@@ -200,7 +202,7 @@ gint _vala_main (char** args, int args_length1) {
 			tasks = g_list_append (tasks, _g_object_ref0 (auto_task));
 			_g_object_unref0 (auto_task);
 		} else {
-			g_print ("Could not find a command named '%s'\n", auto_symbol);
+			g_printerr ("Could not find a command named '%s'\n", auto_symbol);
 		}
 		_g_free0 (auto_symbol);
 		_command_free0 (auto_command);
@@ -250,7 +252,7 @@ gint _vala_main (char** args, int args_length1) {
 		gint _tmp3_;
 		char** effective_args;
 		char* _tmp6_;
-		g_print ("Getting pipeline description from the command line\n");
+		g_printerr ("Getting pipeline description from the command line\n");
 		i = (guint) 0;
 		effective_args = (_tmp4_ = g_new0 (char*, (_tmp3_ = g_list_length (effective_args_list)) + 1), effective_args_length1 = _tmp3_, _effective_args_size_ = effective_args_length1, _tmp4_);
 		{
@@ -270,7 +272,7 @@ gint _vala_main (char** args, int args_length1) {
 		}
 		pipeline_desc = (_tmp6_ = g_strjoinv (" ", effective_args), _g_free0 (pipeline_desc), _tmp6_);
 		if (!string_contains (pipeline_desc, "!")) {
-			g_print ("Not a valid pipeline\n");
+			g_printerr ("Not a valid pipeline\n");
 			result = 1;
 			effective_args = (_vala_array_free (effective_args, effective_args_length1, (GDestroyNotify) g_free), NULL);
 			_g_object_unref0 (auto_pipeline);
@@ -285,16 +287,16 @@ gint _vala_main (char** args, int args_length1) {
 	tv = (g_get_current_time (&_tmp7_), _tmp7_);
 	gst_init (&args_length1, &args);
 	tv = (g_get_current_time (&_tmp8_), _tmp8_);
-	g_print ("[%lu.%06lu] gst_init called\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
+	g_print (" 'init' : %6lu.%06lu,\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
 	{
 		GTimeVal _tmp9_ = {0};
-		g_print ("Pipeline to use is:\n%s\n\n", pipeline_desc);
+		g_print (" 'description' : '%s',\n", pipeline_desc);
 		auto_pipeline_parse_launch (auto_pipeline, pipeline_desc, &_inner_error_);
 		if (_inner_error_ != NULL) {
 			goto __catch0_g_error;
 		}
 		tv = (g_get_current_time (&_tmp9_), _tmp9_);
-		g_print ("[%lu.%06lu] gst_parse_launch called\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
+		g_print (" 'launch' : %6lu.%06lu,\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
 	}
 	goto __finally0;
 	__catch0_g_error:
@@ -303,7 +305,7 @@ gint _vala_main (char** args, int args_length1) {
 		e = _inner_error_;
 		_inner_error_ = NULL;
 		{
-			g_print ("Error: %s\n", e->message);
+			g_printerr ("Error: %s\n", e->message);
 			if (auto_pipeline_get_pipeline (auto_pipeline) != NULL) {
 				auto_pipeline_set_state (auto_pipeline, GST_STATE_NULL);
 			}
@@ -343,10 +345,17 @@ gint _vala_main (char** args, int args_length1) {
 	}
 	loop = g_main_loop_new (NULL, FALSE);
 	g_signal_connect (auto_pipeline, "quit", (GCallback) _g_main_loop_quit_auto_pipeline_quit, loop);
+	if (auto_pipeline_get_print_messages (auto_pipeline)) {
+		g_print (" 'message' : [\n");
+	}
 	g_main_loop_run (loop);
+	if (auto_pipeline_get_print_messages (auto_pipeline)) {
+		g_print (" ],\n");
+	}
 	auto_pipeline_set_state (auto_pipeline, GST_STATE_NULL);
 	tv = (g_get_current_time (&_tmp10_), _tmp10_);
-	g_print ("[%lu.%06lu] End time\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
+	g_print (" 'end' : %6lu.%06lu,\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
+	g_print ("}\n");
 	result = 0;
 	_g_object_unref0 (auto_pipeline);
 	_g_scanner_destroy0 (scanner);
@@ -376,7 +385,7 @@ gboolean try_to_get_desc_from_xml (char** args, int args_length1, char** pipelin
 	_inner_error_ = NULL;
 	xml_file = g_strdup (args[1]);
 	if (!g_file_test (xml_file, G_FILE_TEST_IS_REGULAR)) {
-		g_print ("'%s' is not a regular file\n", xml_file);
+		g_printerr ("'%s' is not a regular file\n", xml_file);
 		result = FALSE;
 		_g_free0 (xml_file);
 		return result;
@@ -398,7 +407,7 @@ gboolean try_to_get_desc_from_xml (char** args, int args_length1, char** pipelin
 		e = _inner_error_;
 		_inner_error_ = NULL;
 		{
-			g_print ("Error: %s\n", e->message);
+			g_printerr ("Error: %s\n", e->message);
 			result = FALSE;
 			_g_error_free0 (e);
 			_g_free0 (xml_file);
@@ -415,7 +424,7 @@ gboolean try_to_get_desc_from_xml (char** args, int args_length1, char** pipelin
 		return FALSE;
 	}
 	if (!parsed) {
-		g_print ("Could not parse file '%s'\n", xml_file);
+		g_printerr ("Could not parse file '%s'\n", xml_file);
 		result = FALSE;
 		_g_free0 (xml_file);
 		_g_object_unref0 (parser);
@@ -424,14 +433,14 @@ gboolean try_to_get_desc_from_xml (char** args, int args_length1, char** pipelin
 	pipeline_id = g_strdup (args[2]);
 	*pipeline_desc = (_tmp1_ = xml_parser_get (parser, pipeline_id), _g_free0 (*pipeline_desc), _tmp1_);
 	if ((*pipeline_desc) == NULL) {
-		g_print ("No pipeline found for id '%s'\n", pipeline_id);
+		g_printerr ("No pipeline found for id '%s'\n", pipeline_id);
 		result = FALSE;
 		_g_free0 (xml_file);
 		_g_object_unref0 (parser);
 		_g_free0 (pipeline_id);
 		return result;
 	}
-	g_print ("Getting pipeline description from file '%s'\n", xml_file);
+	g_printerr ("Getting pipeline description from file '%s'\n", xml_file);
 	result = TRUE;
 	_g_free0 (xml_file);
 	_g_object_unref0 (parser);

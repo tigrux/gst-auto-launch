@@ -230,7 +230,7 @@ GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int arg
 						}
 						default:
 						{
-							g_print ("** TokType = %c\n", (gint) tok_type);
+							g_printerr ("** TokType = %c\n", (gint) tok_type);
 							break;
 						}
 					}

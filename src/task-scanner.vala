@@ -83,7 +83,7 @@ class TaskScanner: Scanner {
                             task.arguments.append(value.string);
                         break;
                     default:
-                        print("** TokType = %c\n", tok_type);
+                        printerr("** TokType = %c\n", tok_type);
                         break;
                 }
             }
