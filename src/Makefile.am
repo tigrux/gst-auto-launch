@@ -20,7 +20,7 @@ gst_auto_launch_LDADD = \
 	$(PROGRAM_LIBS)
 
 vala.stamp: $(gst_auto_launch_VALASOURCES)
-	$(VALAC) -C $(VALAFLAGS) $(gst_auto_launch_VALASOURCES)
+	$(VALAC) --thread -C $(VALAFLAGS) $(gst_auto_launch_VALASOURCES)
 	touch $@
 
 EXTRA_DIST = \
