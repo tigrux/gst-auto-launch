@@ -301,7 +301,6 @@ static void auto_pipeline_class_init (AutoPipelineClass * klass) {
 
 static void auto_pipeline_instance_init (AutoPipeline * self) {
 	self->priv = AUTO_PIPELINE_GET_PRIVATE (self);
-	self->priv->_print_messages = TRUE;
 }
 
 

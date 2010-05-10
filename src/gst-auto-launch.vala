@@ -1,15 +1,40 @@
-int main(string[] args) {
+bool print_messages;
 
-    var tv = TimeVal();
-    print("{\n");
-    print(" 'start' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
+const OptionEntry[] options = {
+    { "gst-messages", 'm', 0, OptionArg.NONE, ref print_messages, "Print messages", null },
+    {null}
+};
+
+
+int main(string[] args) {
+    OptionContext opt_context;
+    try {
+        opt_context = new OptionContext("- Build pipelines and run commands on them");
+        opt_context.set_help_enabled(true);
+        opt_context.add_main_entries(options, "messages");
+        opt_context.add_group(Gst.init_get_option_group());
+        opt_context.parse(ref args);
+    }
+    catch (OptionError e) {
+        printerr("Option parsing failed: %s\n", e.message);
+        return -1;
+    }
+
+    TimeVal tv;
+
+    if(print_messages) {
+        print("{\n");
+        tv = TimeVal();
+        print(" 'start' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
+    }
 
     var auto_pipeline = new AutoPipeline();
+    auto_pipeline.print_messages = print_messages;
     var scanner = new TaskScanner();
 
     if(args.length < 2) {
-        printerr("Usage: %s <pipelines.xml> <pipeline_id> <commands>\n", args[0]);
-        printerr("Where each command is of the form <seconds>:<name>\n");
+        printerr(opt_context.get_help(true, null));        
+        printerr("Commands are of the form <seconds>:<command>\n");
         printerr("Supported commands are:\n");
 
         scanner.scope_foreach_symbol(0,
@@ -56,7 +81,7 @@ int main(string[] args) {
     if(should_parse_xml) {
         should_parse_xml = try_to_get_desc_from_xml(args, ref pipeline_desc);
         if(!should_parse_xml)
-            print("Could not get pipeline description from xml file\n");
+            printerr("Could not get pipeline description from xml file\n");
     }
 
     if(!should_parse_xml) {
@@ -75,17 +100,17 @@ int main(string[] args) {
         }
     }
 
-    tv = TimeVal();
-    Gst.init(ref args);
-    tv = TimeVal();
-    print(" 'init' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
-
-
     try {
-        print(" 'description' : '%s',\n", pipeline_desc);
+        if(print_messages) {
+            tv = TimeVal();
+            print(" 'description' : '%s',\n", pipeline_desc);
+        }
         auto_pipeline.parse_launch(pipeline_desc);
-        tv = TimeVal();
-        print(" 'launch' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
+        if(print_messages) {
+            tv = TimeVal();
+            print(" 'launch' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
+        }
+        
     }
     catch(Error e) {
         printerr("Error: %s\n", e.message);
@@ -99,15 +124,17 @@ int main(string[] args) {
 
     var loop = new MainLoop();
     auto_pipeline.quit += loop.quit;
-    if(auto_pipeline.print_messages)
+    if(print_messages)
         print(" 'message' : [\n");
     loop.run();
-    if(auto_pipeline.print_messages)
+    if(print_messages)
         print(" ],\n");
     auto_pipeline.state = Gst.State.NULL;
-    tv = TimeVal();
-    print(" 'end' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
-    print("}\n");
+    if(print_messages) {
+        tv = TimeVal();
+        print(" 'end' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
+        print("}\n");
+    }
     return 0;
 }
 

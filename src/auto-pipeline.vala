@@ -1,6 +1,6 @@
 class AutoPipeline: Object {
 
-    bool _print_messages = true;
+    bool _print_messages;
 
 
     public signal void quit();

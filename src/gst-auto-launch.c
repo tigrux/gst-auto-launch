@@ -4,13 +4,15 @@
 
 #include <glib.h>
 #include <glib-object.h>
+#include <gst/gst.h>
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
 #include <math.h>
-#include <gst/gst.h>
 #include <glib/gstdio.h>
 
+#define _g_option_context_free0(var) ((var == NULL) ? NULL : (var = (g_option_context_free (var), NULL)))
+#define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 
 #define TYPE_AUTO_PIPELINE (auto_pipeline_get_type ())
 #define AUTO_PIPELINE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_AUTO_PIPELINE, AutoPipeline))
@@ -22,6 +24,7 @@
 typedef struct _AutoPipeline AutoPipeline;
 typedef struct _AutoPipelineClass AutoPipelineClass;
 typedef GScanner TaskScanner;
+#define _g_free0(var) (var = (g_free (var), NULL))
 
 #define TYPE_COMMAND (command_get_type ())
 
@@ -35,13 +38,11 @@ typedef GScanner TaskScanner;
 typedef struct _Task Task;
 typedef struct _TaskClass TaskClass;
 typedef struct _Command Command;
-#define _g_free0(var) (var = (g_free (var), NULL))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _g_scanner_destroy0(var) ((var == NULL) ? NULL : (var = (g_scanner_destroy (var), NULL)))
 #define _command_free0(var) ((var == NULL) ? NULL : (var = (command_free (var), NULL)))
 #define __g_list_free_g_object_unref0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_object_unref (var), NULL)))
 #define __g_list_free_g_free0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_free (var), NULL)))
-#define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 #define _g_main_loop_unref0(var) ((var == NULL) ? NULL : (var = (g_main_loop_unref (var), NULL)))
 
 #define TYPE_XML_PARSER (xml_parser_get_type ())
@@ -64,10 +65,13 @@ struct _Command {
 };
 
 
+extern gboolean print_messages;
+gboolean print_messages = FALSE;
 
 AutoPipeline* auto_pipeline_new (void);
 AutoPipeline* auto_pipeline_construct (GType object_type);
 GType auto_pipeline_get_type (void);
+void auto_pipeline_set_print_messages (AutoPipeline* self, gboolean value);
 TaskScanner* task_scanner_new (void);
 TaskScanner* task_scanner_new (void);
 GType command_get_type (void);
@@ -89,7 +93,6 @@ GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
 guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
 static void _g_main_loop_quit_auto_pipeline_quit (AutoPipeline* _sender, gpointer self);
-gboolean auto_pipeline_get_print_messages (AutoPipeline* self);
 gint _vala_main (char** args, int args_length1);
 XmlParser* xml_parser_new (void);
 XmlParser* xml_parser_construct (GType object_type);
@@ -99,6 +102,7 @@ char* xml_parser_get (XmlParser* self, const char* key);
 static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func);
 static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func);
 
+const GOptionEntry options[2] = {{"gst-messages", 'm', 0, G_OPTION_ARG_NONE, &print_messages, "Print messages", NULL}, {NULL}};
 
 
 static void _lambda3_ (void* key, void* val) {
@@ -155,6 +159,7 @@ static void _g_main_loop_quit_auto_pipeline_quit (AutoPipeline* _sender, gpointe
 gint _vala_main (char** args, int args_length1) {
 	gint result = 0;
 	GError * _inner_error_;
+	GOptionContext* opt_context;
 	GTimeVal tv = {0};
 	AutoPipeline* auto_pipeline;
 	TaskScanner* scanner;
@@ -162,19 +167,61 @@ gint _vala_main (char** args, int args_length1) {
 	GList* effective_args_list;
 	gboolean should_parse_xml;
 	char* pipeline_desc;
-	GTimeVal _tmp7_ = {0};
-	GTimeVal _tmp8_ = {0};
 	GMainLoop* loop;
-	GTimeVal _tmp10_ = {0};
 	_inner_error_ = NULL;
-	g_get_current_time (&tv);
-	g_print ("{\n");
-	g_print (" 'start' : %6lu.%06lu,\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
+	opt_context = NULL;
+	{
+		GOptionContext* _tmp0_;
+		opt_context = (_tmp0_ = g_option_context_new ("- Build pipelines and run commands on them"), _g_option_context_free0 (opt_context), _tmp0_);
+		g_option_context_set_help_enabled (opt_context, TRUE);
+		g_option_context_add_main_entries (opt_context, options, "messages");
+		g_option_context_add_group (opt_context, gst_init_get_option_group ());
+		g_option_context_parse (opt_context, &args_length1, &args, &_inner_error_);
+		if (_inner_error_ != NULL) {
+			if (_inner_error_->domain == G_OPTION_ERROR) {
+				goto __catch0_g_option_error;
+			}
+			_g_option_context_free0 (opt_context);
+			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return 0;
+		}
+	}
+	goto __finally0;
+	__catch0_g_option_error:
+	{
+		GError * e;
+		e = _inner_error_;
+		_inner_error_ = NULL;
+		{
+			g_printerr ("Option parsing failed: %s\n", e->message);
+			result = -1;
+			_g_error_free0 (e);
+			_g_option_context_free0 (opt_context);
+			return result;
+		}
+	}
+	__finally0:
+	if (_inner_error_ != NULL) {
+		_g_option_context_free0 (opt_context);
+		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+		g_clear_error (&_inner_error_);
+		return 0;
+	}
+	if (print_messages) {
+		GTimeVal _tmp1_ = {0};
+		g_print ("{\n");
+		tv = (g_get_current_time (&_tmp1_), _tmp1_);
+		g_print (" 'start' : %6lu.%06lu,\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
+	}
 	auto_pipeline = auto_pipeline_new ();
+	auto_pipeline_set_print_messages (auto_pipeline, print_messages);
 	scanner = task_scanner_new ();
 	if (args_length1 < 2) {
-		g_printerr ("Usage: %s <pipelines.xml> <pipeline_id> <commands>\n", args[0]);
-		g_printerr ("Where each command is of the form <seconds>:<name>\n");
+		char* _tmp2_;
+		g_printerr ("%s", _tmp2_ = g_option_context_get_help (opt_context, TRUE, NULL));
+		_g_free0 (_tmp2_);
+		g_printerr ("Commands are of the form <seconds>:<command>\n");
 		g_printerr ("Supported commands are:\n");
 		g_scanner_scope_foreach_symbol ((GScanner*) scanner, (guint) 0, __lambda3__gh_func, NULL);
 		g_printerr ("\n" \
@@ -185,6 +232,7 @@ gint _vala_main (char** args, int args_length1) {
 		g_printerr ("  %s pipelines.xml videotest 0:pause 1:play +5:eos\n", args[0]);
 		g_printerr ("  %s videotestsrc ! autovideosink 0:pause 1:play +5:eos\n", args[0]);
 		result = 1;
+		_g_option_context_free0 (opt_context);
 		_g_object_unref0 (auto_pipeline);
 		_g_scanner_destroy0 (scanner);
 		return result;
@@ -209,24 +257,24 @@ gint _vala_main (char** args, int args_length1) {
 	}
 	effective_args_list = NULL;
 	{
-		char** _tmp1_ = NULL;
-		gint _tmp0_;
+		char** _tmp4_ = NULL;
+		gint _tmp3_;
 		char** arg_collection;
 		int arg_collection_length1;
 		int arg_it;
-		arg_collection = (_tmp1_ = args + 1, _tmp0_ = args_length1 - 1, _tmp1_);
-		arg_collection_length1 = _tmp0_;
-		for (arg_it = 0; arg_it < _tmp0_; arg_it = arg_it + 1) {
+		arg_collection = (_tmp4_ = args + 1, _tmp3_ = args_length1 - 1, _tmp4_);
+		arg_collection_length1 = _tmp3_;
+		for (arg_it = 0; arg_it < _tmp3_; arg_it = arg_it + 1) {
 			char* arg;
 			arg = g_strdup (arg_collection[arg_it]);
 			{
-				gboolean _tmp2_ = FALSE;
+				gboolean _tmp5_ = FALSE;
 				if (!g_str_has_prefix (arg, "-")) {
-					_tmp2_ = !string_contains (arg, ":");
+					_tmp5_ = !string_contains (arg, ":");
 				} else {
-					_tmp2_ = FALSE;
+					_tmp5_ = FALSE;
 				}
-				if (_tmp2_) {
+				if (_tmp5_) {
 					effective_args_list = g_list_append (effective_args_list, g_strdup (arg));
 				}
 				_g_free0 (arg);
@@ -241,20 +289,20 @@ gint _vala_main (char** args, int args_length1) {
 	if (should_parse_xml) {
 		should_parse_xml = try_to_get_desc_from_xml (args, args_length1, &pipeline_desc);
 		if (!should_parse_xml) {
-			g_print ("Could not get pipeline description from xml file\n");
+			g_printerr ("Could not get pipeline description from xml file\n");
 		}
 	}
 	if (!should_parse_xml) {
 		guint i;
-		char** _tmp4_;
+		char** _tmp7_;
 		gint _effective_args_size_;
 		gint effective_args_length1;
-		gint _tmp3_;
+		gint _tmp6_;
 		char** effective_args;
-		char* _tmp6_;
+		char* _tmp9_;
 		g_printerr ("Getting pipeline description from the command line\n");
 		i = (guint) 0;
-		effective_args = (_tmp4_ = g_new0 (char*, (_tmp3_ = g_list_length (effective_args_list)) + 1), effective_args_length1 = _tmp3_, _effective_args_size_ = effective_args_length1, _tmp4_);
+		effective_args = (_tmp7_ = g_new0 (char*, (_tmp6_ = g_list_length (effective_args_list)) + 1), effective_args_length1 = _tmp6_, _effective_args_size_ = effective_args_length1, _tmp7_);
 		{
 			GList* arg_collection;
 			GList* arg_it;
@@ -263,18 +311,19 @@ gint _vala_main (char** args, int args_length1) {
 				char* arg;
 				arg = g_strdup ((const char*) arg_it->data);
 				{
-					char* _tmp5_;
-					effective_args[i] = (_tmp5_ = g_strdup (arg), _g_free0 (effective_args[i]), _tmp5_);
+					char* _tmp8_;
+					effective_args[i] = (_tmp8_ = g_strdup (arg), _g_free0 (effective_args[i]), _tmp8_);
 					i++;
 					_g_free0 (arg);
 				}
 			}
 		}
-		pipeline_desc = (_tmp6_ = g_strjoinv (" ", effective_args), _g_free0 (pipeline_desc), _tmp6_);
+		pipeline_desc = (_tmp9_ = g_strjoinv (" ", effective_args), _g_free0 (pipeline_desc), _tmp9_);
 		if (!string_contains (pipeline_desc, "!")) {
 			g_printerr ("Not a valid pipeline\n");
 			result = 1;
 			effective_args = (_vala_array_free (effective_args, effective_args_length1, (GDestroyNotify) g_free), NULL);
+			_g_option_context_free0 (opt_context);
 			_g_object_unref0 (auto_pipeline);
 			_g_scanner_destroy0 (scanner);
 			__g_list_free_g_object_unref0 (tasks);
@@ -284,22 +333,24 @@ gint _vala_main (char** args, int args_length1) {
 		}
 		effective_args = (_vala_array_free (effective_args, effective_args_length1, (GDestroyNotify) g_free), NULL);
 	}
-	tv = (g_get_current_time (&_tmp7_), _tmp7_);
-	gst_init (&args_length1, &args);
-	tv = (g_get_current_time (&_tmp8_), _tmp8_);
-	g_print (" 'init' : %6lu.%06lu,\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
 	{
-		GTimeVal _tmp9_ = {0};
-		g_print (" 'description' : '%s',\n", pipeline_desc);
+		if (print_messages) {
+			GTimeVal _tmp10_ = {0};
+			tv = (g_get_current_time (&_tmp10_), _tmp10_);
+			g_print (" 'description' : '%s',\n", pipeline_desc);
+		}
 		auto_pipeline_parse_launch (auto_pipeline, pipeline_desc, &_inner_error_);
 		if (_inner_error_ != NULL) {
-			goto __catch0_g_error;
+			goto __catch1_g_error;
 		}
-		tv = (g_get_current_time (&_tmp9_), _tmp9_);
-		g_print (" 'launch' : %6lu.%06lu,\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
+		if (print_messages) {
+			GTimeVal _tmp11_ = {0};
+			tv = (g_get_current_time (&_tmp11_), _tmp11_);
+			g_print (" 'launch' : %6lu.%06lu,\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
+		}
 	}
-	goto __finally0;
-	__catch0_g_error:
+	goto __finally1;
+	__catch1_g_error:
 	{
 		GError * e;
 		e = _inner_error_;
@@ -311,6 +362,7 @@ gint _vala_main (char** args, int args_length1) {
 			}
 			result = 1;
 			_g_error_free0 (e);
+			_g_option_context_free0 (opt_context);
 			_g_object_unref0 (auto_pipeline);
 			_g_scanner_destroy0 (scanner);
 			__g_list_free_g_object_unref0 (tasks);
@@ -319,8 +371,9 @@ gint _vala_main (char** args, int args_length1) {
 			return result;
 		}
 	}
-	__finally0:
+	__finally1:
 	if (_inner_error_ != NULL) {
+		_g_option_context_free0 (opt_context);
 		_g_object_unref0 (auto_pipeline);
 		_g_scanner_destroy0 (scanner);
 		__g_list_free_g_object_unref0 (tasks);
@@ -345,18 +398,22 @@ gint _vala_main (char** args, int args_length1) {
 	}
 	loop = g_main_loop_new (NULL, FALSE);
 	g_signal_connect (auto_pipeline, "quit", (GCallback) _g_main_loop_quit_auto_pipeline_quit, loop);
-	if (auto_pipeline_get_print_messages (auto_pipeline)) {
+	if (print_messages) {
 		g_print (" 'message' : [\n");
 	}
 	g_main_loop_run (loop);
-	if (auto_pipeline_get_print_messages (auto_pipeline)) {
+	if (print_messages) {
 		g_print (" ],\n");
 	}
 	auto_pipeline_set_state (auto_pipeline, GST_STATE_NULL);
-	tv = (g_get_current_time (&_tmp10_), _tmp10_);
-	g_print (" 'end' : %6lu.%06lu,\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
-	g_print ("}\n");
+	if (print_messages) {
+		GTimeVal _tmp12_ = {0};
+		tv = (g_get_current_time (&_tmp12_), _tmp12_);
+		g_print (" 'end' : %6lu.%06lu,\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
+		g_print ("}\n");
+	}
 	result = 0;
+	_g_option_context_free0 (opt_context);
 	_g_object_unref0 (auto_pipeline);
 	_g_scanner_destroy0 (scanner);
 	__g_list_free_g_object_unref0 (tasks);
@@ -396,12 +453,12 @@ gboolean try_to_get_desc_from_xml (char** args, int args_length1, char** pipelin
 		gboolean _tmp0_;
 		_tmp0_ = xml_parser_parse_file (parser, xml_file, &_inner_error_);
 		if (_inner_error_ != NULL) {
-			goto __catch1_g_error;
+			goto __catch2_g_error;
 		}
 		parsed = _tmp0_;
 	}
-	goto __finally1;
-	__catch1_g_error:
+	goto __finally2;
+	__catch2_g_error:
 	{
 		GError * e;
 		e = _inner_error_;
@@ -415,7 +472,7 @@ gboolean try_to_get_desc_from_xml (char** args, int args_length1, char** pipelin
 			return result;
 		}
 	}
-	__finally1:
+	__finally2:
 	if (_inner_error_ != NULL) {
 		_g_free0 (xml_file);
 		_g_object_unref0 (parser);
