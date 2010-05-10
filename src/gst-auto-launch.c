@@ -71,6 +71,7 @@ gboolean print_messages = FALSE;
 AutoPipeline* auto_pipeline_new (void);
 AutoPipeline* auto_pipeline_construct (GType object_type);
 GType auto_pipeline_get_type (void);
+#define LOG_FILENAME "gst-auto-launch.log"
 void auto_pipeline_set_print_messages_enabled (AutoPipeline* self, gboolean value);
 void auto_pipeline_log (AutoPipeline* self, const char* format, ...);
 TaskScanner* task_scanner_new (void);
@@ -210,7 +211,10 @@ gint _vala_main (char** args, int args_length1) {
 		return 0;
 	}
 	auto_pipeline = auto_pipeline_new ();
-	auto_pipeline_set_print_messages_enabled (auto_pipeline, print_messages);
+	if (print_messages) {
+		g_printerr ("Logging message to '%s'\n", LOG_FILENAME);
+		auto_pipeline_set_print_messages_enabled (auto_pipeline, print_messages);
+	}
 	if (print_messages) {
 		GTimeVal _tmp1_ = {0};
 		auto_pipeline_log (auto_pipeline, "{\n", NULL);

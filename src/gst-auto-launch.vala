@@ -22,7 +22,10 @@ int main(string[] args) {
     }
 
     var auto_pipeline = new AutoPipeline();
-    auto_pipeline.print_messages_enabled = print_messages;
+    if(print_messages) {
+        printerr("Logging message to '%s'\n", LOG_FILENAME);
+        auto_pipeline.print_messages_enabled = print_messages;
+    }
 
     TimeVal tv;
 

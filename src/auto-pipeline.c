@@ -144,7 +144,7 @@ static gboolean _lambda0_ (GQuark q, GValue* v, AutoPipeline* self) {
 	GValue vs;
 	vs = (g_value_init (&_tmp0_, G_TYPE_STRING), g_value_set_string (&_tmp0_, ""), _tmp0_);
 	g_value_transform (v, &vs);
-	auto_pipeline_log (self, "    '%s' : '%s',\n", g_quark_to_string (q), g_value_get_string (&vs), NULL);
+	auto_pipeline_log (self, "    '%s' : '''%s''',\n", g_quark_to_string (q), g_value_get_string (&vs), NULL);
 	result = TRUE;
 	G_IS_VALUE (&vs) ? (g_value_unset (&vs), NULL) : NULL;
 	return result;

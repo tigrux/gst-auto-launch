@@ -85,7 +85,7 @@ class AutoPipeline: Object {
                     (q, v) => {
                         Value vs = "";
                         v.transform(ref vs);
-                        log("    '%s' : '%s',\n", q.to_string(), vs.get_string());
+                        log("    '%s' : '''%s''',\n", q.to_string(), vs.get_string());
                         return true;
                 });
                 log("   }\n");
