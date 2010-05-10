@@ -71,7 +71,8 @@ gboolean print_messages = FALSE;
 AutoPipeline* auto_pipeline_new (void);
 AutoPipeline* auto_pipeline_construct (GType object_type);
 GType auto_pipeline_get_type (void);
-void auto_pipeline_set_print_messages (AutoPipeline* self, gboolean value);
+void auto_pipeline_set_print_messages_enabled (AutoPipeline* self, gboolean value);
+void auto_pipeline_log (AutoPipeline* self, const char* format, ...);
 TaskScanner* task_scanner_new (void);
 TaskScanner* task_scanner_new (void);
 GType command_get_type (void);
@@ -160,8 +161,8 @@ gint _vala_main (char** args, int args_length1) {
 	gint result = 0;
 	GError * _inner_error_;
 	GOptionContext* opt_context;
-	GTimeVal tv = {0};
 	AutoPipeline* auto_pipeline;
+	GTimeVal tv = {0};
 	TaskScanner* scanner;
 	GList* tasks;
 	GList* effective_args_list;
@@ -208,14 +209,14 @@ gint _vala_main (char** args, int args_length1) {
 		g_clear_error (&_inner_error_);
 		return 0;
 	}
+	auto_pipeline = auto_pipeline_new ();
+	auto_pipeline_set_print_messages_enabled (auto_pipeline, print_messages);
 	if (print_messages) {
 		GTimeVal _tmp1_ = {0};
-		g_print ("{\n");
+		auto_pipeline_log (auto_pipeline, "{\n", NULL);
 		tv = (g_get_current_time (&_tmp1_), _tmp1_);
-		g_print (" 'start' : %6lu.%06lu,\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
+		auto_pipeline_log (auto_pipeline, " 'start' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec, NULL);
 	}
-	auto_pipeline = auto_pipeline_new ();
-	auto_pipeline_set_print_messages (auto_pipeline, print_messages);
 	scanner = task_scanner_new ();
 	if (args_length1 < 2) {
 		char* _tmp2_;
@@ -337,7 +338,7 @@ gint _vala_main (char** args, int args_length1) {
 		if (print_messages) {
 			GTimeVal _tmp10_ = {0};
 			tv = (g_get_current_time (&_tmp10_), _tmp10_);
-			g_print (" 'description' : '%s',\n", pipeline_desc);
+			auto_pipeline_log (auto_pipeline, " 'description' : '%s',\n", pipeline_desc, NULL);
 		}
 		auto_pipeline_parse_launch (auto_pipeline, pipeline_desc, &_inner_error_);
 		if (_inner_error_ != NULL) {
@@ -346,7 +347,7 @@ gint _vala_main (char** args, int args_length1) {
 		if (print_messages) {
 			GTimeVal _tmp11_ = {0};
 			tv = (g_get_current_time (&_tmp11_), _tmp11_);
-			g_print (" 'launch' : %6lu.%06lu,\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
+			auto_pipeline_log (auto_pipeline, " 'launch' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec, NULL);
 		}
 	}
 	goto __finally1;
@@ -399,18 +400,18 @@ gint _vala_main (char** args, int args_length1) {
 	loop = g_main_loop_new (NULL, FALSE);
 	g_signal_connect (auto_pipeline, "quit", (GCallback) _g_main_loop_quit_auto_pipeline_quit, loop);
 	if (print_messages) {
-		g_print (" 'message' : [\n");
+		auto_pipeline_log (auto_pipeline, " 'message' : [\n", NULL);
 	}
 	g_main_loop_run (loop);
 	if (print_messages) {
-		g_print (" ],\n");
+		auto_pipeline_log (auto_pipeline, " ],\n", NULL);
 	}
 	auto_pipeline_set_state (auto_pipeline, GST_STATE_NULL);
 	if (print_messages) {
 		GTimeVal _tmp12_ = {0};
 		tv = (g_get_current_time (&_tmp12_), _tmp12_);
-		g_print (" 'end' : %6lu.%06lu,\n", (gulong) tv.tv_sec, (gulong) tv.tv_usec);
-		g_print ("}\n");
+		auto_pipeline_log (auto_pipeline, " 'end' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec, NULL);
+		auto_pipeline_log (auto_pipeline, "}\n", NULL);
 	}
 	result = 0;
 	_g_option_context_free0 (opt_context);

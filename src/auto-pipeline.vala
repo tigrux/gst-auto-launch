@@ -1,20 +1,37 @@
+const string LOG_FILENAME = "gst-auto-launch.log";
+
+[PrintfFormat]
+extern int vprintf(string format, va_list ap);
+
+[PrintfFormat]
+extern int vfprintf(FileStream stream, string format, va_list ap);
+
+
 class AutoPipeline: Object {
-
-    bool _print_messages;
-
 
     public signal void quit();
 
+    FileStream log_stream;
 
-    public bool print_messages {
+    bool _print_messages_enabled;
+
+    public bool print_messages_enabled {
         set {
-            _print_messages = value;
+            if(!_print_messages_enabled && value)
+                log_stream = FileStream.open(LOG_FILENAME, "w");
+            _print_messages_enabled = value;
         }
         get {
-            return _print_messages;
+            return _print_messages_enabled;
         }
     }
 
+    public void log(string format, ...) {
+        var args_vl = va_list();
+        if(log_stream != null)
+            vfprintf(log_stream, format, args_vl);
+        vprintf(format, args_vl);
+    }
 
     public Gst.State state {
         set {
@@ -37,7 +54,7 @@ class AutoPipeline: Object {
 
 
     void on_bus_message(Gst.Message message) {
-        if(_print_messages) {
+        if(_print_messages_enabled) {
             var seqnum = message.get_seqnum();
             var src = message.src();
             var s = message.get_structure();
@@ -54,25 +71,26 @@ class AutoPipeline: Object {
             else if(src is Gst.Object)
                 src_name = src.name;
 
-            print("  {\n");
-            print("   'seqnum' : %u,\n", seqnum);
-            print("   'type' : '%s',\n", message.type().to_string());
+            log("  {\n");
+            log("   'seqnum' : %u,\n", seqnum);
+            log("   'type' : '%s',\n", message.type().to_string());
             var tv = TimeVal();
-            print("   'time' : %lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
+            log("   'time' : %lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
             if(src_name != null)
-                print("   'src' : '%s',\n", src_name);
+                log("   'src' : '%s',\n", src_name);
             if(s != null) {
-                print("   'structure' : {\n");
+                log("   'structure' : {\n");
+                log("    'name' : '%s',\n", s.get_name());
                 s.foreach(
                     (q, v) => {
                         Value vs = "";
                         v.transform(ref vs);
-                        print("    '%s' : '%s',\n", q.to_string(), vs.get_string());
+                        log("    '%s' : '%s',\n", q.to_string(), vs.get_string());
                         return true;
                 });
-                print("   }\n");
+                log("   }\n");
             }
-            print("  },\n");
+            log("  },\n");
 
         }
 

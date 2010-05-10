@@ -6,6 +6,7 @@ const OptionEntry[] options = {
 };
 
 
+
 int main(string[] args) {
     OptionContext opt_context;
     try {
@@ -20,16 +21,17 @@ int main(string[] args) {
         return -1;
     }
 
+    var auto_pipeline = new AutoPipeline();
+    auto_pipeline.print_messages_enabled = print_messages;
+
     TimeVal tv;
 
     if(print_messages) {
-        print("{\n");
+        auto_pipeline.log("{\n");
         tv = TimeVal();
-        print(" 'start' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
+        auto_pipeline.log(" 'start' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
     }
 
-    var auto_pipeline = new AutoPipeline();
-    auto_pipeline.print_messages = print_messages;
     var scanner = new TaskScanner();
 
     if(args.length < 2) {
@@ -103,12 +105,12 @@ int main(string[] args) {
     try {
         if(print_messages) {
             tv = TimeVal();
-            print(" 'description' : '%s',\n", pipeline_desc);
+            auto_pipeline.log(" 'description' : '%s',\n", pipeline_desc);
         }
         auto_pipeline.parse_launch(pipeline_desc);
         if(print_messages) {
             tv = TimeVal();
-            print(" 'launch' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
+            auto_pipeline.log(" 'launch' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
         }
         
     }
@@ -125,15 +127,15 @@ int main(string[] args) {
     var loop = new MainLoop();
     auto_pipeline.quit += loop.quit;
     if(print_messages)
-        print(" 'message' : [\n");
+        auto_pipeline.log(" 'message' : [\n");
     loop.run();
     if(print_messages)
-        print(" ],\n");
+        auto_pipeline.log(" ],\n");
     auto_pipeline.state = Gst.State.NULL;
     if(print_messages) {
         tv = TimeVal();
-        print(" 'end' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
-        print("}\n");
+        auto_pipeline.log(" 'end' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
+        auto_pipeline.log("}\n");
     }
     return 0;
 }

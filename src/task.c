@@ -126,9 +126,7 @@ static gboolean _lambda1_ (Block1Data* _data1_) {
 
 
 static gboolean __lambda1__gsource_func (gpointer self) {
-	gboolean result;
-	result = _lambda1_ (self);
-	return result;
+	return _lambda1_ (self);
 }
 
 
