@@ -152,7 +152,9 @@ static gboolean _lambda0_ (GQuark q, GValue* v, AutoPipeline* self) {
 
 
 static gboolean __lambda0__gst_structure_foreach_func (GQuark field_id, GValue* value, gpointer self) {
-	return _lambda0_ (field_id, value, self);
+	gboolean result;
+	result = _lambda0_ (field_id, value, self);
+	return result;
 }
 
 

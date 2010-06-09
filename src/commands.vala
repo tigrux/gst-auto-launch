@@ -8,7 +8,6 @@ const Command[] COMMANDS = {
     {"quit", "Quit the event loop", command_quit},
     {"set", "Set properties of an object", command_set},
     {"seek", "Seek to the specified time", command_seek},
-    {"seek", "Seek to the specified time", command_seek},
     {null}
 };
 
