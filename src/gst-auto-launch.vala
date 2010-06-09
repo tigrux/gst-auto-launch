@@ -128,7 +128,7 @@ int main(string[] args) {
         auto_pipeline.exec_task(task);
 
     var loop = new MainLoop();
-    auto_pipeline.quit += loop.quit;
+    auto_pipeline.quit.connect(loop.quit);
     if(print_messages)
         auto_pipeline.log(" 'message' : [\n");
     loop.run();
