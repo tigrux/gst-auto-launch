@@ -9,18 +9,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef GScanner TaskScanner;
 
-#define TYPE_TASK (task_get_type ())
-#define TASK(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_TASK, Task))
-#define TASK_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_TASK, TaskClass))
-#define IS_TASK(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_TASK))
-#define IS_TASK_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TYPE_TASK))
-#define TASK_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), TYPE_TASK, TaskClass))
+#define TYPE_TASK_SCANNER (task_scanner_get_type ())
+#define TASK_SCANNER(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_TASK_SCANNER, TaskScanner))
+#define TASK_SCANNER_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_TASK_SCANNER, TaskScannerClass))
+#define IS_TASK_SCANNER(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_TASK_SCANNER))
+#define IS_TASK_SCANNER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TYPE_TASK_SCANNER))
+#define TASK_SCANNER_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), TYPE_TASK_SCANNER, TaskScannerClass))
 
-typedef struct _Task Task;
-typedef struct _TaskClass TaskClass;
-#define _g_free0(var) (var = (g_free (var), NULL))
+typedef struct _TaskScanner TaskScanner;
+typedef struct _TaskScannerClass TaskScannerClass;
+typedef struct _TaskScannerPrivate TaskScannerPrivate;
+#define _g_scanner_destroy0(var) ((var == NULL) ? NULL : (var = (g_scanner_destroy (var), NULL)))
 
 #define TYPE_COMMAND (command_get_type ())
 
@@ -33,10 +33,34 @@ typedef struct _TaskClass TaskClass;
 
 typedef struct _AutoPipeline AutoPipeline;
 typedef struct _AutoPipelineClass AutoPipelineClass;
+
+#define TYPE_TASK (task_get_type ())
+#define TASK(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_TASK, Task))
+#define TASK_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_TASK, TaskClass))
+#define IS_TASK(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_TASK))
+#define IS_TASK_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TYPE_TASK))
+#define TASK_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), TYPE_TASK, TaskClass))
+
+typedef struct _Task Task;
+typedef struct _TaskClass TaskClass;
 typedef struct _Command Command;
+#define _g_free0(var) (var = (g_free (var), NULL))
 #define _command_free0(var) ((var == NULL) ? NULL : (var = (command_free (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
-#define __g_list_free_g_object_unref0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_object_unref (var), NULL)))
+
+struct _TaskScanner {
+	GObject parent_instance;
+	TaskScannerPrivate * priv;
+};
+
+struct _TaskScannerClass {
+	GObjectClass parent_class;
+};
+
+struct _TaskScannerPrivate {
+	GScanner* scanner;
+	double last_time_seconds;
+};
 
 typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
 struct _Command {
@@ -48,13 +72,20 @@ struct _Command {
 };
 
 
+static gpointer task_scanner_parent_class = NULL;
 
+GType task_scanner_get_type (void);
+#define TASK_SCANNER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), TYPE_TASK_SCANNER, TaskScannerPrivate))
+enum  {
+	TASK_SCANNER_DUMMY_PROPERTY
+};
 void scanner_register_symbols (GScanner* scanner, guint scope);
 TaskScanner* task_scanner_new (void);
-TaskScanner* task_scanner_new (void);
-GType task_get_type (void);
+TaskScanner* task_scanner_construct (GType object_type);
+static double task_scanner_get_seconds (TaskScanner* self, GTokenType* last_token);
 GType command_get_type (void);
 GType auto_pipeline_get_type (void);
+GType task_get_type (void);
 Command* command_dup (const Command* self);
 void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
@@ -62,18 +93,43 @@ void command_destroy (Command* self);
 Task* task_new (double seconds, Command* command);
 Task* task_construct (GType object_type, double seconds, Command* command);
 GValueArray* task_get_arguments (Task* self);
-static void _g_list_free_g_object_unref (GList* self);
-GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int args_length1);
+static double task_scanner_get_signed_number (TaskScanner* self, GTokenType* last_token);
+Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg);
+static double task_scanner_get_number (TaskScanner* self, GTokenType* last_token, gint* relative);
+static void _lambda3_ (void* key, void* val, TaskScanner* self);
+static void __lambda3__gh_func (void* key, void* value, gpointer self);
+void task_scanner_print_description (TaskScanner* self);
+Command* task_scanner_lookup_command (TaskScanner* self, const char* command_name);
+static void task_scanner_finalize (GObject* obj);
 static int _vala_strcmp0 (const char * str1, const char * str2);
 
 
 
-TaskScanner* task_scanner_new (void) {
-	TaskScanner* self;
-	self = (TaskScanner*) g_scanner_new (NULL);
-	(*((GScanner*) self)->config).scan_identifier_1char = FALSE;
-	scanner_register_symbols ((GScanner*) self, (guint) 0);
+TaskScanner* task_scanner_construct (GType object_type) {
+	TaskScanner * self;
+	GScanner* _tmp0_;
+	self = (TaskScanner*) g_object_new (object_type, NULL);
+	self->priv->last_time_seconds = (double) 0;
+	self->priv->scanner = (_tmp0_ = g_scanner_new (NULL), _g_scanner_destroy0 (self->priv->scanner), _tmp0_);
+	(*self->priv->scanner->config).scan_identifier_1char = FALSE;
+	(*self->priv->scanner->config).identifier_2_string = TRUE;
+	scanner_register_symbols (self->priv->scanner, (guint) 0);
+	(*self->priv->scanner->config).cset_identifier_nth = G_CSET_a_2_z "_-0123456789" G_CSET_A_2_Z G_CSET_LATINS G_CSET_LATINC;
 	return self;
+}
+
+
+TaskScanner* task_scanner_new (void) {
+	return task_scanner_construct (TYPE_TASK_SCANNER);
+}
+
+
+static gboolean string_contains (const char* self, const char* needle) {
+	gboolean result = FALSE;
+	g_return_val_if_fail (self != NULL, FALSE);
+	g_return_val_if_fail (needle != NULL, FALSE);
+	result = strstr (self, needle) != NULL;
+	return result;
 }
 
 
@@ -90,150 +146,214 @@ static gpointer _command_dup0 (gpointer self) {
 }
 
 
-static gpointer _g_object_ref0 (gpointer self) {
-	return self ? g_object_ref (self) : NULL;
-}
-
-
-static void _g_list_free_g_object_unref (GList* self) {
-	g_list_foreach (self, (GFunc) g_object_unref, NULL);
-	g_list_free (self);
-}
-
-
-GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int args_length1) {
-	GList* result = NULL;
-	double last_time_seconds;
-	GList* tasks;
+Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
+	Task* result = NULL;
+	GTokenType token = 0;
+	double seconds;
+	Command* command;
+	Task* task;
 	g_return_val_if_fail (self != NULL, NULL);
-	last_time_seconds = (double) 0;
-	tasks = NULL;
-	{
-		char** arg_collection;
-		int arg_collection_length1;
-		int arg_it;
-		arg_collection = args;
-		arg_collection_length1 = args_length1;
-		for (arg_it = 0; arg_it < args_length1; arg_it = arg_it + 1) {
-			char* arg;
-			arg = g_strdup (arg_collection[arg_it]);
-			{
-				gint relative;
-				GTokenType tok_type;
-				gboolean _tmp0_ = FALSE;
-				double seconds = 0.0;
-				Command* command;
-				Task* task;
-				if (g_str_has_prefix (arg, "--")) {
-					_g_free0 (arg);
-					continue;
-				}
-				g_scanner_input_text ((GScanner*) self, arg, (guint) string_get_length (arg));
-				relative = 0;
-				tok_type = g_scanner_peek_next_token ((GScanner*) self);
-				if (tok_type == G_TOKEN_EOF) {
-					_g_free0 (arg);
-					break;
-				}
-				if (tok_type == '+') {
-					relative = 1;
+	g_return_val_if_fail (arg != NULL, NULL);
+	if (!string_contains (arg, ":")) {
+		result = NULL;
+		return result;
+	}
+	g_scanner_input_text (self->priv->scanner, arg, (guint) string_get_length (arg));
+	seconds = task_scanner_get_seconds (self, &token);
+	self->priv->last_time_seconds = seconds;
+	token = g_scanner_get_next_token (self->priv->scanner);
+	if (token != ':') {
+		g_printerr ("Expected ':' between seconds and command\n");
+		result = NULL;
+		return result;
+	}
+	token = g_scanner_get_next_token (self->priv->scanner);
+	if (token != G_TOKEN_SYMBOL) {
+		g_printerr ("Expected a valid command\n");
+		result = NULL;
+		return result;
+	}
+	command = _command_dup0 ((Command*) self->priv->scanner->value.v_symbol);
+	task = task_new (seconds, command);
+	while (TRUE) {
+		gboolean _tmp6_ = FALSE;
+		gboolean _tmp7_ = FALSE;
+		gboolean _tmp8_ = FALSE;
+		if (!((token = g_scanner_get_next_token (self->priv->scanner)) == ':')) {
+			break;
+		}
+		token = g_scanner_peek_next_token (self->priv->scanner);
+		if (token == G_TOKEN_STRING) {
+			char* s;
+			g_scanner_get_next_token (self->priv->scanner);
+			s = g_strdup (self->priv->scanner->value.v_string);
+			if (_vala_strcmp0 (s, "true") == 0) {
+				GValue _tmp1_;
+				GValue _tmp0_ = {0};
+				g_value_array_append (task_get_arguments (task), (_tmp1_ = (g_value_init (&_tmp0_, G_TYPE_BOOLEAN), g_value_set_boolean (&_tmp0_, TRUE), _tmp0_), &_tmp1_));
+			} else {
+				if (_vala_strcmp0 (s, "false") == 0) {
+					GValue _tmp3_;
+					GValue _tmp2_ = {0};
+					g_value_array_append (task_get_arguments (task), (_tmp3_ = (g_value_init (&_tmp2_, G_TYPE_BOOLEAN), g_value_set_boolean (&_tmp2_, FALSE), _tmp2_), &_tmp3_));
 				} else {
-					if (tok_type == '-') {
-						relative = -1;
-					}
+					GValue _tmp5_;
+					GValue _tmp4_ = {0};
+					g_value_array_append (task_get_arguments (task), (_tmp5_ = (g_value_init (&_tmp4_, G_TYPE_STRING), g_value_set_string (&_tmp4_, s), _tmp4_), &_tmp5_));
 				}
-				if (relative != 0) {
-					g_scanner_get_next_token ((GScanner*) self);
-				}
-				tok_type = g_scanner_peek_next_token ((GScanner*) self);
-				if (tok_type != G_TOKEN_FLOAT) {
-					_tmp0_ = tok_type != G_TOKEN_INT;
-				} else {
-					_tmp0_ = FALSE;
-				}
-				if (_tmp0_) {
-					_g_free0 (arg);
-					continue;
-				}
-				g_scanner_get_next_token ((GScanner*) self);
-				if (tok_type == G_TOKEN_FLOAT) {
-					seconds = ((GScanner*) self)->value.v_float;
-				} else {
-					seconds = (double) ((GScanner*) self)->value.v_int;
-				}
-				if (relative != 0) {
-					seconds = last_time_seconds + (relative * seconds);
-				}
-				if (g_scanner_peek_next_token ((GScanner*) self) != ':') {
-					_g_free0 (arg);
-					continue;
-				}
-				g_scanner_get_next_token ((GScanner*) self);
-				if (g_scanner_peek_next_token ((GScanner*) self) != G_TOKEN_SYMBOL) {
-					_g_free0 (arg);
-					continue;
-				}
-				g_scanner_get_next_token ((GScanner*) self);
-				command = _command_dup0 ((Command*) ((GScanner*) self)->value.v_symbol);
-				task = task_new (seconds, command);
-				while (TRUE) {
-					if (!(g_scanner_peek_next_token ((GScanner*) self) == ':')) {
-						break;
-					}
-					g_scanner_get_next_token ((GScanner*) self);
-					tok_type = g_scanner_get_next_token ((GScanner*) self);
-					switch (tok_type) {
-						case G_TOKEN_INT:
-						{
-							GValue _tmp2_;
-							GValue _tmp1_ = {0};
-							g_value_array_append (task_get_arguments (task), (_tmp2_ = (g_value_init (&_tmp1_, G_TYPE_ULONG), g_value_set_ulong (&_tmp1_, ((GScanner*) self)->value.v_int), _tmp1_), &_tmp2_));
-							break;
-						}
-						case G_TOKEN_FLOAT:
-						{
-							GValue _tmp4_;
-							GValue _tmp3_ = {0};
-							g_value_array_append (task_get_arguments (task), (_tmp4_ = (g_value_init (&_tmp3_, G_TYPE_DOUBLE), g_value_set_double (&_tmp3_, ((GScanner*) self)->value.v_float), _tmp3_), &_tmp4_));
-							break;
-						}
-						case G_TOKEN_IDENTIFIER:
-						case G_TOKEN_STRING:
-						{
-							if (_vala_strcmp0 (((GScanner*) self)->value.v_string, "true") == 0) {
-								GValue _tmp6_;
-								GValue _tmp5_ = {0};
-								g_value_array_append (task_get_arguments (task), (_tmp6_ = (g_value_init (&_tmp5_, G_TYPE_BOOLEAN), g_value_set_boolean (&_tmp5_, TRUE), _tmp5_), &_tmp6_));
-							} else {
-								if (_vala_strcmp0 (((GScanner*) self)->value.v_string, "false") == 0) {
-									GValue _tmp8_;
-									GValue _tmp7_ = {0};
-									g_value_array_append (task_get_arguments (task), (_tmp8_ = (g_value_init (&_tmp7_, G_TYPE_BOOLEAN), g_value_set_boolean (&_tmp7_, FALSE), _tmp7_), &_tmp8_));
-								} else {
-									GValue _tmp10_;
-									GValue _tmp9_ = {0};
-									g_value_array_append (task_get_arguments (task), (_tmp10_ = (g_value_init (&_tmp9_, G_TYPE_STRING), g_value_set_string (&_tmp9_, ((GScanner*) self)->value.v_string), _tmp9_), &_tmp10_));
-								}
-							}
-							break;
-						}
-						default:
-						{
-							g_printerr ("** TokType = %c\n", (gint) tok_type);
-							break;
-						}
-					}
-				}
-				tasks = g_list_append (tasks, _g_object_ref0 (task));
-				last_time_seconds = seconds;
-				_g_free0 (arg);
-				_command_free0 (command);
-				_g_object_unref0 (task);
 			}
+			_g_free0 (s);
+		}
+		if (token == G_TOKEN_INT) {
+			_tmp8_ = TRUE;
+		} else {
+			_tmp8_ = token == G_TOKEN_FLOAT;
+		}
+		if (_tmp8_) {
+			_tmp7_ = TRUE;
+		} else {
+			_tmp7_ = token == '+';
+		}
+		if (_tmp7_) {
+			_tmp6_ = TRUE;
+		} else {
+			_tmp6_ = token == '-';
+		}
+		if (_tmp6_) {
+			double number;
+			GValue _tmp10_;
+			GValue _tmp9_ = {0};
+			number = task_scanner_get_signed_number (self, &token);
+			g_value_array_append (task_get_arguments (task), (_tmp10_ = (g_value_init (&_tmp9_, G_TYPE_DOUBLE), g_value_set_double (&_tmp9_, number), _tmp9_), &_tmp10_));
 		}
 	}
-	result = tasks;
+	result = task;
+	_command_free0 (command);
 	return result;
+}
+
+
+static double task_scanner_get_seconds (TaskScanner* self, GTokenType* last_token) {
+	double result = 0.0;
+	gint relative = 0;
+	double seconds;
+	g_return_val_if_fail (self != NULL, 0.0);
+	seconds = task_scanner_get_number (self, last_token, &relative);
+	if (relative != 0) {
+		seconds = seconds + (relative * self->priv->last_time_seconds);
+	}
+	result = seconds;
+	return result;
+}
+
+
+static double task_scanner_get_signed_number (TaskScanner* self, GTokenType* last_token) {
+	double result = 0.0;
+	gint relative = 0;
+	double number;
+	g_return_val_if_fail (self != NULL, 0.0);
+	number = task_scanner_get_number (self, last_token, &relative);
+	if (relative == (-1)) {
+		result = -number;
+		return result;
+	}
+	result = number;
+	return result;
+}
+
+
+static double task_scanner_get_number (TaskScanner* self, GTokenType* last_token, gint* relative) {
+	double result = 0.0;
+	double number = 0.0;
+	GTokenType token;
+	g_return_val_if_fail (self != NULL, 0.0);
+	token = g_scanner_get_next_token (self->priv->scanner);
+	if (token == '+') {
+		*relative = 1;
+	} else {
+		if (token == '-') {
+			*relative = -1;
+		} else {
+			*relative = 0;
+		}
+	}
+	if ((*relative) != 0) {
+		token = g_scanner_get_next_token (self->priv->scanner);
+	}
+	if (token == G_TOKEN_INT) {
+		number = (double) ((float) self->priv->scanner->value.v_int);
+	} else {
+		if (token == G_TOKEN_FLOAT) {
+			number = (double) ((float) self->priv->scanner->value.v_float);
+		} else {
+			number = (double) 0;
+		}
+	}
+	*last_token = token;
+	result = number;
+	return result;
+}
+
+
+static void _lambda3_ (void* key, void* val, TaskScanner* self) {
+	char* name;
+	Command* command;
+	name = g_strdup ((const char*) key);
+	command = (Command*) val;
+	g_printerr ("  %s:\n    %s\n", name, (*command).description);
+	_g_free0 (name);
+}
+
+
+static void __lambda3__gh_func (void* key, void* value, gpointer self) {
+	_lambda3_ (key, value, self);
+}
+
+
+void task_scanner_print_description (TaskScanner* self) {
+	g_return_if_fail (self != NULL);
+	g_scanner_scope_foreach_symbol (self->priv->scanner, (guint) 0, __lambda3__gh_func, self);
+}
+
+
+Command* task_scanner_lookup_command (TaskScanner* self, const char* command_name) {
+	Command* result = NULL;
+	g_return_val_if_fail (self != NULL, NULL);
+	g_return_val_if_fail (command_name != NULL, NULL);
+	result = _command_dup0 ((Command*) g_scanner_lookup_symbol (self->priv->scanner, command_name));
+	return result;
+}
+
+
+static void task_scanner_class_init (TaskScannerClass * klass) {
+	task_scanner_parent_class = g_type_class_peek_parent (klass);
+	g_type_class_add_private (klass, sizeof (TaskScannerPrivate));
+	G_OBJECT_CLASS (klass)->finalize = task_scanner_finalize;
+}
+
+
+static void task_scanner_instance_init (TaskScanner * self) {
+	self->priv = TASK_SCANNER_GET_PRIVATE (self);
+}
+
+
+static void task_scanner_finalize (GObject* obj) {
+	TaskScanner * self;
+	self = TASK_SCANNER (obj);
+	_g_scanner_destroy0 (self->priv->scanner);
+	G_OBJECT_CLASS (task_scanner_parent_class)->finalize (obj);
+}
+
+
+GType task_scanner_get_type (void) {
+	static volatile gsize task_scanner_type_id__volatile = 0;
+	if (g_once_init_enter (&task_scanner_type_id__volatile)) {
+		static const GTypeInfo g_define_type_info = { sizeof (TaskScannerClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) task_scanner_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (TaskScanner), 0, (GInstanceInitFunc) task_scanner_instance_init, NULL };
+		GType task_scanner_type_id;
+		task_scanner_type_id = g_type_register_static (G_TYPE_OBJECT, "TaskScanner", &g_define_type_info, 0);
+		g_once_init_leave (&task_scanner_type_id__volatile, task_scanner_type_id);
+	}
+	return task_scanner_type_id__volatile;
 }
 
 

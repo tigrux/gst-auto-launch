@@ -23,10 +23,18 @@
 
 typedef struct _AutoPipeline AutoPipeline;
 typedef struct _AutoPipelineClass AutoPipelineClass;
-typedef GScanner TaskScanner;
-#define _g_free0(var) (var = (g_free (var), NULL))
 
-#define TYPE_COMMAND (command_get_type ())
+#define TYPE_TASK_SCANNER (task_scanner_get_type ())
+#define TASK_SCANNER(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_TASK_SCANNER, TaskScanner))
+#define TASK_SCANNER_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_TASK_SCANNER, TaskScannerClass))
+#define IS_TASK_SCANNER(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_TASK_SCANNER))
+#define IS_TASK_SCANNER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TYPE_TASK_SCANNER))
+#define TASK_SCANNER_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), TYPE_TASK_SCANNER, TaskScannerClass))
+
+typedef struct _TaskScanner TaskScanner;
+typedef struct _TaskScannerClass TaskScannerClass;
+#define _g_free0(var) (var = (g_free (var), NULL))
+#define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
 #define TYPE_TASK (task_get_type ())
 #define TASK(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_TASK, Task))
@@ -37,9 +45,9 @@ typedef GScanner TaskScanner;
 
 typedef struct _Task Task;
 typedef struct _TaskClass TaskClass;
+
+#define TYPE_COMMAND (command_get_type ())
 typedef struct _Command Command;
-#define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
-#define _g_scanner_destroy0(var) ((var == NULL) ? NULL : (var = (g_scanner_destroy (var), NULL)))
 #define _command_free0(var) ((var == NULL) ? NULL : (var = (command_free (var), NULL)))
 #define __g_list_free_g_object_unref0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_object_unref (var), NULL)))
 #define __g_list_free_g_free0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_free (var), NULL)))
@@ -75,16 +83,17 @@ GType auto_pipeline_get_type (void);
 void auto_pipeline_set_print_messages_enabled (AutoPipeline* self, gboolean value);
 void auto_pipeline_log (AutoPipeline* self, const char* format, ...);
 TaskScanner* task_scanner_new (void);
-TaskScanner* task_scanner_new (void);
-GType command_get_type (void);
+TaskScanner* task_scanner_construct (GType object_type);
+GType task_scanner_get_type (void);
+void task_scanner_print_description (TaskScanner* self);
 GType task_get_type (void);
+Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg);
+GType command_get_type (void);
 Command* command_dup (const Command* self);
 void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
 void command_destroy (Command* self);
-static void _lambda3_ (void* key, void* val);
-static void __lambda3__gh_func (void* key, void* value, gpointer self);
-GList* task_scanner_get_tasks_from_args (TaskScanner* self, char** args, int args_length1);
+Command* task_scanner_lookup_command (TaskScanner* self, const char* command_name);
 Task* task_new (double seconds, Command* command);
 Task* task_construct (GType object_type, double seconds, Command* command);
 gboolean try_to_get_desc_from_xml (char** args, int args_length1, char** pipeline_desc);
@@ -105,26 +114,6 @@ static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNoti
 static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func);
 
 const GOptionEntry options[2] = {{"gst-messages", 'm', 0, G_OPTION_ARG_NONE, &print_messages, "Print messages", NULL}, {NULL}};
-
-
-static void _lambda3_ (void* key, void* val) {
-	char* name;
-	Command* command;
-	name = g_strdup ((const char*) key);
-	command = (Command*) val;
-	g_printerr ("  %s:\n    %s\n", name, (*command).description);
-	_g_free0 (name);
-}
-
-
-static void __lambda3__gh_func (void* key, void* value, gpointer self) {
-	_lambda3_ (key, value);
-}
-
-
-static gpointer _command_dup0 (gpointer self) {
-	return self ? command_dup (self) : NULL;
-}
 
 
 static gpointer _g_object_ref0 (gpointer self) {
@@ -228,7 +217,7 @@ gint _vala_main (char** args, int args_length1) {
 		_g_free0 (_tmp2_);
 		g_printerr ("Commands are of the form <seconds>:<command>\n");
 		g_printerr ("Supported commands are:\n");
-		g_scanner_scope_foreach_symbol ((GScanner*) scanner, (guint) 0, __lambda3__gh_func, NULL);
+		task_scanner_print_description (scanner);
 		g_printerr ("\n" \
 "If no xml file can be parsed, it will get the pipeline from the comman" \
 "d line\n" \
@@ -239,16 +228,36 @@ gint _vala_main (char** args, int args_length1) {
 		result = 1;
 		_g_option_context_free0 (opt_context);
 		_g_object_unref0 (auto_pipeline);
-		_g_scanner_destroy0 (scanner);
+		_g_object_unref0 (scanner);
 		return result;
 	}
-	tasks = task_scanner_get_tasks_from_args (scanner, args, args_length1);
+	tasks = NULL;
+	{
+		char** arg_collection;
+		int arg_collection_length1;
+		int arg_it;
+		arg_collection = args;
+		arg_collection_length1 = args_length1;
+		for (arg_it = 0; arg_it < args_length1; arg_it = arg_it + 1) {
+			char* arg;
+			arg = g_strdup (arg_collection[arg_it]);
+			{
+				Task* task;
+				task = task_scanner_get_task_from_arg (scanner, arg);
+				if (task != NULL) {
+					tasks = g_list_append (tasks, _g_object_ref0 (task));
+				}
+				_g_free0 (arg);
+				_g_object_unref0 (task);
+			}
+		}
+	}
 	if (g_list_length (tasks) == 0) {
 		char* auto_symbol;
 		Command* auto_command;
 		auto_symbol = g_strdup ("play");
 		g_printerr ("No commands given, will exec '%s' automatically\n", auto_symbol);
-		auto_command = _command_dup0 ((Command*) g_scanner_lookup_symbol ((GScanner*) scanner, auto_symbol));
+		auto_command = task_scanner_lookup_command (scanner, auto_symbol);
 		if (auto_command != NULL) {
 			Task* auto_task;
 			auto_task = task_new ((double) 0, auto_command);
@@ -274,7 +283,7 @@ gint _vala_main (char** args, int args_length1) {
 			arg = g_strdup (arg_collection[arg_it]);
 			{
 				gboolean _tmp5_ = FALSE;
-				if (!g_str_has_prefix (arg, "-")) {
+				if (!g_str_has_prefix (arg, "--")) {
 					_tmp5_ = !string_contains (arg, ":");
 				} else {
 					_tmp5_ = FALSE;
@@ -330,7 +339,7 @@ gint _vala_main (char** args, int args_length1) {
 			effective_args = (_vala_array_free (effective_args, effective_args_length1, (GDestroyNotify) g_free), NULL);
 			_g_option_context_free0 (opt_context);
 			_g_object_unref0 (auto_pipeline);
-			_g_scanner_destroy0 (scanner);
+			_g_object_unref0 (scanner);
 			__g_list_free_g_object_unref0 (tasks);
 			__g_list_free_g_free0 (effective_args_list);
 			_g_free0 (pipeline_desc);
@@ -369,7 +378,7 @@ gint _vala_main (char** args, int args_length1) {
 			_g_error_free0 (e);
 			_g_option_context_free0 (opt_context);
 			_g_object_unref0 (auto_pipeline);
-			_g_scanner_destroy0 (scanner);
+			_g_object_unref0 (scanner);
 			__g_list_free_g_object_unref0 (tasks);
 			__g_list_free_g_free0 (effective_args_list);
 			_g_free0 (pipeline_desc);
@@ -380,7 +389,7 @@ gint _vala_main (char** args, int args_length1) {
 	if (_inner_error_ != NULL) {
 		_g_option_context_free0 (opt_context);
 		_g_object_unref0 (auto_pipeline);
-		_g_scanner_destroy0 (scanner);
+		_g_object_unref0 (scanner);
 		__g_list_free_g_object_unref0 (tasks);
 		__g_list_free_g_free0 (effective_args_list);
 		_g_free0 (pipeline_desc);
@@ -420,7 +429,7 @@ gint _vala_main (char** args, int args_length1) {
 	result = 0;
 	_g_option_context_free0 (opt_context);
 	_g_object_unref0 (auto_pipeline);
-	_g_scanner_destroy0 (scanner);
+	_g_object_unref0 (scanner);
 	__g_list_free_g_object_unref0 (tasks);
 	__g_list_free_g_free0 (effective_args_list);
 	_g_free0 (pipeline_desc);

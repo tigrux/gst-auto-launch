@@ -1,88 +1,133 @@
-class TaskScanner: Scanner {
+class TaskScanner: Object {
+	Scanner scanner;
+    double last_time_seconds;
+
+
     public TaskScanner() {
-        base(null);
-        config.scan_identifier_1char = false;
-        scanner_register_symbols(this, 0);
+    	last_time_seconds = 0;
+        scanner = new Scanner(null);
+        scanner.config.scan_identifier_1char = false;
+        scanner.config.identifier_2_string = true;
+        scanner_register_symbols(scanner, 0);
+        scanner.config.cset_identifier_nth =
+            CharacterSet.a_2_z +
+            "_-0123456789" +
+            CharacterSet.A_2_Z +
+            CharacterSet.LATINS +
+            CharacterSet.LATINC;
     }
 
 
-    public List<Task> get_tasks_from_args(string[] args) {
-        double last_time_seconds = 0;
-        var tasks = new List<Task> ();
+    public Task? get_task_from_arg(string arg) {
+        if(!arg.contains(":"))
+            return null;
+        scanner.input_text(arg, (uint)arg.length);
 
-        foreach(var arg in args) {
-            if(arg.has_prefix("--"))
-                continue;
+        TokenType token;
 
-            input_text(arg, (uint)arg.length);
+        var seconds = get_seconds(out token);
+        last_time_seconds = seconds;
 
-            var relative = 0;
-            var tok_type = peek_next_token();
-            if(tok_type == TokenType.EOF)
-                break;
-            
-            if(tok_type == '+')
-                relative = 1;
-            else if(tok_type == '-')
-                relative = -1;
-            
-            if(relative != 0)
-                get_next_token();
+        token = scanner.get_next_token();
+        if(token != ':') {
+            printerr("Expected ':' between seconds and command\n");
+            return null;
+        }
 
-            tok_type = peek_next_token();
-            if(tok_type != TokenType.FLOAT && tok_type != TokenType.INT)
-                continue;
-            get_next_token();
+        token = scanner.get_next_token();
+        if(token != TokenType.SYMBOL) {
+            printerr("Expected a valid command\n");
+            return null;
+        }
 
-            double seconds;
-            if(tok_type == TokenType.FLOAT)
-                seconds = value.float;
-            else
-                seconds = value.int;
+        var command = (Command?)scanner.value.symbol;
+        var task = new Task(seconds, command);
 
-            if(relative != 0)
-                seconds = last_time_seconds + relative*seconds;
+        while( (token = scanner.get_next_token()) == ':') {
+            token = scanner.peek_next_token();
 
-            if(peek_next_token() != ':')
-                continue;
-            get_next_token();
-
-            if(peek_next_token() != TokenType.SYMBOL)
-                continue;
-            get_next_token();
-            var command = (Command?)value.symbol;
-
-            var task = new Task(seconds, command);
-
-            while(peek_next_token() == ':') {
-                get_next_token();
-                tok_type = get_next_token();
-                switch(tok_type) {
-                    case TokenType.INT:
-                        task.arguments.append(value.int);
-                        break;
-                    case TokenType.FLOAT:
-                        task.arguments.append(value.float);
-                        break;
-                    case TokenType.IDENTIFIER:
-                    case TokenType.STRING:
-                        if(value.string == "true")
-                            task.arguments.append(true);
-                        else if(value.string == "false")
-                            task.arguments.append(false);
-                        else
-                            task.arguments.append(value.string);
-                        break;
-                    default:
-                        printerr("** TokType = %c\n", tok_type);
-                        break;
-                }
+            if(token == TokenType.STRING) {
+                scanner.get_next_token();
+                var s = scanner.value.string;
+                if(s == "true")
+                 task.arguments.append(true);
+                else if(s == "false")
+                    task.arguments.append(false);
+                else
+                    task.arguments.append(s);
             }
 
-            tasks.append(task);
-            last_time_seconds = seconds;
+            if(token == TokenType.INT || token == TokenType.FLOAT ||
+               token == '+' || token == '-') {
+                var number = get_signed_number(out token);
+                task.arguments.append(number);
+            }
         }
-        return tasks;
+
+        return task;
+    }
+
+
+    double get_seconds(out TokenType last_token) {
+        int relative;
+        var seconds = get_number(out last_token, out relative);
+
+        if(relative != 0)
+            seconds += relative * last_time_seconds;
+
+        return seconds;
+    }
+
+
+    double get_signed_number(out TokenType last_token) {
+        int relative;
+        var number = get_number(out last_token, out relative);
+
+        if(relative == -1)
+            return -number;
+        return number;
+    }
+
+
+    double get_number(out TokenType last_token, out int relative) {
+        double number;
+        var token = scanner.get_next_token();
+
+        if(token == '+')
+            relative = 1;
+        else if(token == '-')
+            relative = -1;
+        else
+            relative = 0;
+
+        if(relative != 0)
+            token = scanner.get_next_token();
+
+        if(token == TokenType.INT)
+            number = (float)scanner.value.int;
+        else if(token == TokenType.FLOAT)
+            number = (float)scanner.value.float;
+        else
+            number = 0;
+
+        last_token = token;
+        return number;
+    }
+
+
+    public void print_description() {
+        scanner.scope_foreach_symbol(0,
+            (key, val) => {
+                var name = (string)key;
+                var command = (Command*)val;
+                printerr("  %s:\n    %s\n", name, command->description);
+            }
+        );
+    }
+
+
+    public Command? lookup_command(string command_name) {
+    	return (Command?)scanner.lookup_symbol(command_name);
     }
 }
 

@@ -42,13 +42,7 @@ int main(string[] args) {
         printerr("Commands are of the form <seconds>:<command>\n");
         printerr("Supported commands are:\n");
 
-        scanner.scope_foreach_symbol(0,
-            (key, val) => {
-                var name = (string)key;
-                var command = (Command*)val;
-                printerr("  %s:\n    %s\n", name, command->description);
-            }
-        );
+        scanner.print_description();
 
         printerr("\nIf no xml file can be parsed, it will get the pipeline from the command line\n\n");
         printerr("Examples:\n");
@@ -58,11 +52,17 @@ int main(string[] args) {
         return 1;
     }
 
-    var tasks = scanner.get_tasks_from_args(args);
+	List<Task> tasks = new List<Task> ();
+	foreach(string arg in args) {
+    	var task = scanner.get_task_from_arg(arg);
+    	if(task != null)
+    		tasks.append(task);
+	}
+
     if(tasks.length() == 0) {
         var auto_symbol = "play";
         printerr("No commands given, will exec '%s' automatically\n", auto_symbol);
-        var auto_command = (Command?)scanner.lookup_symbol(auto_symbol);
+        var auto_command = scanner.lookup_command(auto_symbol);
         if(auto_command != null) {
             var auto_task = new Task(0, auto_command);
             tasks.append(auto_task);
@@ -73,7 +73,7 @@ int main(string[] args) {
 
     var effective_args_list = new List<string> ();
     foreach(var arg in args[1:args.length])
-        if(!arg.has_prefix("-") && !arg.contains(":"))
+        if(!arg.has_prefix("--") && !arg.contains(":"))
             effective_args_list.append(arg);
 
     var should_parse_xml = false;
@@ -126,7 +126,6 @@ int main(string[] args) {
 
     foreach(var task in tasks)
         auto_pipeline.exec_task(task);
-
     var loop = new MainLoop();
     auto_pipeline.quit.connect(loop.quit);
     if(print_messages)
@@ -140,6 +139,7 @@ int main(string[] args) {
         auto_pipeline.log(" 'end' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
         auto_pipeline.log("}\n");
     }
+
     return 0;
 }
 
