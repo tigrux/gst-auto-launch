@@ -66,6 +66,7 @@ typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
+	char* args_desc;
 	CommandFunc function;
 	gpointer function_target;
 	GDestroyNotify function_target_destroy_notify;
@@ -92,6 +93,7 @@ void command_copy (const Command* self, Command* dest);
 void command_destroy (Command* self);
 Task* task_new (double seconds, Command* command);
 Task* task_construct (GType object_type, double seconds, Command* command);
+gchar command_get_arg_desc (Command *self, guint arg_i);
 GValueArray* task_get_arguments (Task* self);
 static double task_scanner_get_signed_number (TaskScanner* self, GTokenType* last_token);
 Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg);
@@ -114,7 +116,7 @@ TaskScanner* task_scanner_construct (GType object_type) {
 	(*self->priv->scanner->config).scan_identifier_1char = FALSE;
 	(*self->priv->scanner->config).identifier_2_string = TRUE;
 	scanner_register_symbols (self->priv->scanner, (guint) 0);
-	(*self->priv->scanner->config).cset_identifier_nth = G_CSET_a_2_z "_-0123456789" G_CSET_A_2_Z G_CSET_LATINS G_CSET_LATINC;
+	(*self->priv->scanner->config).cset_identifier_nth = G_CSET_a_2_z G_CSET_A_2_Z "_-0123456789";
 	return self;
 }
 
@@ -149,9 +151,10 @@ static gpointer _command_dup0 (gpointer self) {
 Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 	Task* result = NULL;
 	GTokenType token = 0;
-	double seconds;
+	double number;
 	Command* command;
 	Task* task;
+	guint arg_i;
 	g_return_val_if_fail (self != NULL, NULL);
 	g_return_val_if_fail (arg != NULL, NULL);
 	if (!string_contains (arg, ":")) {
@@ -159,8 +162,8 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 		return result;
 	}
 	g_scanner_input_text (self->priv->scanner, arg, (guint) string_get_length (arg));
-	seconds = task_scanner_get_seconds (self, &token);
-	self->priv->last_time_seconds = seconds;
+	number = task_scanner_get_seconds (self, &token);
+	self->priv->last_time_seconds = number;
 	token = g_scanner_get_next_token (self->priv->scanner);
 	if (token != ':') {
 		g_printerr ("Expected ':' between seconds and command\n");
@@ -174,12 +177,15 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 		return result;
 	}
 	command = _command_dup0 ((Command*) self->priv->scanner->value.v_symbol);
-	task = task_new (seconds, command);
+	task = task_new (number, command);
+	arg_i = (guint) 0;
 	while (TRUE) {
-		gboolean _tmp6_ = FALSE;
-		gboolean _tmp7_ = FALSE;
-		gboolean _tmp8_ = FALSE;
+		gchar arg_desc;
 		if (!((token = g_scanner_get_next_token (self->priv->scanner)) == ':')) {
+			break;
+		}
+		arg_desc = command_get_arg_desc (command, arg_i);
+		if (arg_desc == 0) {
 			break;
 		}
 		token = g_scanner_peek_next_token (self->priv->scanner);
@@ -203,29 +209,40 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 				}
 			}
 			_g_free0 (s);
-		}
-		if (token == G_TOKEN_INT) {
-			_tmp8_ = TRUE;
 		} else {
-			_tmp8_ = token == G_TOKEN_FLOAT;
+			gboolean _tmp6_ = FALSE;
+			gboolean _tmp7_ = FALSE;
+			gboolean _tmp8_ = FALSE;
+			if (token == G_TOKEN_INT) {
+				_tmp8_ = TRUE;
+			} else {
+				_tmp8_ = token == G_TOKEN_FLOAT;
+			}
+			if (_tmp8_) {
+				_tmp7_ = TRUE;
+			} else {
+				_tmp7_ = token == '+';
+			}
+			if (_tmp7_) {
+				_tmp6_ = TRUE;
+			} else {
+				_tmp6_ = token == '-';
+			}
+			if (_tmp6_) {
+				if (arg_desc == 't') {
+					GValue _tmp10_;
+					GValue _tmp9_ = {0};
+					number = task_scanner_get_seconds (self, &token);
+					g_value_array_append (task_get_arguments (task), (_tmp10_ = (g_value_init (&_tmp9_, G_TYPE_DOUBLE), g_value_set_double (&_tmp9_, number), _tmp9_), &_tmp10_));
+				} else {
+					GValue _tmp12_;
+					GValue _tmp11_ = {0};
+					number = task_scanner_get_signed_number (self, &token);
+					g_value_array_append (task_get_arguments (task), (_tmp12_ = (g_value_init (&_tmp11_, G_TYPE_DOUBLE), g_value_set_double (&_tmp11_, number), _tmp11_), &_tmp12_));
+				}
+			}
 		}
-		if (_tmp8_) {
-			_tmp7_ = TRUE;
-		} else {
-			_tmp7_ = token == '+';
-		}
-		if (_tmp7_) {
-			_tmp6_ = TRUE;
-		} else {
-			_tmp6_ = token == '-';
-		}
-		if (_tmp6_) {
-			double number;
-			GValue _tmp10_;
-			GValue _tmp9_ = {0};
-			number = task_scanner_get_signed_number (self, &token);
-			g_value_array_append (task_get_arguments (task), (_tmp10_ = (g_value_init (&_tmp9_, G_TYPE_DOUBLE), g_value_set_double (&_tmp9_, number), _tmp9_), &_tmp10_));
-		}
+		arg_i++;
 	}
 	result = task;
 	_command_free0 (command);
@@ -281,10 +298,10 @@ static double task_scanner_get_number (TaskScanner* self, GTokenType* last_token
 		token = g_scanner_get_next_token (self->priv->scanner);
 	}
 	if (token == G_TOKEN_INT) {
-		number = (double) ((float) self->priv->scanner->value.v_int);
+		number = (double) self->priv->scanner->value.v_int;
 	} else {
 		if (token == G_TOKEN_FLOAT) {
-			number = (double) ((float) self->priv->scanner->value.v_float);
+			number = self->priv->scanner->value.v_float;
 		} else {
 			number = (double) 0;
 		}

@@ -36,6 +36,7 @@ typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
+	char* args_desc;
 	CommandFunc function;
 	gpointer function_target;
 	GDestroyNotify function_target_destroy_notify;
@@ -50,12 +51,35 @@ Command* command_dup (const Command* self);
 void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
 void command_destroy (Command* self);
+gchar command_get_arg_desc (Command *self, guint arg_i);
 
+
+
+static glong string_get_length (const char* self) {
+	glong result;
+	g_return_val_if_fail (self != NULL, 0L);
+	result = g_utf8_strlen (self, -1);
+	return result;
+}
+
+
+gchar command_get_arg_desc (Command *self, guint arg_i) {
+	gchar result = '\0';
+	gchar arg_desc;
+	if (arg_i >= string_get_length ((*self).args_desc)) {
+		result = (gchar) 0;
+		return result;
+	}
+	arg_desc = ((gchar*) (*self).args_desc)[arg_i];
+	result = arg_desc;
+	return result;
+}
 
 
 void command_copy (const Command* self, Command* dest) {
 	dest->name = g_strdup (self->name);
 	dest->description = g_strdup (self->description);
+	dest->args_desc = g_strdup (self->args_desc);
 	dest->function = self->function;
 }
 
@@ -63,6 +87,7 @@ void command_copy (const Command* self, Command* dest) {
 void command_destroy (Command* self) {
 	_g_free0 (self->name);
 	_g_free0 (self->description);
+	_g_free0 (self->args_desc);
 	((*self).function_target_destroy_notify == NULL) ? NULL : ((*self).function_target_destroy_notify ((*self).function_target), NULL);
 	self->function = NULL;
 	(*self).function_target = NULL;

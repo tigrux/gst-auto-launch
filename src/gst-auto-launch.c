@@ -67,6 +67,7 @@ typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
+	char* args_desc;
 	CommandFunc function;
 	gpointer function_target;
 	GDestroyNotify function_target_destroy_notify;

@@ -10,11 +10,7 @@ class TaskScanner: Object {
         scanner.config.identifier_2_string = true;
         scanner_register_symbols(scanner, 0);
         scanner.config.cset_identifier_nth =
-            CharacterSet.a_2_z +
-            "_-0123456789" +
-            CharacterSet.A_2_Z +
-            CharacterSet.LATINS +
-            CharacterSet.LATINC;
+            CharacterSet.a_2_z + CharacterSet.A_2_Z + "_-0123456789";
     }
 
 
@@ -25,8 +21,8 @@ class TaskScanner: Object {
 
         TokenType token;
 
-        var seconds = get_seconds(out token);
-        last_time_seconds = seconds;
+        var number = get_seconds(out token);
+        last_time_seconds = number;
 
         token = scanner.get_next_token();
         if(token != ':') {
@@ -41,11 +37,15 @@ class TaskScanner: Object {
         }
 
         var command = (Command?)scanner.value.symbol;
-        var task = new Task(seconds, command);
+        var task = new Task(number, command);
 
+        uint arg_i = 0;
         while( (token = scanner.get_next_token()) == ':') {
-            token = scanner.peek_next_token();
+            var arg_desc = command.get_arg_desc(arg_i);
+            if(arg_desc == 0)
+                break;
 
+            token = scanner.peek_next_token();
             if(token == TokenType.STRING) {
                 scanner.get_next_token();
                 var s = scanner.value.string;
@@ -56,12 +56,19 @@ class TaskScanner: Object {
                 else
                     task.arguments.append(s);
             }
-
+            else
             if(token == TokenType.INT || token == TokenType.FLOAT ||
                token == '+' || token == '-') {
-                var number = get_signed_number(out token);
-                task.arguments.append(number);
+                if(arg_desc == 't') {
+                    number = get_seconds(out token);
+                    task.arguments.append(number);
+                }
+                else {
+                    number = get_signed_number(out token);
+                    task.arguments.append(number);
+                }
             }
+            arg_i++;
         }
 
         return task;
@@ -104,9 +111,9 @@ class TaskScanner: Object {
             token = scanner.get_next_token();
 
         if(token == TokenType.INT)
-            number = (float)scanner.value.int;
+            number = scanner.value.int;
         else if(token == TokenType.FLOAT)
-            number = (float)scanner.value.float;
+            number = scanner.value.float;
         else
             number = 0;
 

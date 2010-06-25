@@ -43,6 +43,7 @@ typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
+	char* args_desc;
 	CommandFunc function;
 	gpointer function_target;
 	GDestroyNotify function_target_destroy_notify;
@@ -80,7 +81,7 @@ static void _lambda2_ (void* data);
 static void __lambda2__gfunc (void* data, gpointer self);
 void scanner_register_symbols (GScanner* scanner, guint scope);
 
-const Command COMMANDS[10] = {{"play", "Change pipeline state to PLAYING", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", _command_pause_command_func}, {"ready", "Change pipeline state to READY", _command_ready_command_func}, {"stop", "Change pipeline state to READY", _command_ready_command_func}, {"null", "Change pipeline state to NULL", _command_null_command_func}, {"eos", "Send eos to the source elements", _command_eos_command_func}, {"quit", "Quit the event loop", _command_quit_command_func}, {"set", "Set properties of an object", _command_set_command_func}, {"seek", "Seek to the specified time", _command_seek_command_func}, {NULL}};
+const Command COMMANDS[10] = {{"play", "Change pipeline state to PLAYING", "", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", "", _command_pause_command_func}, {"ready", "Change pipeline state to READY", "", _command_ready_command_func}, {"stop", "Change pipeline state to READY", "", _command_ready_command_func}, {"null", "Change pipeline state to NULL", "", _command_null_command_func}, {"eos", "Send eos to the source elements", "", _command_eos_command_func}, {"quit", "Quit the event loop", "", _command_quit_command_func}, {"set", "Set properties of an object", "ssv", _command_set_command_func}, {"seek", "Seek to the specified time", "t", _command_seek_command_func}, {NULL}};
 
 
 static void _command_play_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
@@ -171,7 +172,7 @@ void command_set (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
 	if (task_get_arguments (task)->n_values != 3) {
-		g_printerr ("Command 'set' takes exactly 3 arguments\n");
+		g_printerr ("Command 'set' takes exactly 3 arguments (got %u)\n", task_get_arguments (task)->n_values);
 		return;
 	}
 	if (!G_VALUE_HOLDS ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_), G_TYPE_STRING)) {

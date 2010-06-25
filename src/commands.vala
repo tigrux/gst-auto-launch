@@ -1,13 +1,13 @@
 const Command[] COMMANDS = {
-    {"play", "Change pipeline state to PLAYING", command_play},
-    {"pause", "Change pipeline state to PAUSED", command_pause},
-    {"ready", "Change pipeline state to READY", command_ready},
-    {"stop", "Change pipeline state to READY", command_ready},
-    {"null", "Change pipeline state to NULL", command_null},
-    {"eos", "Send eos to the source elements", command_eos},
-    {"quit", "Quit the event loop", command_quit},
-    {"set", "Set properties of an object", command_set},
-    {"seek", "Seek to the specified time", command_seek},
+    {"play", "Change pipeline state to PLAYING", "", command_play},
+    {"pause", "Change pipeline state to PAUSED", "", command_pause},
+    {"ready", "Change pipeline state to READY", "", command_ready},
+    {"stop", "Change pipeline state to READY", "", command_ready},
+    {"null", "Change pipeline state to NULL", "", command_null},
+    {"eos", "Send eos to the source elements", "", command_eos},
+    {"quit", "Quit the event loop", "", command_quit},
+    {"set", "Set properties of an object", "ssv", command_set},
+    {"seek", "Seek to the specified time", "t", command_seek},
     {null}
 };
 
@@ -39,7 +39,8 @@ void command_quit(AutoPipeline ctx, Task task) {
 
 void command_set(AutoPipeline ctx, Task task) {
     if(task.arguments.n_values != 3) {
-        printerr("Command 'set' takes exactly 3 arguments\n");
+        printerr("Command 'set' takes exactly 3 arguments (got %u)\n",
+            task.arguments.n_values);
         return;
     }
 
