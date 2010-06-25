@@ -10,7 +10,8 @@ class TaskScanner: Object {
         scanner.config.identifier_2_string = true;
         scanner_register_symbols(scanner, 0);
         scanner.config.cset_identifier_nth =
-            CharacterSet.a_2_z + CharacterSet.A_2_Z + "_-0123456789";
+            CharacterSet.a_2_z + CharacterSet.A_2_Z + " _-0123456789" +
+            CharacterSet.LATINC + CharacterSet.LATINS;
     }
 
 
@@ -48,7 +49,7 @@ class TaskScanner: Object {
                 scanner.get_next_token();
                 var s = scanner.value.string;
                 if(s == "true")
-                 task.arguments.append(true);
+                    task.arguments.append(true);
                 else if(s == "false")
                     task.arguments.append(false);
                 else

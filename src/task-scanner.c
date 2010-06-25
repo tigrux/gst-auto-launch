@@ -117,7 +117,7 @@ TaskScanner* task_scanner_construct (GType object_type) {
 	(*self->priv->scanner->config).scan_identifier_1char = FALSE;
 	(*self->priv->scanner->config).identifier_2_string = TRUE;
 	scanner_register_symbols (self->priv->scanner, (guint) 0);
-	(*self->priv->scanner->config).cset_identifier_nth = G_CSET_a_2_z G_CSET_A_2_Z "_-0123456789";
+	(*self->priv->scanner->config).cset_identifier_nth = G_CSET_a_2_z G_CSET_A_2_Z " _-0123456789" G_CSET_LATINC G_CSET_LATINS;
 	return self;
 }
 
