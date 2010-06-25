@@ -96,6 +96,7 @@ Task* task_construct (GType object_type, double seconds, Command* command);
 gchar command_get_arg_desc (Command *self, guint arg_i);
 GValueArray* task_get_arguments (Task* self);
 static double task_scanner_get_signed_number (TaskScanner* self, GTokenType* last_token);
+guint command_get_n_args (Command *self);
 Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg);
 static double task_scanner_get_number (TaskScanner* self, GTokenType* last_token, gint* relative);
 static void _lambda3_ (void* key, void* val, TaskScanner* self);
@@ -154,7 +155,7 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 	double number;
 	Command* command;
 	Task* task;
-	guint arg_i;
+	guint arg_n;
 	g_return_val_if_fail (self != NULL, NULL);
 	g_return_val_if_fail (arg != NULL, NULL);
 	if (!string_contains (arg, ":")) {
@@ -178,16 +179,13 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 	}
 	command = _command_dup0 ((Command*) self->priv->scanner->value.v_symbol);
 	task = task_new (number, command);
-	arg_i = (guint) 0;
+	arg_n = (guint) 0;
 	while (TRUE) {
 		gchar arg_desc;
 		if (!((token = g_scanner_get_next_token (self->priv->scanner)) == ':')) {
 			break;
 		}
-		arg_desc = command_get_arg_desc (command, arg_i);
-		if (arg_desc == 0) {
-			break;
-		}
+		arg_desc = command_get_arg_desc (command, arg_n);
 		token = g_scanner_peek_next_token (self->priv->scanner);
 		if (token == G_TOKEN_STRING) {
 			char* s;
@@ -242,7 +240,72 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 				}
 			}
 		}
-		arg_i++;
+		arg_n++;
+	}
+	if (command_get_n_args (command) != task_get_arguments (task)->n_values) {
+		g_printerr ("Command '%s' takes %u arguments (got %u)\n", (*command).name, command_get_n_args (command), task_get_arguments (task)->n_values);
+		result = NULL;
+		_command_free0 (command);
+		_g_object_unref0 (task);
+		return result;
+	}
+	{
+		guint arg_i;
+		arg_i = (guint) 0;
+		{
+			gboolean _tmp13_;
+			_tmp13_ = TRUE;
+			while (TRUE) {
+				gchar arg_desc;
+				GValue _tmp14_ = {0};
+				GValue arg_value;
+				if (!_tmp13_) {
+					arg_i++;
+				}
+				_tmp13_ = FALSE;
+				if (!(arg_i < arg_n)) {
+					break;
+				}
+				arg_desc = command_get_arg_desc (command, arg_i);
+				arg_value = G_IS_VALUE (&task_get_arguments (task)->values[0]) ? (g_value_init (&_tmp14_, G_VALUE_TYPE (&task_get_arguments (task)->values[0])), g_value_copy (&task_get_arguments (task)->values[0], &_tmp14_), _tmp14_) : task_get_arguments (task)->values[0];
+				switch (arg_desc) {
+					case 's':
+					{
+						if (!G_VALUE_HOLDS (&arg_value, G_TYPE_STRING)) {
+							g_printerr ("Argument %u of '%s' must be a string\n", arg_i, (*command).name);
+							result = NULL;
+							G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
+							_command_free0 (command);
+							_g_object_unref0 (task);
+							return result;
+						}
+						break;
+					}
+					case 't':
+					{
+						if (!G_VALUE_HOLDS (&arg_value, G_TYPE_DOUBLE)) {
+							g_printerr ("Argument %u of '%s' must be in seconds\n", arg_i, (*command).name);
+							result = NULL;
+							G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
+							_command_free0 (command);
+							_g_object_unref0 (task);
+							return result;
+						}
+						number = g_value_get_double (&arg_value);
+						if (number < 0.0) {
+							g_printerr ("Argument %u of '%s' cannot be negative\n", arg_i, (*command).name);
+							result = NULL;
+							G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
+							_command_free0 (command);
+							_g_object_unref0 (task);
+							return result;
+						}
+						break;
+					}
+				}
+				G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
+			}
+		}
 	}
 	result = task;
 	_command_free0 (command);

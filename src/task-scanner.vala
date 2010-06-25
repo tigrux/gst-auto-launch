@@ -39,11 +39,9 @@ class TaskScanner: Object {
         var command = (Command?)scanner.value.symbol;
         var task = new Task(number, command);
 
-        uint arg_i = 0;
+        uint arg_n = 0;
         while( (token = scanner.get_next_token()) == ':') {
-            var arg_desc = command.get_arg_desc(arg_i);
-            if(arg_desc == 0)
-                break;
+            var arg_desc = command.get_arg_desc(arg_n);
 
             token = scanner.peek_next_token();
             if(token == TokenType.STRING) {
@@ -68,7 +66,40 @@ class TaskScanner: Object {
                     task.arguments.append(number);
                 }
             }
-            arg_i++;
+            arg_n++;
+        }
+
+        if(command.get_n_args() != task.arguments.n_values) {
+            printerr("Command '%s' takes %u arguments (got %u)\n",
+                command.name, command.get_n_args(), task.arguments.n_values);
+            return null;
+        }
+
+        for(uint arg_i = 0; arg_i < arg_n; arg_i++) {
+            var arg_desc = command.get_arg_desc(arg_i);
+            var arg_value = task.arguments.values[0];
+            switch(arg_desc) {
+                case 's':
+                    if(!arg_value.holds(typeof(string))) {
+                        printerr("Argument %u of '%s' must be a string\n",
+                            arg_i, command.name);
+                        return null;
+                    }
+                    break;
+                case 't':
+                    if(!arg_value.holds(typeof(double))) {
+                        printerr("Argument %u of '%s' must be in seconds\n",
+                            arg_i, command.name);
+                        return null;
+                    }
+                    number = arg_value.get_double();
+                    if(number < 0.0) {
+                        printerr("Argument %u of '%s' cannot be negative\n",
+                            arg_i, command.name);
+                        return null;
+                    }
+                    break;
+            }
         }
 
         return task;

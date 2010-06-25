@@ -13,5 +13,9 @@ struct Command {
         char arg_desc = ((char*)args_desc)[arg_i];
         return arg_desc;
     }
+
+    public uint get_n_args() {
+        return (uint)args_desc.length;
+    }
 }
 

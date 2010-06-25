@@ -52,6 +52,7 @@ void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
 void command_destroy (Command* self);
 gchar command_get_arg_desc (Command *self, guint arg_i);
+guint command_get_n_args (Command *self);
 
 
 
@@ -72,6 +73,13 @@ gchar command_get_arg_desc (Command *self, guint arg_i) {
 	}
 	arg_desc = ((gchar*) (*self).args_desc)[arg_i];
 	result = arg_desc;
+	return result;
+}
+
+
+guint command_get_n_args (Command *self) {
+	guint result = 0U;
+	result = (guint) string_get_length ((*self).args_desc);
 	return result;
 }
 
