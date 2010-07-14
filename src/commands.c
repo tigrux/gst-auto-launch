@@ -195,6 +195,24 @@ void command_set (AutoPipeline* ctx, Task* task) {
 		return;
 	}
 	prop_value = G_IS_VALUE (&task_get_arguments (task)->values[2]) ? (g_value_init (&_tmp4_, G_VALUE_TYPE (&task_get_arguments (task)->values[2])), g_value_copy (&task_get_arguments (task)->values[2], &_tmp4_), _tmp4_) : task_get_arguments (task)->values[2];
+	if (G_VALUE_HOLDS (&prop_value, G_TYPE_STRING)) {
+		GParamSpec* prop;
+		prop = g_object_class_find_property (G_OBJECT_GET_CLASS ((GObject*) element), prop_name);
+		if (prop != NULL) {
+			GEnumClass* e_class;
+			char* prop_string;
+			GEnumValue* e_value;
+			e_class = (GEnumClass*) g_type_class_peek (prop->value_type);
+			prop_string = g_strdup (g_value_get_string (&prop_value));
+			e_value = g_enum_get_value_by_name (e_class, prop_string);
+			if (e_value != NULL) {
+				GValue _tmp6_;
+				GValue _tmp5_ = {0};
+				prop_value = (_tmp6_ = (g_value_init (&_tmp5_, G_TYPE_INT), g_value_set_int (&_tmp5_, e_value->value), _tmp5_), G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL, _tmp6_);
+			}
+			_g_free0 (prop_string);
+		}
+	}
 	g_object_set_property ((GObject*) element, prop_name, &prop_value);
 	_g_free0 (element_name);
 	_g_free0 (prop_name);
