@@ -6,7 +6,7 @@ class TaskScanner: Object {
     public TaskScanner() {
     	last_time_seconds = 0;
         scanner = new Scanner(null);
-        scanner.config.scan_identifier_1char = false;
+        scanner.config.scan_identifier_1char = true;
         scanner.config.identifier_2_string = true;
         scanner_register_symbols(scanner, 0);
         scanner.config.cset_identifier_nth =
