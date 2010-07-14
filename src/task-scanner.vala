@@ -58,14 +58,15 @@ class TaskScanner: Object {
             else
             if(token == TokenType.INT || token == TokenType.FLOAT ||
                token == '+' || token == '-') {
-                if(arg_desc == 't') {
+                if(arg_desc == 't')
                     number = get_seconds(out token);
-                    task.arguments.append(number);
-                }
-                else {
+                else
                     number = get_signed_number(out token);
-                    task.arguments.append(number);
-                }
+                if(token == TokenType.INT)
+                    task.arguments.append((int)number);
+                else
+                if(token == TokenType.FLOAT)
+                    task.arguments.append((float)number);
             }
             arg_n++;
         }

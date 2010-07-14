@@ -228,15 +228,20 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 			}
 			if (_tmp6_) {
 				if (arg_desc == 't') {
+					number = task_scanner_get_seconds (self, &token);
+				} else {
+					number = task_scanner_get_signed_number (self, &token);
+				}
+				if (token == G_TOKEN_INT) {
 					GValue _tmp10_;
 					GValue _tmp9_ = {0};
-					number = task_scanner_get_seconds (self, &token);
-					g_value_array_append (task_get_arguments (task), (_tmp10_ = (g_value_init (&_tmp9_, G_TYPE_DOUBLE), g_value_set_double (&_tmp9_, number), _tmp9_), &_tmp10_));
+					g_value_array_append (task_get_arguments (task), (_tmp10_ = (g_value_init (&_tmp9_, G_TYPE_INT), g_value_set_int (&_tmp9_, (gint) number), _tmp9_), &_tmp10_));
 				} else {
-					GValue _tmp12_;
-					GValue _tmp11_ = {0};
-					number = task_scanner_get_signed_number (self, &token);
-					g_value_array_append (task_get_arguments (task), (_tmp12_ = (g_value_init (&_tmp11_, G_TYPE_DOUBLE), g_value_set_double (&_tmp11_, number), _tmp11_), &_tmp12_));
+					if (token == G_TOKEN_FLOAT) {
+						GValue _tmp12_;
+						GValue _tmp11_ = {0};
+						g_value_array_append (task_get_arguments (task), (_tmp12_ = (g_value_init (&_tmp11_, G_TYPE_FLOAT), g_value_set_float (&_tmp11_, (float) number), _tmp11_), &_tmp12_));
+					}
 				}
 			}
 		}
