@@ -71,9 +71,9 @@ struct _Block1Data {
 
 static gpointer task_parent_class = NULL;
 
-GType task_get_type (void);
-GType command_get_type (void);
-GType auto_pipeline_get_type (void);
+GType task_get_type (void) G_GNUC_CONST;
+GType command_get_type (void) G_GNUC_CONST;
+GType auto_pipeline_get_type (void) G_GNUC_CONST;
 Command* command_dup (const Command* self);
 void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
@@ -139,13 +139,13 @@ static gpointer _g_object_ref0 (gpointer self) {
 
 
 static Block1Data* block1_data_ref (Block1Data* _data1_) {
-	++_data1_->_ref_count_;
+	g_atomic_int_inc (&_data1_->_ref_count_);
 	return _data1_;
 }
 
 
 static void block1_data_unref (Block1Data* _data1_) {
-	if ((--_data1_->_ref_count_) == 0) {
+	if (g_atomic_int_dec_and_test (&_data1_->_ref_count_)) {
 		_g_object_unref0 (_data1_->self);
 		_g_object_unref0 (_data1_->ctx);
 		g_slice_free (Block1Data, _data1_);

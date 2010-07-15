@@ -58,7 +58,7 @@ static gpointer auto_pipeline_parent_class = NULL;
 #define LOG_FILENAME "gst-auto-launch.log"
 gint vprintf (const char* format, va_list ap);
 gint vfprintf (FILE* stream, const char* format, va_list ap);
-GType auto_pipeline_get_type (void);
+GType auto_pipeline_get_type (void) G_GNUC_CONST;
 #define AUTO_PIPELINE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), TYPE_AUTO_PIPELINE, AutoPipelinePrivate))
 enum  {
 	AUTO_PIPELINE_DUMMY_PROPERTY,
@@ -73,7 +73,7 @@ void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GE
 static gboolean _lambda0_ (GQuark q, GValue* v, AutoPipeline* self);
 static gboolean __lambda0__gst_structure_foreach_func (GQuark field_id, GValue* value, gpointer self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
-GType task_get_type (void);
+GType task_get_type (void) G_GNUC_CONST;
 guint task_exec (Task* self, AutoPipeline* ctx);
 guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
 AutoPipeline* auto_pipeline_new (void);
@@ -168,7 +168,7 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 		char* src_name;
 		GTimeVal tv = {0};
 		seqnum = gst_message_get_seqnum (message);
-		src = _gst_object_ref0 (GST_MESSAGE_SRC (message));
+		src = _gst_object_ref0 (message->src);
 		s = _gst_structure_copy0 (gst_message_get_structure (message));
 		src_name = NULL;
 		if (GST_IS_ELEMENT (src)) {
@@ -178,25 +178,27 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 			if (GST_IS_PAD (src)) {
 				GstPad* pad;
 				char* pad_name;
+				GstElement* _tmp1_;
+				char* _tmp2_;
 				char* parent_name;
-				char* _tmp1_;
+				char* _tmp3_;
 				pad = _gst_object_ref0 (GST_PAD (src));
 				pad_name = g_strdup (gst_object_get_name ((GstObject*) pad));
-				parent_name = g_strdup (gst_object_get_name ((GstObject*) gst_pad_get_parent_element (pad)));
-				src_name = (_tmp1_ = g_strdup_printf ("%s:%s", parent_name, pad_name), _g_free0 (src_name), _tmp1_);
-				_gst_object_unref0 (pad);
-				_g_free0 (pad_name);
+				parent_name = (_tmp2_ = g_strdup (gst_object_get_name ((GstObject*) (_tmp1_ = gst_pad_get_parent_element (pad)))), _gst_object_unref0 (_tmp1_), _tmp2_);
+				src_name = (_tmp3_ = g_strdup_printf ("%s:%s", parent_name, pad_name), _g_free0 (src_name), _tmp3_);
 				_g_free0 (parent_name);
+				_g_free0 (pad_name);
+				_gst_object_unref0 (pad);
 			} else {
 				if (GST_IS_OBJECT (src)) {
-					char* _tmp2_;
-					src_name = (_tmp2_ = g_strdup (gst_object_get_name (src)), _g_free0 (src_name), _tmp2_);
+					char* _tmp4_;
+					src_name = (_tmp4_ = g_strdup (gst_object_get_name (src)), _g_free0 (src_name), _tmp4_);
 				}
 			}
 		}
 		auto_pipeline_log (self, "  {\n", NULL);
 		auto_pipeline_log (self, "   'seqnum' : %u,\n", seqnum, NULL);
-		auto_pipeline_log (self, "   'type' : '%s',\n", gst_message_type_get_name (GST_MESSAGE_TYPE (message)), NULL);
+		auto_pipeline_log (self, "   'type' : '%s',\n", gst_message_type_get_name (message->type), NULL);
 		g_get_current_time (&tv);
 		auto_pipeline_log (self, "   'time' : %lu.%06lu,\n", tv.tv_sec, tv.tv_usec, NULL);
 		if (src_name != NULL) {
@@ -209,27 +211,27 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 			auto_pipeline_log (self, "   }\n", NULL);
 		}
 		auto_pipeline_log (self, "  },\n", NULL);
-		_gst_object_unref0 (src);
-		_gst_structure_free0 (s);
 		_g_free0 (src_name);
+		_gst_structure_free0 (s);
+		_gst_object_unref0 (src);
 	}
-	switch (GST_MESSAGE_TYPE (message)) {
+	switch (message->type) {
 		case GST_MESSAGE_ERROR:
 		{
 			{
 				GError* e;
 				char* s;
-				char* _tmp6_;
-				char* _tmp5_ = NULL;
-				GError* _tmp4_;
-				GError* _tmp3_ = NULL;
+				char* _tmp8_;
+				char* _tmp7_ = NULL;
+				GError* _tmp6_;
+				GError* _tmp5_ = NULL;
 				e = NULL;
 				s = NULL;
-				(gst_message_parse_error (message, &_tmp3_, &_tmp5_), e = (_tmp4_ = _tmp3_, _g_error_free0 (e), _tmp4_));
-				s = (_tmp6_ = _tmp5_, _g_free0 (s), _tmp6_);
+				(gst_message_parse_error (message, &_tmp5_, &_tmp7_), e = (_tmp6_ = _tmp5_, _g_error_free0 (e), _tmp6_));
+				s = (_tmp8_ = _tmp7_, _g_free0 (s), _tmp8_);
 				g_critical ("auto-pipeline.vala:102: Bus error: %s %s\n", e->message, s);
-				_g_error_free0 (e);
 				_g_free0 (s);
+				_g_error_free0 (e);
 				break;
 			}
 		}

@@ -51,8 +51,8 @@ struct _Command {
 
 
 
-GType auto_pipeline_get_type (void);
-GType task_get_type (void);
+GType auto_pipeline_get_type (void) G_GNUC_CONST;
+GType task_get_type (void) G_GNUC_CONST;
 void command_play (AutoPipeline* ctx, Task* task);
 static void _command_play_command_func (AutoPipeline* ctx, Task* task, gpointer self);
 void command_pause (AutoPipeline* ctx, Task* task);
@@ -69,7 +69,7 @@ void command_set (AutoPipeline* ctx, Task* task);
 static void _command_set_command_func (AutoPipeline* ctx, Task* task, gpointer self);
 void command_seek (AutoPipeline* ctx, Task* task);
 static void _command_seek_command_func (AutoPipeline* ctx, Task* task, gpointer self);
-GType command_get_type (void);
+GType command_get_type (void) G_GNUC_CONST;
 Command* command_dup (const Command* self);
 void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
@@ -189,9 +189,9 @@ void command_set (AutoPipeline* ctx, Task* task) {
 	element = gst_bin_get_by_name (auto_pipeline_get_pipeline (ctx), element_name);
 	if (element == NULL) {
 		g_printerr ("There is no element named '%s'\n", element_name);
-		_g_free0 (element_name);
-		_g_free0 (prop_name);
 		_gst_object_unref0 (element);
+		_g_free0 (prop_name);
+		_g_free0 (element_name);
 		return;
 	}
 	prop_value = G_IS_VALUE (&task_get_arguments (task)->values[2]) ? (g_value_init (&_tmp4_, G_VALUE_TYPE (&task_get_arguments (task)->values[2])), g_value_copy (&task_get_arguments (task)->values[2], &_tmp4_), _tmp4_) : task_get_arguments (task)->values[2];
@@ -214,10 +214,10 @@ void command_set (AutoPipeline* ctx, Task* task) {
 		}
 	}
 	g_object_set_property ((GObject*) element, prop_name, &prop_value);
-	_g_free0 (element_name);
-	_g_free0 (prop_name);
-	_gst_object_unref0 (element);
 	G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL;
+	_gst_object_unref0 (element);
+	_g_free0 (prop_name);
+	_g_free0 (element_name);
 }
 
 
@@ -244,8 +244,8 @@ void command_seek (AutoPipeline* ctx, Task* task) {
 	position_useconds = (gint64) (position_seconds * GST_SECOND);
 	seek_event = gst_event_new_seek (1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT, GST_SEEK_TYPE_SET, position_useconds, GST_SEEK_TYPE_NONE, (gint64) 0);
 	gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (ctx), _gst_event_ref0 (seek_event));
-	G_IS_VALUE (&position_value) ? (g_value_unset (&position_value), NULL) : NULL;
 	_gst_event_unref0 (seek_event);
+	G_IS_VALUE (&position_value) ? (g_value_unset (&position_value), NULL) : NULL;
 }
 
 

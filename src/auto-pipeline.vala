@@ -56,7 +56,7 @@ class AutoPipeline: Object {
     void on_bus_message(Gst.Message message) {
         if(_print_messages_enabled) {
             var seqnum = message.get_seqnum();
-            var src = message.src();
+            var src = message.src;
             var s = message.get_structure();
             string src_name = null;
             
@@ -73,7 +73,7 @@ class AutoPipeline: Object {
 
             log("  {\n");
             log("   'seqnum' : %u,\n", seqnum);
-            log("   'type' : '%s',\n", message.type().to_string());
+            log("   'type' : '%s',\n", message.type.to_string());
             var tv = TimeVal();
             log("   'time' : %lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
             if(src_name != null)
@@ -94,7 +94,7 @@ class AutoPipeline: Object {
 
         }
 
-        switch(message.type()) {
+        switch(message.type) {
             case Gst.MessageType.ERROR: {
                 Error e;
                 string s;

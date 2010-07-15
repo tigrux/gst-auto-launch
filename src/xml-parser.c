@@ -41,7 +41,7 @@ struct _XmlParserPrivate {
 
 static gpointer xml_parser_parent_class = NULL;
 
-GType xml_parser_get_type (void);
+GType xml_parser_get_type (void) G_GNUC_CONST;
 #define XML_PARSER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), TYPE_XML_PARSER, XmlParserPrivate))
 enum  {
 	XML_PARSER_DUMMY_PROPERTY
@@ -231,7 +231,7 @@ static GObject * xml_parser_constructor (GType type, guint n_construct_propertie
 		GMarkupParseContext* _tmp0_;
 		GHashTable* _tmp1_;
 		self->priv->_context = (_tmp0_ = g_markup_parse_context_new (&XML_PARSER__parser, 0, self, NULL), _g_markup_parse_context_free0 (self->priv->_context), _tmp0_);
-		self->priv->_ht = (_tmp1_ = g_hash_table_new (g_str_hash, g_str_equal), _g_hash_table_unref0 (self->priv->_ht), _tmp1_);
+		self->priv->_ht = (_tmp1_ = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free), _g_hash_table_unref0 (self->priv->_ht), _tmp1_);
 	}
 	return obj;
 }

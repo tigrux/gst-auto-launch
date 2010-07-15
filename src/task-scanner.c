@@ -45,8 +45,8 @@ typedef struct _Task Task;
 typedef struct _TaskClass TaskClass;
 typedef struct _Command Command;
 #define _g_free0(var) (var = (g_free (var), NULL))
-#define _command_free0(var) ((var == NULL) ? NULL : (var = (command_free (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
+#define _command_free0(var) ((var == NULL) ? NULL : (var = (command_free (var), NULL)))
 
 struct _TaskScanner {
 	GObject parent_instance;
@@ -75,7 +75,7 @@ struct _Command {
 
 static gpointer task_scanner_parent_class = NULL;
 
-GType task_scanner_get_type (void);
+GType task_scanner_get_type (void) G_GNUC_CONST;
 #define TASK_SCANNER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), TYPE_TASK_SCANNER, TaskScannerPrivate))
 enum  {
 	TASK_SCANNER_DUMMY_PROPERTY
@@ -84,9 +84,9 @@ void scanner_register_symbols (GScanner* scanner, guint scope);
 TaskScanner* task_scanner_new (void);
 TaskScanner* task_scanner_construct (GType object_type);
 static double task_scanner_get_seconds (TaskScanner* self, GTokenType* last_token);
-GType command_get_type (void);
-GType auto_pipeline_get_type (void);
-GType task_get_type (void);
+GType command_get_type (void) G_GNUC_CONST;
+GType auto_pipeline_get_type (void) G_GNUC_CONST;
+GType task_get_type (void) G_GNUC_CONST;
 Command* command_dup (const Command* self);
 void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
@@ -250,8 +250,8 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 	if (command_get_n_args (command) != task_get_arguments (task)->n_values) {
 		g_printerr ("Command '%s' takes %u arguments (got %u)\n", (*command).name, command_get_n_args (command), task_get_arguments (task)->n_values);
 		result = NULL;
-		_command_free0 (command);
 		_g_object_unref0 (task);
+		_command_free0 (command);
 		return result;
 	}
 	{
@@ -280,8 +280,8 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 							g_printerr ("Argument %u of '%s' must be a string\n", arg_i, (*command).name);
 							result = NULL;
 							G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
-							_command_free0 (command);
 							_g_object_unref0 (task);
+							_command_free0 (command);
 							return result;
 						}
 						break;
@@ -292,8 +292,8 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 							g_printerr ("Argument %u of '%s' must be in seconds\n", arg_i, (*command).name);
 							result = NULL;
 							G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
-							_command_free0 (command);
 							_g_object_unref0 (task);
+							_command_free0 (command);
 							return result;
 						}
 						number = g_value_get_double (&arg_value);
@@ -301,8 +301,8 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 							g_printerr ("Argument %u of '%s' cannot be negative\n", arg_i, (*command).name);
 							result = NULL;
 							G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
-							_command_free0 (command);
 							_g_object_unref0 (task);
+							_command_free0 (command);
 							return result;
 						}
 						break;

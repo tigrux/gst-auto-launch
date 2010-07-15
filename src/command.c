@@ -44,9 +44,9 @@ struct _Command {
 
 
 
-GType auto_pipeline_get_type (void);
-GType task_get_type (void);
-GType command_get_type (void);
+GType auto_pipeline_get_type (void) G_GNUC_CONST;
+GType task_get_type (void) G_GNUC_CONST;
+GType command_get_type (void) G_GNUC_CONST;
 Command* command_dup (const Command* self);
 void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
