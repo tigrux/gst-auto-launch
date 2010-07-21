@@ -153,6 +153,7 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 	Task* result = NULL;
 	GTokenType token = 0;
 	double number;
+	gboolean _tmp0_ = FALSE;
 	Command* command;
 	Task* task;
 	guint arg_n;
@@ -164,6 +165,15 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 	}
 	g_scanner_input_text (self->priv->scanner, arg, (guint) string_get_length (arg));
 	number = task_scanner_get_seconds (self, &token);
+	if (token != G_TOKEN_INT) {
+		_tmp0_ = token != G_TOKEN_FLOAT;
+	} else {
+		_tmp0_ = FALSE;
+	}
+	if (_tmp0_) {
+		result = NULL;
+		return result;
+	}
 	self->priv->last_time_seconds = number;
 	token = g_scanner_get_next_token (self->priv->scanner);
 	if (token != ':') {
@@ -192,55 +202,55 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 			g_scanner_get_next_token (self->priv->scanner);
 			s = g_strdup (self->priv->scanner->value.v_string);
 			if (_vala_strcmp0 (s, "true") == 0) {
-				GValue _tmp1_;
-				GValue _tmp0_ = {0};
-				g_value_array_append (task_get_arguments (task), (_tmp1_ = (g_value_init (&_tmp0_, G_TYPE_BOOLEAN), g_value_set_boolean (&_tmp0_, TRUE), _tmp0_), &_tmp1_));
+				GValue _tmp2_;
+				GValue _tmp1_ = {0};
+				g_value_array_append (task_get_arguments (task), (_tmp2_ = (g_value_init (&_tmp1_, G_TYPE_BOOLEAN), g_value_set_boolean (&_tmp1_, TRUE), _tmp1_), &_tmp2_));
 			} else {
 				if (_vala_strcmp0 (s, "false") == 0) {
-					GValue _tmp3_;
-					GValue _tmp2_ = {0};
-					g_value_array_append (task_get_arguments (task), (_tmp3_ = (g_value_init (&_tmp2_, G_TYPE_BOOLEAN), g_value_set_boolean (&_tmp2_, FALSE), _tmp2_), &_tmp3_));
+					GValue _tmp4_;
+					GValue _tmp3_ = {0};
+					g_value_array_append (task_get_arguments (task), (_tmp4_ = (g_value_init (&_tmp3_, G_TYPE_BOOLEAN), g_value_set_boolean (&_tmp3_, FALSE), _tmp3_), &_tmp4_));
 				} else {
-					GValue _tmp5_;
-					GValue _tmp4_ = {0};
-					g_value_array_append (task_get_arguments (task), (_tmp5_ = (g_value_init (&_tmp4_, G_TYPE_STRING), g_value_set_string (&_tmp4_, s), _tmp4_), &_tmp5_));
+					GValue _tmp6_;
+					GValue _tmp5_ = {0};
+					g_value_array_append (task_get_arguments (task), (_tmp6_ = (g_value_init (&_tmp5_, G_TYPE_STRING), g_value_set_string (&_tmp5_, s), _tmp5_), &_tmp6_));
 				}
 			}
 			_g_free0 (s);
 		} else {
-			gboolean _tmp6_ = FALSE;
 			gboolean _tmp7_ = FALSE;
 			gboolean _tmp8_ = FALSE;
+			gboolean _tmp9_ = FALSE;
 			if (token == G_TOKEN_INT) {
+				_tmp9_ = TRUE;
+			} else {
+				_tmp9_ = token == G_TOKEN_FLOAT;
+			}
+			if (_tmp9_) {
 				_tmp8_ = TRUE;
 			} else {
-				_tmp8_ = token == G_TOKEN_FLOAT;
+				_tmp8_ = token == '+';
 			}
 			if (_tmp8_) {
 				_tmp7_ = TRUE;
 			} else {
-				_tmp7_ = token == '+';
+				_tmp7_ = token == '-';
 			}
 			if (_tmp7_) {
-				_tmp6_ = TRUE;
-			} else {
-				_tmp6_ = token == '-';
-			}
-			if (_tmp6_) {
 				if (arg_desc == 't') {
 					number = task_scanner_get_seconds (self, &token);
 				} else {
 					number = task_scanner_get_signed_number (self, &token);
 				}
 				if (token == G_TOKEN_INT) {
-					GValue _tmp10_;
-					GValue _tmp9_ = {0};
-					g_value_array_append (task_get_arguments (task), (_tmp10_ = (g_value_init (&_tmp9_, G_TYPE_INT), g_value_set_int (&_tmp9_, (gint) number), _tmp9_), &_tmp10_));
+					GValue _tmp11_;
+					GValue _tmp10_ = {0};
+					g_value_array_append (task_get_arguments (task), (_tmp11_ = (g_value_init (&_tmp10_, G_TYPE_INT), g_value_set_int (&_tmp10_, (gint) number), _tmp10_), &_tmp11_));
 				} else {
 					if (token == G_TOKEN_FLOAT) {
-						GValue _tmp12_;
-						GValue _tmp11_ = {0};
-						g_value_array_append (task_get_arguments (task), (_tmp12_ = (g_value_init (&_tmp11_, G_TYPE_FLOAT), g_value_set_float (&_tmp11_, (float) number), _tmp11_), &_tmp12_));
+						GValue _tmp13_;
+						GValue _tmp12_ = {0};
+						g_value_array_append (task_get_arguments (task), (_tmp13_ = (g_value_init (&_tmp12_, G_TYPE_FLOAT), g_value_set_float (&_tmp12_, (float) number), _tmp12_), &_tmp13_));
 					}
 				}
 			}
@@ -258,21 +268,21 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 		guint arg_i;
 		arg_i = (guint) 0;
 		{
-			gboolean _tmp13_;
-			_tmp13_ = TRUE;
+			gboolean _tmp14_;
+			_tmp14_ = TRUE;
 			while (TRUE) {
 				gchar arg_desc;
-				GValue _tmp14_ = {0};
+				GValue _tmp15_ = {0};
 				GValue arg_value;
-				if (!_tmp13_) {
+				if (!_tmp14_) {
 					arg_i++;
 				}
-				_tmp13_ = FALSE;
+				_tmp14_ = FALSE;
 				if (!(arg_i < arg_n)) {
 					break;
 				}
 				arg_desc = command_get_arg_desc (command, arg_i);
-				arg_value = G_IS_VALUE (&task_get_arguments (task)->values[0]) ? (g_value_init (&_tmp14_, G_VALUE_TYPE (&task_get_arguments (task)->values[0])), g_value_copy (&task_get_arguments (task)->values[0], &_tmp14_), _tmp14_) : task_get_arguments (task)->values[0];
+				arg_value = G_IS_VALUE (&task_get_arguments (task)->values[0]) ? (g_value_init (&_tmp15_, G_VALUE_TYPE (&task_get_arguments (task)->values[0])), g_value_copy (&task_get_arguments (task)->values[0], &_tmp15_), _tmp15_) : task_get_arguments (task)->values[0];
 				switch (arg_desc) {
 					case 's':
 					{

@@ -23,6 +23,9 @@ class TaskScanner: Object {
         TokenType token;
 
         var number = get_seconds(out token);
+        if(token != TokenType.INT && token != TokenType.FLOAT)
+            return null;
+
         last_time_seconds = number;
 
         token = scanner.get_next_token();

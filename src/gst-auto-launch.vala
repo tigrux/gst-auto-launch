@@ -52,11 +52,15 @@ int main(string[] args) {
         return 1;
     }
 
-	List<Task> tasks = new List<Task> ();
-	foreach(string arg in args) {
+	var tasks = new List<Task> ();
+    var effective_args_list = new List<string> ();
+
+	foreach(var arg in args[1:args.length]) {
     	var task = scanner.get_task_from_arg(arg);
     	if(task != null)
     		tasks.append(task);
+		else if(!arg.has_prefix("--"))
+            effective_args_list.append(arg);
 	}
 
     if(tasks.length() == 0) {
@@ -70,11 +74,6 @@ int main(string[] args) {
         else
             printerr("Could not find a command named '%s'\n", auto_symbol);
     }
-
-    var effective_args_list = new List<string> ();
-    foreach(var arg in args[1:args.length])
-        if(!arg.has_prefix("--") && !arg.contains(":"))
-            effective_args_list.append(arg);
 
     var should_parse_xml = false;
     
@@ -99,10 +98,6 @@ int main(string[] args) {
             i++;
         }
         pipeline_desc = string.joinv(" ", effective_args);
-        if(!pipeline_desc.contains("!")) {
-            printerr("Not a valid pipeline\n");
-            return 1;
-        }
     }
 
     try {
