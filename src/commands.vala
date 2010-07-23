@@ -104,12 +104,17 @@ void command_seek(AutoPipeline ctx, Task task) {
 
 
 void command_eos(AutoPipeline ctx, Task task) {
+    bool eos_was_sent = false;
     ctx.pipeline.iterate_elements().foreach(
         (data) => {
             var elem = data as Gst.Element;
-            if("src" in elem.name || elem is Gst.BaseSrc)
+            if("src" in elem.name || elem is Gst.BaseSrc) {
+                eos_was_sent = true;
                 elem.send_event(new Gst.Event.eos());
+            }
         });
+    if(!eos_was_sent)
+        ctx.pipeline.send_event(new Gst.Event.eos());
 }
 
 

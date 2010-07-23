@@ -38,6 +38,7 @@ typedef struct _Command Command;
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
 #define _gst_event_unref0(var) ((var == NULL) ? NULL : (var = (gst_event_unref (var), NULL)))
 #define _gst_iterator_free0(var) ((var == NULL) ? NULL : (var = (gst_iterator_free (var), NULL)))
+typedef struct _Block2Data Block2Data;
 
 typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
 struct _Command {
@@ -47,6 +48,11 @@ struct _Command {
 	CommandFunc function;
 	gpointer function_target;
 	GDestroyNotify function_target_destroy_notify;
+};
+
+struct _Block2Data {
+	int _ref_count_;
+	gboolean eos_was_sent;
 };
 
 
@@ -77,8 +83,10 @@ void command_destroy (Command* self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
 GValueArray* task_get_arguments (Task* self);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
-static void _lambda2_ (void* data);
+static void _lambda2_ (void* data, Block2Data* _data2_);
 static void __lambda2__gfunc (void* data, gpointer self);
+static Block2Data* block2_data_ref (Block2Data* _data2_);
+static void block2_data_unref (Block2Data* _data2_);
 void scanner_register_symbols (GScanner* scanner, guint scope);
 
 const Command COMMANDS[10] = {{"play", "Change pipeline state to PLAYING", "", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", "", _command_pause_command_func}, {"ready", "Change pipeline state to READY", "", _command_ready_command_func}, {"stop", "Change pipeline state to READY", "", _command_ready_command_func}, {"null", "Change pipeline state to NULL", "", _command_null_command_func}, {"eos", "Send eos to the source elements", "", _command_eos_command_func}, {"quit", "Quit the event loop", "", _command_quit_command_func}, {"set", "Set properties of an object", "ssv", _command_set_command_func}, {"seek", "Seek to the specified time", "t", _command_seek_command_func}, {NULL}};
@@ -263,7 +271,7 @@ static gboolean string_contains (const char* self, const char* needle) {
 }
 
 
-static void _lambda2_ (void* data) {
+static void _lambda2_ (void* data, Block2Data* _data2_) {
 	void* _tmp0_;
 	GstElement* elem;
 	gboolean _tmp1_ = FALSE;
@@ -274,6 +282,7 @@ static void _lambda2_ (void* data) {
 		_tmp1_ = GST_IS_BASE_SRC (elem);
 	}
 	if (_tmp1_) {
+		_data2_->eos_was_sent = TRUE;
 		gst_element_send_event (elem, gst_event_new_eos ());
 	}
 	_gst_object_unref0 (elem);
@@ -281,16 +290,37 @@ static void _lambda2_ (void* data) {
 
 
 static void __lambda2__gfunc (void* data, gpointer self) {
-	_lambda2_ (data);
+	_lambda2_ (data, self);
+}
+
+
+static Block2Data* block2_data_ref (Block2Data* _data2_) {
+	g_atomic_int_inc (&_data2_->_ref_count_);
+	return _data2_;
+}
+
+
+static void block2_data_unref (Block2Data* _data2_) {
+	if (g_atomic_int_dec_and_test (&_data2_->_ref_count_)) {
+		g_slice_free (Block2Data, _data2_);
+	}
 }
 
 
 void command_eos (AutoPipeline* ctx, Task* task) {
+	Block2Data* _data2_;
 	GstIterator* _tmp0_;
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
-	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (ctx)), __lambda2__gfunc, NULL);
+	_data2_ = g_slice_new0 (Block2Data);
+	_data2_->_ref_count_ = 1;
+	_data2_->eos_was_sent = FALSE;
+	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (ctx)), __lambda2__gfunc, _data2_);
 	_gst_iterator_free0 (_tmp0_);
+	if (!_data2_->eos_was_sent) {
+		gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (ctx), gst_event_new_eos ());
+	}
+	block2_data_unref (_data2_);
 }
 
 
