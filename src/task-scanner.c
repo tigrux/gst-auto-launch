@@ -238,19 +238,22 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 			}
 			if (_tmp7_) {
 				if (arg_desc == 't') {
-					number = task_scanner_get_seconds (self, &token);
-				} else {
-					number = task_scanner_get_signed_number (self, &token);
-				}
-				if (token == G_TOKEN_INT) {
 					GValue _tmp11_;
 					GValue _tmp10_ = {0};
-					g_value_array_append (task_get_arguments (task), (_tmp11_ = (g_value_init (&_tmp10_, G_TYPE_INT), g_value_set_int (&_tmp10_, (gint) number), _tmp10_), &_tmp11_));
+					number = task_scanner_get_seconds (self, &token);
+					g_value_array_append (task_get_arguments (task), (_tmp11_ = (g_value_init (&_tmp10_, G_TYPE_DOUBLE), g_value_set_double (&_tmp10_, (double) number), _tmp10_), &_tmp11_));
 				} else {
-					if (token == G_TOKEN_FLOAT) {
+					number = task_scanner_get_signed_number (self, &token);
+					if (token == G_TOKEN_INT) {
 						GValue _tmp13_;
 						GValue _tmp12_ = {0};
-						g_value_array_append (task_get_arguments (task), (_tmp13_ = (g_value_init (&_tmp12_, G_TYPE_FLOAT), g_value_set_float (&_tmp12_, (float) number), _tmp12_), &_tmp13_));
+						g_value_array_append (task_get_arguments (task), (_tmp13_ = (g_value_init (&_tmp12_, G_TYPE_INT), g_value_set_int (&_tmp12_, (gint) number), _tmp12_), &_tmp13_));
+					} else {
+						if (token == G_TOKEN_FLOAT) {
+							GValue _tmp15_;
+							GValue _tmp14_ = {0};
+							g_value_array_append (task_get_arguments (task), (_tmp15_ = (g_value_init (&_tmp14_, G_TYPE_DOUBLE), g_value_set_double (&_tmp14_, (double) number), _tmp14_), &_tmp15_));
+						}
 					}
 				}
 			}
@@ -268,21 +271,21 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 		guint arg_i;
 		arg_i = (guint) 0;
 		{
-			gboolean _tmp14_;
-			_tmp14_ = TRUE;
+			gboolean _tmp16_;
+			_tmp16_ = TRUE;
 			while (TRUE) {
 				gchar arg_desc;
-				GValue _tmp15_ = {0};
+				GValue _tmp17_ = {0};
 				GValue arg_value;
-				if (!_tmp14_) {
+				if (!_tmp16_) {
 					arg_i++;
 				}
-				_tmp14_ = FALSE;
+				_tmp16_ = FALSE;
 				if (!(arg_i < arg_n)) {
 					break;
 				}
 				arg_desc = command_get_arg_desc (command, arg_i);
-				arg_value = G_IS_VALUE (&task_get_arguments (task)->values[0]) ? (g_value_init (&_tmp15_, G_VALUE_TYPE (&task_get_arguments (task)->values[0])), g_value_copy (&task_get_arguments (task)->values[0], &_tmp15_), _tmp15_) : task_get_arguments (task)->values[0];
+				arg_value = G_IS_VALUE (&task_get_arguments (task)->values[arg_i]) ? (g_value_init (&_tmp17_, G_VALUE_TYPE (&task_get_arguments (task)->values[arg_i])), g_value_copy (&task_get_arguments (task)->values[arg_i], &_tmp17_), _tmp17_) : task_get_arguments (task)->values[arg_i];
 				switch (arg_desc) {
 					case 's':
 					{

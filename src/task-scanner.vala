@@ -61,15 +61,18 @@ class TaskScanner: Object {
             else
             if(token == TokenType.INT || token == TokenType.FLOAT ||
                token == '+' || token == '-') {
-                if(arg_desc == 't')
+                if(arg_desc == 't') {
                     number = get_seconds(out token);
-                else
+                    task.arguments.append((double)number);
+                }
+                else {
                     number = get_signed_number(out token);
-                if(token == TokenType.INT)
-                    task.arguments.append((int)number);
-                else
-                if(token == TokenType.FLOAT)
-                    task.arguments.append((float)number);
+                    if(token == TokenType.INT)
+                        task.arguments.append((int)number);
+                    else
+                    if(token == TokenType.FLOAT)
+                        task.arguments.append((double)number);
+                }
             }
             arg_n++;
         }
@@ -82,7 +85,7 @@ class TaskScanner: Object {
 
         for(uint arg_i = 0; arg_i < arg_n; arg_i++) {
             var arg_desc = command.get_arg_desc(arg_i);
-            var arg_value = task.arguments.values[0];
+            var arg_value = task.arguments.values[arg_i];
             switch(arg_desc) {
                 case 's':
                     if(!arg_value.holds(typeof(string))) {
