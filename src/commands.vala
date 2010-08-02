@@ -13,26 +13,31 @@ const Command[] COMMANDS = {
 
 
 void command_play(AutoPipeline ctx, Task task) {
+    print("Passing to PLAYING\n");
     ctx.state = Gst.State.PLAYING;
 }
 
 
 void command_pause(AutoPipeline ctx, Task task) {
+    print("Passing to PAUSED\n");
     ctx.state = Gst.State.PAUSED;
 }
 
 
 void command_ready(AutoPipeline ctx, Task task) {
+    print("Passing to READY\n");
     ctx.state = Gst.State.READY;
 }
 
 
 void command_null(AutoPipeline ctx, Task task) {
+    print("Passing to NULL\n");
     ctx.state = Gst.State.NULL;
 }
 
 
 void command_quit(AutoPipeline ctx, Task task) {
+    print("Quitting\n");
     ctx.quit();
 }
 
@@ -77,7 +82,14 @@ void command_set(AutoPipeline ctx, Task task) {
                 prop_value = e_value.value;
         }
     }
-    
+
+    Value prop_value_s = "";
+    if(prop_value.transform(ref prop_value_s))
+        print("Setting property '%s' of element '%s' to '%s'\n",
+            prop_name, element.get_name(), prop_value_s.get_string());
+    else
+        print("Setting property '%s' of element '%s'\n",
+            prop_name, element.get_name());
     element.set_property(prop_name, prop_value);
 }
 
@@ -99,6 +111,8 @@ void command_seek(AutoPipeline ctx, Task task) {
             Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT,
             Gst.SeekType.SET,  position_useconds,
             Gst.SeekType.NONE, 0);
+
+    print("Seeking to second %lf\n", position_seconds);
     ctx.pipeline.send_event(seek_event);
 }
 
@@ -110,11 +124,16 @@ void command_eos(AutoPipeline ctx, Task task) {
             var elem = data as Gst.Element;
             if("src" in elem.name || elem is Gst.BaseSrc) {
                 eos_was_sent = true;
+                print("Sending EOS event to element '%s'\n", elem.get_name());
                 elem.send_event(new Gst.Event.eos());
             }
         });
-    if(!eos_was_sent)
+
+    if(!eos_was_sent) {
+        print("Could not find a src element\n");
+        print("Sending EOS to the pipeline\n");
         ctx.pipeline.send_event(new Gst.Event.eos());
+    }
 }
 
 

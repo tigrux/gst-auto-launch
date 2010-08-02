@@ -135,6 +135,7 @@ static void _command_seek_command_func (AutoPipeline* ctx, Task* task, gpointer 
 void command_play (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
+	g_print ("Passing to PLAYING\n");
 	auto_pipeline_set_state (ctx, GST_STATE_PLAYING);
 }
 
@@ -142,6 +143,7 @@ void command_play (AutoPipeline* ctx, Task* task) {
 void command_pause (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
+	g_print ("Passing to PAUSED\n");
 	auto_pipeline_set_state (ctx, GST_STATE_PAUSED);
 }
 
@@ -149,6 +151,7 @@ void command_pause (AutoPipeline* ctx, Task* task) {
 void command_ready (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
+	g_print ("Passing to READY\n");
 	auto_pipeline_set_state (ctx, GST_STATE_READY);
 }
 
@@ -156,6 +159,7 @@ void command_ready (AutoPipeline* ctx, Task* task) {
 void command_null (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
+	g_print ("Passing to NULL\n");
 	auto_pipeline_set_state (ctx, GST_STATE_NULL);
 }
 
@@ -163,6 +167,7 @@ void command_null (AutoPipeline* ctx, Task* task) {
 void command_quit (AutoPipeline* ctx, Task* task) {
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
+	g_print ("Quitting\n");
 	g_signal_emit_by_name (ctx, "quit");
 }
 
@@ -177,6 +182,8 @@ void command_set (AutoPipeline* ctx, Task* task) {
 	GstElement* element;
 	GValue _tmp4_ = {0};
 	GValue prop_value;
+	GValue _tmp7_ = {0};
+	GValue prop_value_s;
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
 	if (task_get_arguments (task)->n_values != 3) {
@@ -221,7 +228,18 @@ void command_set (AutoPipeline* ctx, Task* task) {
 			_g_free0 (prop_string);
 		}
 	}
+	prop_value_s = (g_value_init (&_tmp7_, G_TYPE_STRING), g_value_set_string (&_tmp7_, ""), _tmp7_);
+	if (g_value_transform (&prop_value, &prop_value_s)) {
+		char* _tmp8_;
+		g_print ("Setting property '%s' of element '%s' to '%s'\n", prop_name, _tmp8_ = gst_object_get_name ((GstObject*) element), g_value_get_string (&prop_value_s));
+		_g_free0 (_tmp8_);
+	} else {
+		char* _tmp9_;
+		g_print ("Setting property '%s' of element '%s'\n", prop_name, _tmp9_ = gst_object_get_name ((GstObject*) element));
+		_g_free0 (_tmp9_);
+	}
 	g_object_set_property ((GObject*) element, prop_name, &prop_value);
+	G_IS_VALUE (&prop_value_s) ? (g_value_unset (&prop_value_s), NULL) : NULL;
 	G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL;
 	_gst_object_unref0 (element);
 	_g_free0 (prop_name);
@@ -251,6 +269,7 @@ void command_seek (AutoPipeline* ctx, Task* task) {
 	position_seconds = g_value_get_double (&position_value);
 	position_useconds = (gint64) (position_seconds * GST_SECOND);
 	seek_event = gst_event_new_seek (1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT, GST_SEEK_TYPE_SET, position_useconds, GST_SEEK_TYPE_NONE, (gint64) 0);
+	g_print ("Seeking to second %lf\n", position_seconds);
 	gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (ctx), _gst_event_ref0 (seek_event));
 	_gst_event_unref0 (seek_event);
 	G_IS_VALUE (&position_value) ? (g_value_unset (&position_value), NULL) : NULL;
@@ -282,7 +301,10 @@ static void _lambda2_ (void* data, Block2Data* _data2_) {
 		_tmp1_ = GST_IS_BASE_SRC (elem);
 	}
 	if (_tmp1_) {
+		char* _tmp2_;
 		_data2_->eos_was_sent = TRUE;
+		g_print ("Sending EOS event to element '%s'\n", _tmp2_ = gst_object_get_name ((GstObject*) elem));
+		_g_free0 (_tmp2_);
 		gst_element_send_event (elem, gst_event_new_eos ());
 	}
 	_gst_object_unref0 (elem);
@@ -318,6 +340,8 @@ void command_eos (AutoPipeline* ctx, Task* task) {
 	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (ctx)), __lambda2__gfunc, _data2_);
 	_gst_iterator_free0 (_tmp0_);
 	if (!_data2_->eos_was_sent) {
+		g_print ("Could not find a src element\n");
+		g_print ("Sending EOS to the pipeline\n");
 		gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (ctx), gst_event_new_eos ());
 	}
 	block2_data_unref (_data2_);
