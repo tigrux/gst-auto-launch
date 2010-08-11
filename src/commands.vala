@@ -217,13 +217,14 @@ void command_switch_video_output(AutoPipeline ctx, Task task) {
 }
 
 void write_string_to_path(string content, string path) {
-    try {    
-        FileUtils.set_contents(path, content);
-        printerr("Wrote '%s' to '%s'\n", content, path);
+    var path_file = FileStream.open(path, "w");
+    if(path_file != null) {
+        printerr("Writing '%s' to '%s'\n", content, path);
+        path_file.printf("%s", content);
+        path_file.flush();
     }
-    catch(FileError e) {
-        printerr("Could not write '%s' to '%s'\n", content, path);
-    }
+    else
+        printerr("Could not open '%s'\n", path);
 }
 
 

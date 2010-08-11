@@ -11,6 +11,7 @@
 #include <math.h>
 #include <gst/base/gstbasesrc.h>
 #include <glib/gstdio.h>
+#include <stdio.h>
 
 
 #define TYPE_AUTO_PIPELINE (auto_pipeline_get_type ())
@@ -41,6 +42,7 @@ typedef struct _Command Command;
 #define _gst_iterator_free0(var) ((var == NULL) ? NULL : (var = (gst_iterator_free (var), NULL)))
 typedef struct _Block2Data Block2Data;
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
+#define _fclose0(var) ((var == NULL) ? NULL : (var = (fclose (var), NULL)))
 
 typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
 struct _Command {
@@ -502,39 +504,18 @@ void command_switch_video_output (AutoPipeline* ctx, Task* task) {
 
 
 void write_string_to_path (const char* content, const char* path) {
-	GError * _inner_error_;
+	FILE* path_file;
 	g_return_if_fail (content != NULL);
 	g_return_if_fail (path != NULL);
-	_inner_error_ = NULL;
-	{
-		g_file_set_contents (path, content, -1, &_inner_error_);
-		if (_inner_error_ != NULL) {
-			if (_inner_error_->domain == G_FILE_ERROR) {
-				goto __catch4_g_file_error;
-			}
-			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-			g_clear_error (&_inner_error_);
-			return;
-		}
-		g_printerr ("Wrote '%s' to '%s'\n", content, path);
+	path_file = fopen (path, "w");
+	if (path_file != NULL) {
+		g_printerr ("Writing '%s' to '%s'\n", content, path);
+		fprintf (path_file, "%s", content);
+		fflush (path_file);
+	} else {
+		g_printerr ("Could not open '%s'\n", path);
 	}
-	goto __finally4;
-	__catch4_g_file_error:
-	{
-		GError * e;
-		e = _inner_error_;
-		_inner_error_ = NULL;
-		{
-			g_printerr ("Could not write '%s' to '%s'\n", content, path);
-			_g_error_free0 (e);
-		}
-	}
-	__finally4:
-	if (_inner_error_ != NULL) {
-		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-		g_clear_error (&_inner_error_);
-		return;
-	}
+	_fclose0 (path_file);
 }
 
 
