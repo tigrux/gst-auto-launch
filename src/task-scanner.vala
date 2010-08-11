@@ -94,6 +94,13 @@ class TaskScanner: Object {
                         return null;
                     }
                     break;
+                case 'i':
+                    if(!arg_value.holds(typeof(int))) {
+                        printerr("Argument %u of '%s' must be an integer\n",
+                            arg_i, command.name);
+                        return null;
+                    }
+                    break;                    
                 case 't':
                     if(!arg_value.holds(typeof(double))) {
                         printerr("Argument %u of '%s' must be in seconds\n",

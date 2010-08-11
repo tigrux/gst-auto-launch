@@ -299,6 +299,18 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 						}
 						break;
 					}
+					case 'i':
+					{
+						if (!G_VALUE_HOLDS (&arg_value, G_TYPE_INT)) {
+							g_printerr ("Argument %u of '%s' must be an integer\n", arg_i, (*command).name);
+							result = NULL;
+							G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
+							_g_object_unref0 (task);
+							_command_free0 (command);
+							return result;
+						}
+						break;
+					}
 					case 't':
 					{
 						if (!G_VALUE_HOLDS (&arg_value, G_TYPE_DOUBLE)) {
