@@ -231,7 +231,7 @@ void command_set (AutoPipeline* ctx, Task* task) {
 			GEnumValue* e_value;
 			e_class = (GEnumClass*) g_type_class_peek (prop->value_type);
 			prop_string = g_strdup (g_value_get_string (&prop_value));
-			e_value = g_enum_get_value_by_name (e_class, prop_string);
+			e_value = g_enum_get_value_by_nick (e_class, prop_string);
 			if (e_value != NULL) {
 				GValue _tmp6_;
 				GValue _tmp5_ = {0};

@@ -78,7 +78,7 @@ void command_set(AutoPipeline ctx, Task task) {
         if(prop != null) {
             weak EnumClass e_class = (EnumClass)prop.value_type.class_peek();
             var prop_string = prop_value.get_string();
-            weak EnumValue e_value = e_class.get_value_by_name(prop_string);
+            weak EnumValue e_value = e_class.get_value_by_nick(prop_string);
             if(e_value != null)
                 prop_value = e_value.value;
         }
