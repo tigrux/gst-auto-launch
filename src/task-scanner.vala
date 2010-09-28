@@ -100,7 +100,7 @@ class TaskScanner: Object {
                             arg_i, command.name);
                         return null;
                     }
-                    break;                    
+                    break;
                 case 't':
                     if(!arg_value.holds(typeof(double))) {
                         printerr("Argument %u of '%s' must be in seconds\n",
