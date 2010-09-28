@@ -36,8 +36,8 @@ typedef struct _TaskClass TaskClass;
 
 #define TYPE_COMMAND (command_get_type ())
 typedef struct _Command Command;
-#define _g_free0(var) (var = (g_free (var), NULL))
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
+#define _g_free0(var) (var = (g_free (var), NULL))
 #define _gst_event_unref0(var) ((var == NULL) ? NULL : (var = (gst_event_unref (var), NULL)))
 #define _gst_iterator_free0(var) ((var == NULL) ? NULL : (var = (gst_iterator_free (var), NULL)))
 typedef struct _Block2Data Block2Data;
@@ -186,33 +186,18 @@ void command_quit (AutoPipeline* ctx, Task* task) {
 
 void command_set (AutoPipeline* ctx, Task* task) {
 	GValue _tmp0_;
-	GValue _tmp1_;
 	char* element_name;
-	GValue _tmp2_;
-	GValue _tmp3_;
+	GValue _tmp1_;
 	char* prop_name;
 	GstElement* element;
-	GValue _tmp4_ = {0};
+	GValue _tmp2_ = {0};
 	GValue prop_value;
-	GValue _tmp7_ = {0};
+	GValue _tmp5_ = {0};
 	GValue prop_value_s;
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
-	if (task_get_arguments (task)->n_values != 3) {
-		g_printerr ("Command 'set' takes exactly 3 arguments (got %u)\n", task_get_arguments (task)->n_values);
-		return;
-	}
-	if (!G_VALUE_HOLDS ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_), G_TYPE_STRING)) {
-		g_printerr ("Element name (arg 0) for command 'set' must be a string\n");
-		return;
-	}
-	element_name = g_strdup (g_value_get_string ((_tmp1_ = task_get_arguments (task)->values[0], &_tmp1_)));
-	if (!G_VALUE_HOLDS ((_tmp2_ = task_get_arguments (task)->values[1], &_tmp2_), G_TYPE_STRING)) {
-		g_printerr ("Property name (arg 1) for command 'set' must be a string\n");
-		_g_free0 (element_name);
-		return;
-	}
-	prop_name = g_strdup (g_value_get_string ((_tmp3_ = task_get_arguments (task)->values[1], &_tmp3_)));
+	element_name = g_strdup (g_value_get_string ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_)));
+	prop_name = g_strdup (g_value_get_string ((_tmp1_ = task_get_arguments (task)->values[1], &_tmp1_)));
 	element = gst_bin_get_by_name (auto_pipeline_get_pipeline (ctx), element_name);
 	if (element == NULL) {
 		g_printerr ("There is no element named '%s'\n", element_name);
@@ -221,7 +206,7 @@ void command_set (AutoPipeline* ctx, Task* task) {
 		_g_free0 (element_name);
 		return;
 	}
-	prop_value = G_IS_VALUE (&task_get_arguments (task)->values[2]) ? (g_value_init (&_tmp4_, G_VALUE_TYPE (&task_get_arguments (task)->values[2])), g_value_copy (&task_get_arguments (task)->values[2], &_tmp4_), _tmp4_) : task_get_arguments (task)->values[2];
+	prop_value = G_IS_VALUE (&task_get_arguments (task)->values[2]) ? (g_value_init (&_tmp2_, G_VALUE_TYPE (&task_get_arguments (task)->values[2])), g_value_copy (&task_get_arguments (task)->values[2], &_tmp2_), _tmp2_) : task_get_arguments (task)->values[2];
 	if (G_VALUE_HOLDS (&prop_value, G_TYPE_STRING)) {
 		GParamSpec* prop;
 		prop = g_object_class_find_property (G_OBJECT_GET_CLASS ((GObject*) element), prop_name);
@@ -233,22 +218,22 @@ void command_set (AutoPipeline* ctx, Task* task) {
 			prop_string = g_strdup (g_value_get_string (&prop_value));
 			e_value = g_enum_get_value_by_nick (e_class, prop_string);
 			if (e_value != NULL) {
-				GValue _tmp6_;
-				GValue _tmp5_ = {0};
-				prop_value = (_tmp6_ = (g_value_init (&_tmp5_, G_TYPE_INT), g_value_set_int (&_tmp5_, e_value->value), _tmp5_), G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL, _tmp6_);
+				GValue _tmp4_;
+				GValue _tmp3_ = {0};
+				prop_value = (_tmp4_ = (g_value_init (&_tmp3_, G_TYPE_INT), g_value_set_int (&_tmp3_, e_value->value), _tmp3_), G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL, _tmp4_);
 			}
 			_g_free0 (prop_string);
 		}
 	}
-	prop_value_s = (g_value_init (&_tmp7_, G_TYPE_STRING), g_value_set_string (&_tmp7_, ""), _tmp7_);
+	prop_value_s = (g_value_init (&_tmp5_, G_TYPE_STRING), g_value_set_string (&_tmp5_, ""), _tmp5_);
 	if (g_value_transform (&prop_value, &prop_value_s)) {
-		char* _tmp8_;
-		g_print ("Setting property '%s' of element '%s' to '%s'\n", prop_name, _tmp8_ = gst_object_get_name ((GstObject*) element), g_value_get_string (&prop_value_s));
-		_g_free0 (_tmp8_);
+		char* _tmp6_;
+		g_print ("Setting property '%s' of element '%s' to '%s'\n", prop_name, _tmp6_ = gst_object_get_name ((GstObject*) element), g_value_get_string (&prop_value_s));
+		_g_free0 (_tmp6_);
 	} else {
-		char* _tmp9_;
-		g_print ("Setting property '%s' of element '%s'\n", prop_name, _tmp9_ = gst_object_get_name ((GstObject*) element));
-		_g_free0 (_tmp9_);
+		char* _tmp7_;
+		g_print ("Setting property '%s' of element '%s'\n", prop_name, _tmp7_ = gst_object_get_name ((GstObject*) element));
+		_g_free0 (_tmp7_);
 	}
 	g_object_set_property ((GObject*) element, prop_name, &prop_value);
 	G_IS_VALUE (&prop_value_s) ? (g_value_unset (&prop_value_s), NULL) : NULL;
@@ -272,10 +257,6 @@ void command_seek (AutoPipeline* ctx, Task* task) {
 	GstEvent* seek_event;
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
-	if (task_get_arguments (task)->n_values != 1) {
-		g_printerr ("Command 'seek' takes exactly 1 argument\n");
-		return;
-	}
 	g_value_init (&position_value, G_TYPE_DOUBLE);
 	g_value_transform ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_), &position_value);
 	position_seconds = g_value_get_double (&position_value);
@@ -371,69 +352,53 @@ static const char* string_to_string (const char* self) {
 void command_switch_video_output (AutoPipeline* ctx, Task* task) {
 	GError * _inner_error_;
 	GValue _tmp0_;
-	GValue _tmp1_;
 	gint overlay_num;
-	GValue _tmp2_;
-	GValue _tmp3_;
+	GValue _tmp1_;
 	char* manager_name;
-	char* _tmp4_;
-	char* _tmp5_;
+	char* _tmp2_;
+	char* _tmp3_;
 	char* overlay_name;
-	GQuark _tmp9_;
-	const char* _tmp8_;
-	static GQuark _tmp9__label0 = 0;
-	static GQuark _tmp9__label1 = 0;
-	static GQuark _tmp9__label2 = 0;
-	char* _tmp15_;
-	char* _tmp16_;
+	GQuark _tmp7_;
+	const char* _tmp6_;
+	static GQuark _tmp7__label0 = 0;
+	static GQuark _tmp7__label1 = 0;
+	static GQuark _tmp7__label2 = 0;
+	char* _tmp13_;
+	char* _tmp14_;
 	g_return_if_fail (ctx != NULL);
 	g_return_if_fail (task != NULL);
 	_inner_error_ = NULL;
-	if (task_get_arguments (task)->n_values != 2) {
-		g_printerr ("Command 'switch-video-output' takes exactly 2 arguments (got %u)\n", task_get_arguments (task)->n_values);
-		return;
-	}
-	if (!G_VALUE_HOLDS ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_), G_TYPE_INT)) {
-		g_printerr ("Video overlay num (arg 0) for command 'switch-video-output' must be an" \
-" integer\n");
-		return;
-	}
-	overlay_num = g_value_get_int ((_tmp1_ = task_get_arguments (task)->values[0], &_tmp1_));
-	if (!G_VALUE_HOLDS ((_tmp2_ = task_get_arguments (task)->values[1], &_tmp2_), G_TYPE_STRING)) {
-		g_printerr ("Video manager name (arg 1) for command 'switch-video-output' must be a" \
-" string\n");
-		return;
-	}
-	manager_name = g_strdup (g_value_get_string ((_tmp3_ = task_get_arguments (task)->values[1], &_tmp3_)));
+	overlay_num = g_value_get_int ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_));
+	manager_name = g_strdup (g_value_get_string ((_tmp1_ = task_get_arguments (task)->values[1], &_tmp1_)));
 	write_string_to_path ("0", "/sys/devices/platform/omapdss/overlay0/zorder");
 	write_string_to_path ("1", "/sys/devices/platform/omapdss/overlay1/zorder");
 	write_string_to_path ("3", "/sys/devices/platform/omapdss/overlay2/zorder");
 	write_string_to_path ("2", "/sys/devices/platform/omapdss/overlay3/zorder");
-	overlay_name = (_tmp5_ = g_strconcat ("overlay", _tmp4_ = g_strdup_printf ("%i", overlay_num), NULL), _g_free0 (_tmp4_), _tmp5_);
+	overlay_name = (_tmp3_ = g_strconcat ("overlay", _tmp2_ = g_strdup_printf ("%i", overlay_num), NULL), _g_free0 (_tmp2_), _tmp3_);
 	g_print ("Changing manager of %s\n", overlay_name);
-	_tmp8_ = manager_name;
-	_tmp9_ = (NULL == _tmp8_) ? 0 : g_quark_from_string (_tmp8_);
-	if (_tmp9_ == ((0 != _tmp9__label0) ? _tmp9__label0 : (_tmp9__label0 = g_quark_from_static_string ("lcd1"))))
+	_tmp6_ = manager_name;
+	_tmp7_ = (NULL == _tmp6_) ? 0 : g_quark_from_string (_tmp6_);
+	if (_tmp7_ == ((0 != _tmp7__label0) ? _tmp7__label0 : (_tmp7__label0 = g_quark_from_static_string ("lcd1"))))
 	switch (0) {
 		default:
 		{
-			char* _tmp6_;
+			char* _tmp4_;
 			g_print ("Enabling primary display: lcd\n");
 			write_string_to_path ("1", "/sys/devices/platform/omapdss/display0/enabled");
-			manager_name = (_tmp6_ = g_strdup ("lcd"), _g_free0 (manager_name), _tmp6_);
+			manager_name = (_tmp4_ = g_strdup ("lcd"), _g_free0 (manager_name), _tmp4_);
 			break;
 		}
-	} else if (_tmp9_ == ((0 != _tmp9__label1) ? _tmp9__label1 : (_tmp9__label1 = g_quark_from_static_string ("lcd2"))))
+	} else if (_tmp7_ == ((0 != _tmp7__label1) ? _tmp7__label1 : (_tmp7__label1 = g_quark_from_static_string ("lcd2"))))
 	switch (0) {
 		default:
 		{
-			char* _tmp7_;
+			char* _tmp5_;
 			g_print ("Enabling secondary display: 2lcd\n");
 			write_string_to_path ("1", "/sys/devices/platform/omapdss/display1/enabled");
-			manager_name = (_tmp7_ = g_strdup ("2lcd"), _g_free0 (manager_name), _tmp7_);
+			manager_name = (_tmp5_ = g_strdup ("2lcd"), _g_free0 (manager_name), _tmp5_);
 			break;
 		}
-	} else if (_tmp9_ == ((0 != _tmp9__label2) ? _tmp9__label2 : (_tmp9__label2 = g_quark_from_static_string ("tv"))))
+	} else if (_tmp7_ == ((0 != _tmp7__label2) ? _tmp7__label2 : (_tmp7__label2 = g_quark_from_static_string ("tv"))))
 	switch (0) {
 		default:
 		{
@@ -443,22 +408,22 @@ void command_switch_video_output (AutoPipeline* ctx, Task* task) {
 		}
 	}
 	if (g_file_test ("/dev/fb1", G_FILE_TEST_EXISTS)) {
-		char* _tmp11_;
-		char* _tmp10_;
+		char* _tmp9_;
+		char* _tmp8_;
 		g_print ("2 framebuffers detected: adjusting overlay number\n");
 		overlay_num = overlay_num + 1;
-		overlay_name = (_tmp11_ = g_strconcat ("overlay", _tmp10_ = g_strdup_printf ("%i", overlay_num), NULL), _g_free0 (overlay_name), _tmp11_);
-		_g_free0 (_tmp10_);
+		overlay_name = (_tmp9_ = g_strconcat ("overlay", _tmp8_ = g_strdup_printf ("%i", overlay_num), NULL), _g_free0 (overlay_name), _tmp9_);
+		_g_free0 (_tmp8_);
 		g_print ("Updated overlay %s\n", overlay_name);
 	}
 	{
 		char* overlay_enabled;
-		char* _tmp13_;
-		char* _tmp12_ = NULL;
-		char* _tmp14_;
+		char* _tmp11_;
+		char* _tmp10_ = NULL;
+		char* _tmp12_;
 		overlay_enabled = NULL;
-		g_file_get_contents ("/sys/devices/platform/omapdss/$overlay_name/enabled", &_tmp12_, NULL, &_inner_error_);
-		overlay_enabled = (_tmp13_ = _tmp12_, _g_free0 (overlay_enabled), _tmp13_);
+		g_file_get_contents ("/sys/devices/platform/omapdss/$overlay_name/enabled", &_tmp10_, NULL, &_inner_error_);
+		overlay_enabled = (_tmp11_ = _tmp10_, _g_free0 (overlay_enabled), _tmp11_);
 		if (_inner_error_ != NULL) {
 			_g_free0 (overlay_enabled);
 			if (_inner_error_->domain == G_FILE_ERROR) {
@@ -471,8 +436,8 @@ void command_switch_video_output (AutoPipeline* ctx, Task* task) {
 			g_clear_error (&_inner_error_);
 			return;
 		}
-		write_string_to_path (overlay_enabled, _tmp14_ = g_strconcat ("/sys/devices/platform/omapdss/", string_to_string (overlay_name), "/enabled", NULL));
-		_g_free0 (_tmp14_);
+		write_string_to_path (overlay_enabled, _tmp12_ = g_strconcat ("/sys/devices/platform/omapdss/", string_to_string (overlay_name), "/enabled", NULL));
+		_g_free0 (_tmp12_);
 		_g_free0 (overlay_enabled);
 	}
 	goto __finally3;
@@ -494,10 +459,10 @@ void command_switch_video_output (AutoPipeline* ctx, Task* task) {
 		g_clear_error (&_inner_error_);
 		return;
 	}
-	write_string_to_path ("0", _tmp15_ = g_strconcat ("/sys/devices/platform/omapdss/", string_to_string (overlay_name), "/enabled", NULL));
-	_g_free0 (_tmp15_);
-	write_string_to_path (manager_name, _tmp16_ = g_strconcat ("/sys/devices/platform/omapdss/", string_to_string (overlay_name), "/manager", NULL));
-	_g_free0 (_tmp16_);
+	write_string_to_path ("0", _tmp13_ = g_strconcat ("/sys/devices/platform/omapdss/", string_to_string (overlay_name), "/enabled", NULL));
+	_g_free0 (_tmp13_);
+	write_string_to_path (manager_name, _tmp14_ = g_strconcat ("/sys/devices/platform/omapdss/", string_to_string (overlay_name), "/manager", NULL));
+	_g_free0 (_tmp14_);
 	_g_free0 (overlay_name);
 	_g_free0 (manager_name);
 }

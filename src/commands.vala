@@ -44,24 +44,7 @@ void command_quit(AutoPipeline ctx, Task task) {
 
 
 void command_set(AutoPipeline ctx, Task task) {
-    if(task.arguments.n_values != 3) {
-        printerr("Command 'set' takes exactly 3 arguments (got %u)\n",
-            task.arguments.n_values);
-        return;
-    }
-
-    if(!task.arguments.values[0].holds(typeof(string))) {
-        printerr("Element name (arg 0) for command 'set' must be a string\n");
-        return;
-    }
-
     var element_name = task.arguments.values[0].get_string();
-
-    if(!task.arguments.values[1].holds(typeof(string))) {
-        printerr("Property name (arg 1) for command 'set' must be a string\n");
-        return;
-    }
-
     var prop_name = task.arguments.values[1].get_string();
     
     var element = ctx.pipeline.get_by_name(element_name);
@@ -96,11 +79,6 @@ void command_set(AutoPipeline ctx, Task task) {
 
 
 void command_seek(AutoPipeline ctx, Task task) {
-    if(task.arguments.n_values != 1) {
-        printerr("Command 'seek' takes exactly 1 argument\n");
-        return;
-    }
-
     var position_value = Value(typeof(double));
     task.arguments.values[0].transform(ref position_value);
     var position_seconds = position_value.get_double();
@@ -139,27 +117,7 @@ void command_eos(AutoPipeline ctx, Task task) {
 
 
 void command_switch_video_output(AutoPipeline ctx, Task task) {
-    if(task.arguments.n_values != 2) {
-        printerr(
-            "Command 'switch-video-output' takes exactly 2 arguments (got %u)\n",
-            task.arguments.n_values);
-        return;
-    }
-
-    if(!task.arguments.values[0].holds(typeof(int))) {
-        printerr(
-            "Video overlay num (arg 0) for command 'switch-video-output' must be an integer\n");
-        return;
-    }
-
     var overlay_num = task.arguments.values[0].get_int();
-
-    if(!task.arguments.values[1].holds(typeof(string))) {
-        printerr(
-            "Video manager name (arg 1) for command 'switch-video-output' must be a string\n");
-        return;
-    }
-
     var manager_name = task.arguments.values[1].get_string();
 
     write_string_to_path("0", "/sys/devices/platform/omapdss/overlay0/zorder");
