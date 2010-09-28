@@ -9,6 +9,7 @@ const Command[] COMMANDS = {
     {"set", "Set properties of an object", "ssv", command_set},
     {"seek", "Seek to the specified time", "t", command_seek},
     {"switch-video-output", "Switch overlay num to the specified manager name", "is", command_switch_video_output},
+    {"navigation", "Send the specified navigation event name to an element in the given coords", "ssii", command_navigation},
     {null}
 };
 
@@ -116,6 +117,37 @@ void command_eos(AutoPipeline ctx, Task task) {
 }
 
 
+const string GST_NAVIGATION_EVENT_NAME = "application/x-gst-navigation";
+
+
+void command_navigation(AutoPipeline ctx, Task task) {
+    var element_name = task.arguments.values[0].get_string();
+    var event_name = task.arguments.values[1].get_string();
+    var pointer_x = task.arguments.values[2].get_int();
+    var pointer_y = task.arguments.values[3].get_int();
+    var button = (event_name != "mouse-move") ? 1 : 0;
+
+    var element = ctx.pipeline.get_by_name(element_name);
+    if(element == null) {
+        printerr("There is no element named '%s'\n", element_name);
+        return;
+    }
+
+    var s = new Gst.Structure(GST_NAVIGATION_EVENT_NAME,
+        "event", typeof(string), event_name,
+        "button", typeof(int), button,
+        "pointer_x", typeof(double), (double)pointer_x,
+        "pointer_y", typeof(double), (double)pointer_y,
+        null);
+
+    var src_pad = element.get_static_pad("src");
+    if(src_pad == null) {
+        printerr("Element %s does not have a src pad", element_name);
+    }
+
+    src_pad.send_event(new Gst.Event.navigation(s));
+}
+
 void command_switch_video_output(AutoPipeline ctx, Task task) {
     var overlay_num = task.arguments.values[0].get_int();
     var manager_name = task.arguments.values[1].get_string();
@@ -173,6 +205,7 @@ void command_switch_video_output(AutoPipeline ctx, Task task) {
     write_string_to_path(
         manager_name, @"/sys/devices/platform/omapdss/$overlay_name/manager");
 }
+
 
 void write_string_to_path(string content, string path) {
     var path_file = FileStream.open(path, "w");

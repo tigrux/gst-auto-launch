@@ -41,6 +41,7 @@ typedef struct _Command Command;
 #define _gst_event_unref0(var) ((var == NULL) ? NULL : (var = (gst_event_unref (var), NULL)))
 #define _gst_iterator_free0(var) ((var == NULL) ? NULL : (var = (gst_iterator_free (var), NULL)))
 typedef struct _Block2Data Block2Data;
+#define _gst_structure_free0(var) ((var == NULL) ? NULL : (var = (gst_structure_free (var), NULL)))
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 #define _fclose0(var) ((var == NULL) ? NULL : (var = (fclose (var), NULL)))
 
@@ -81,6 +82,8 @@ void command_seek (AutoPipeline* ctx, Task* task);
 static void _command_seek_command_func (AutoPipeline* ctx, Task* task, gpointer self);
 void command_switch_video_output (AutoPipeline* ctx, Task* task);
 static void _command_switch_video_output_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+void command_navigation (AutoPipeline* ctx, Task* task);
+static void _command_navigation_command_func (AutoPipeline* ctx, Task* task, gpointer self);
 GType command_get_type (void) G_GNUC_CONST;
 Command* command_dup (const Command* self);
 void command_free (Command* self);
@@ -93,10 +96,13 @@ static void _lambda2_ (void* data, Block2Data* _data2_);
 static void __lambda2__gfunc (void* data, gpointer self);
 static Block2Data* block2_data_ref (Block2Data* _data2_);
 static void block2_data_unref (Block2Data* _data2_);
+#define GST_NAVIGATION_EVENT_NAME "application/x-gst-navigation"
 void write_string_to_path (const char* content, const char* path);
 void scanner_register_symbols (GScanner* scanner, guint scope);
+static int _vala_strcmp0 (const char * str1, const char * str2);
 
-const Command COMMANDS[11] = {{"play", "Change pipeline state to PLAYING", "", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", "", _command_pause_command_func}, {"ready", "Change pipeline state to READY", "", _command_ready_command_func}, {"stop", "Change pipeline state to READY", "", _command_ready_command_func}, {"null", "Change pipeline state to NULL", "", _command_null_command_func}, {"eos", "Send eos to the source elements", "", _command_eos_command_func}, {"quit", "Quit the event loop", "", _command_quit_command_func}, {"set", "Set properties of an object", "ssv", _command_set_command_func}, {"seek", "Seek to the specified time", "t", _command_seek_command_func}, {"switch-video-output", "Switch overlay num to the specified manager name", "is", _command_switch_video_output_command_func}, {NULL}};
+const Command COMMANDS[12] = {{"play", "Change pipeline state to PLAYING", "", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", "", _command_pause_command_func}, {"ready", "Change pipeline state to READY", "", _command_ready_command_func}, {"stop", "Change pipeline state to READY", "", _command_ready_command_func}, {"null", "Change pipeline state to NULL", "", _command_null_command_func}, {"eos", "Send eos to the source elements", "", _command_eos_command_func}, {"quit", "Quit the event loop", "", _command_quit_command_func}, {"set", "Set properties of an object", "ssv", _command_set_command_func}, {"seek", "Seek to the specified time", "t", _command_seek_command_func}, {"switch-video-output", "Switch overlay num to the specified manager name", "is", _command_switch_video_output_command_func}, {"navigation", "Send the specified navigation event name to an element in the given co" \
+"ords", "ssii", _command_navigation_command_func}, {NULL}};
 
 
 static void _command_play_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
@@ -141,6 +147,11 @@ static void _command_seek_command_func (AutoPipeline* ctx, Task* task, gpointer 
 
 static void _command_switch_video_output_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
 	command_switch_video_output (ctx, task);
+}
+
+
+static void _command_navigation_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
+	command_navigation (ctx, task);
 }
 
 
@@ -341,6 +352,59 @@ void command_eos (AutoPipeline* ctx, Task* task) {
 }
 
 
+static gpointer _gst_structure_copy0 (gpointer self) {
+	return self ? gst_structure_copy (self) : NULL;
+}
+
+
+void command_navigation (AutoPipeline* ctx, Task* task) {
+	GValue _tmp0_;
+	char* element_name;
+	GValue _tmp1_;
+	char* event_name;
+	GValue _tmp2_;
+	gint pointer_x;
+	GValue _tmp3_;
+	gint pointer_y;
+	gint _tmp4_ = 0;
+	gint button;
+	GstElement* element;
+	GstStructure* s;
+	GstPad* src_pad;
+	g_return_if_fail (ctx != NULL);
+	g_return_if_fail (task != NULL);
+	element_name = g_strdup (g_value_get_string ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_)));
+	event_name = g_strdup (g_value_get_string ((_tmp1_ = task_get_arguments (task)->values[1], &_tmp1_)));
+	pointer_x = g_value_get_int ((_tmp2_ = task_get_arguments (task)->values[2], &_tmp2_));
+	pointer_y = g_value_get_int ((_tmp3_ = task_get_arguments (task)->values[3], &_tmp3_));
+	if (_vala_strcmp0 (event_name, "mouse-move") != 0) {
+		_tmp4_ = 1;
+	} else {
+		_tmp4_ = 0;
+	}
+	button = _tmp4_;
+	element = gst_bin_get_by_name (auto_pipeline_get_pipeline (ctx), element_name);
+	if (element == NULL) {
+		g_printerr ("There is no element named '%s'\n", element_name);
+		_gst_object_unref0 (element);
+		_g_free0 (event_name);
+		_g_free0 (element_name);
+		return;
+	}
+	s = gst_structure_new (GST_NAVIGATION_EVENT_NAME, "event", G_TYPE_STRING, event_name, "button", G_TYPE_INT, button, "pointer_x", G_TYPE_DOUBLE, (double) pointer_x, "pointer_y", G_TYPE_DOUBLE, (double) pointer_y, NULL, NULL);
+	src_pad = gst_element_get_static_pad (element, "src");
+	if (src_pad == NULL) {
+		g_printerr ("Element %s does not have a src pad", element_name);
+	}
+	gst_pad_send_event (src_pad, gst_event_new_navigation (_gst_structure_copy0 (s)));
+	_gst_object_unref0 (src_pad);
+	_gst_structure_free0 (s);
+	_gst_object_unref0 (element);
+	_g_free0 (event_name);
+	_g_free0 (element_name);
+}
+
+
 static const char* string_to_string (const char* self) {
 	const char* result = NULL;
 	g_return_val_if_fail (self != NULL, NULL);
@@ -495,6 +559,17 @@ void scanner_register_symbols (GScanner* scanner, guint scope) {
 		g_scanner_scope_add_symbol (scanner, scope, (*command).name, command);
 		command++;
 	}
+}
+
+
+static int _vala_strcmp0 (const char * str1, const char * str2) {
+	if (str1 == NULL) {
+		return -(str1 != str2);
+	}
+	if (str2 == NULL) {
+		return str1 != str2;
+	}
+	return strcmp (str1, str2);
 }
 
 
