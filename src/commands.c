@@ -10,8 +10,6 @@
 #include <float.h>
 #include <math.h>
 #include <gst/base/gstbasesrc.h>
-#include <glib/gstdio.h>
-#include <stdio.h>
 
 
 #define TYPE_COMMAND (command_get_type ())
@@ -43,8 +41,6 @@ typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 #define _gst_iterator_free0(var) ((var == NULL) ? NULL : (var = (gst_iterator_free (var), NULL)))
 typedef struct _Block2Data Block2Data;
 #define _gst_structure_free0(var) ((var == NULL) ? NULL : (var = (gst_structure_free (var), NULL)))
-#define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
-#define _fclose0(var) ((var == NULL) ? NULL : (var = (fclose (var), NULL)))
 
 typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
 struct _Command {
@@ -96,8 +92,6 @@ void command_set (AutoPipeline* ctx, Task* task);
 static void _command_set_command_func (AutoPipeline* ctx, Task* task, gpointer self);
 void command_seek (AutoPipeline* ctx, Task* task);
 static void _command_seek_command_func (AutoPipeline* ctx, Task* task, gpointer self);
-void command_switch_video_output (AutoPipeline* ctx, Task* task);
-static void _command_switch_video_output_command_func (AutoPipeline* ctx, Task* task, gpointer self);
 void command_navigation (AutoPipeline* ctx, Task* task);
 static void _command_navigation_command_func (AutoPipeline* ctx, Task* task, gpointer self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
@@ -108,11 +102,10 @@ static void __lambda2__gfunc (void* data, gpointer self);
 static Block2Data* block2_data_ref (Block2Data* _data2_);
 static void block2_data_unref (Block2Data* _data2_);
 #define GST_NAVIGATION_EVENT_NAME "application/x-gst-navigation"
-void write_string_to_path (const char* content, const char* path);
 void scanner_register_symbols (GScanner* scanner, guint scope);
 static int _vala_strcmp0 (const char * str1, const char * str2);
 
-const Command COMMANDS[12] = {{"play", "Change pipeline state to PLAYING", "", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", "", _command_pause_command_func}, {"ready", "Change pipeline state to READY", "", _command_ready_command_func}, {"stop", "Change pipeline state to READY", "", _command_ready_command_func}, {"null", "Change pipeline state to NULL", "", _command_null_command_func}, {"eos", "Send eos to the source elements", "", _command_eos_command_func}, {"quit", "Quit the event loop", "", _command_quit_command_func}, {"set", "Set properties of an object", "ssv", _command_set_command_func}, {"seek", "Seek to the specified time", "t", _command_seek_command_func}, {"switch-video-output", "Switch overlay num to the specified manager name", "is", _command_switch_video_output_command_func}, {"navigation", "Send the specified navigation event name to an element in the given co" \
+const Command COMMANDS[11] = {{"play", "Change pipeline state to PLAYING", "", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", "", _command_pause_command_func}, {"ready", "Change pipeline state to READY", "", _command_ready_command_func}, {"stop", "Change pipeline state to READY", "", _command_ready_command_func}, {"null", "Change pipeline state to NULL", "", _command_null_command_func}, {"eos", "Send eos to the source elements", "", _command_eos_command_func}, {"quit", "Quit the event loop", "", _command_quit_command_func}, {"set", "Set properties of an object", "ssv", _command_set_command_func}, {"seek", "Seek to the specified time", "t", _command_seek_command_func}, {"navigation", "Send the specified navigation event name to an element in the given co" \
 "ords", "ssii", _command_navigation_command_func}, {NULL}};
 
 
@@ -153,11 +146,6 @@ static void _command_set_command_func (AutoPipeline* ctx, Task* task, gpointer s
 
 static void _command_seek_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
 	command_seek (ctx, task);
-}
-
-
-static void _command_switch_video_output_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
-	command_switch_video_output (ctx, task);
 }
 
 
@@ -423,148 +411,6 @@ void command_navigation (AutoPipeline* ctx, Task* task) {
 	_gst_object_unref0 (element);
 	_g_free0 (event_name);
 	_g_free0 (element_name);
-}
-
-
-static const char* string_to_string (const char* self) {
-	const char* result = NULL;
-	g_return_val_if_fail (self != NULL, NULL);
-	result = self;
-	return result;
-}
-
-
-void command_switch_video_output (AutoPipeline* ctx, Task* task) {
-	GValue _tmp0_;
-	gint overlay_num;
-	GValue _tmp1_;
-	char* manager_name;
-	char* _tmp2_;
-	char* _tmp3_;
-	char* overlay_name;
-	const char* _tmp6_;
-	GQuark _tmp7_;
-	static GQuark _tmp7__label0 = 0;
-	static GQuark _tmp7__label1 = 0;
-	static GQuark _tmp7__label2 = 0;
-	char* _tmp13_;
-	char* _tmp14_;
-	GError * _inner_error_ = NULL;
-	g_return_if_fail (ctx != NULL);
-	g_return_if_fail (task != NULL);
-	overlay_num = g_value_get_int ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_));
-	manager_name = g_strdup (g_value_get_string ((_tmp1_ = task_get_arguments (task)->values[1], &_tmp1_)));
-	write_string_to_path ("0", "/sys/devices/platform/omapdss/overlay0/zorder");
-	write_string_to_path ("1", "/sys/devices/platform/omapdss/overlay1/zorder");
-	write_string_to_path ("3", "/sys/devices/platform/omapdss/overlay2/zorder");
-	write_string_to_path ("2", "/sys/devices/platform/omapdss/overlay3/zorder");
-	overlay_name = (_tmp3_ = g_strconcat ("overlay", _tmp2_ = g_strdup_printf ("%i", overlay_num), NULL), _g_free0 (_tmp2_), _tmp3_);
-	g_print ("Changing manager of %s\n", overlay_name);
-	_tmp6_ = manager_name;
-	_tmp7_ = (NULL == _tmp6_) ? 0 : g_quark_from_string (_tmp6_);
-	if (_tmp7_ == ((0 != _tmp7__label0) ? _tmp7__label0 : (_tmp7__label0 = g_quark_from_static_string ("lcd1"))))
-	switch (0) {
-		default:
-		{
-			char* _tmp4_;
-			g_print ("Enabling primary display: lcd\n");
-			write_string_to_path ("1", "/sys/devices/platform/omapdss/display0/enabled");
-			manager_name = (_tmp4_ = g_strdup ("lcd"), _g_free0 (manager_name), _tmp4_);
-			break;
-		}
-	} else if (_tmp7_ == ((0 != _tmp7__label1) ? _tmp7__label1 : (_tmp7__label1 = g_quark_from_static_string ("lcd2"))))
-	switch (0) {
-		default:
-		{
-			char* _tmp5_;
-			g_print ("Enabling secondary display: 2lcd\n");
-			write_string_to_path ("1", "/sys/devices/platform/omapdss/display1/enabled");
-			manager_name = (_tmp5_ = g_strdup ("2lcd"), _g_free0 (manager_name), _tmp5_);
-			break;
-		}
-	} else if (_tmp7_ == ((0 != _tmp7__label2) ? _tmp7__label2 : (_tmp7__label2 = g_quark_from_static_string ("tv"))))
-	switch (0) {
-		default:
-		{
-			g_print ("Enabling hdmi display: tv\n");
-			write_string_to_path ("1", "/sys/devices/platform/omapdss/display2/enabled");
-			break;
-		}
-	}
-	if (g_file_test ("/dev/fb1", G_FILE_TEST_EXISTS)) {
-		char* _tmp8_;
-		char* _tmp9_;
-		g_print ("2 framebuffers detected: adjusting overlay number\n");
-		overlay_num = overlay_num + 1;
-		overlay_name = (_tmp9_ = g_strconcat ("overlay", _tmp8_ = g_strdup_printf ("%i", overlay_num), NULL), _g_free0 (overlay_name), _tmp9_);
-		_g_free0 (_tmp8_);
-		g_print ("Updated overlay %s\n", overlay_name);
-	}
-	{
-		char* overlay_enabled;
-		char* _tmp10_ = NULL;
-		char* _tmp11_;
-		char* _tmp12_;
-		overlay_enabled = NULL;
-		g_file_get_contents ("/sys/devices/platform/omapdss/$overlay_name/enabled", &_tmp10_, NULL, &_inner_error_);
-		overlay_enabled = (_tmp11_ = _tmp10_, _g_free0 (overlay_enabled), _tmp11_);
-		if (_inner_error_ != NULL) {
-			_g_free0 (overlay_enabled);
-			if (_inner_error_->domain == G_FILE_ERROR) {
-				goto __catch3_g_file_error;
-			}
-			_g_free0 (overlay_enabled);
-			_g_free0 (overlay_name);
-			_g_free0 (manager_name);
-			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-			g_clear_error (&_inner_error_);
-			return;
-		}
-		write_string_to_path (overlay_enabled, _tmp12_ = g_strconcat ("/sys/devices/platform/omapdss/", string_to_string (overlay_name), "/enabled", NULL));
-		_g_free0 (_tmp12_);
-		_g_free0 (overlay_enabled);
-	}
-	goto __finally3;
-	__catch3_g_file_error:
-	{
-		GError * e;
-		e = _inner_error_;
-		_inner_error_ = NULL;
-		{
-			g_printerr ("Could not check if the overlay was enabled\n");
-			_g_error_free0 (e);
-		}
-	}
-	__finally3:
-	if (_inner_error_ != NULL) {
-		_g_free0 (overlay_name);
-		_g_free0 (manager_name);
-		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
-		g_clear_error (&_inner_error_);
-		return;
-	}
-	write_string_to_path ("0", _tmp13_ = g_strconcat ("/sys/devices/platform/omapdss/", string_to_string (overlay_name), "/enabled", NULL));
-	_g_free0 (_tmp13_);
-	write_string_to_path (manager_name, _tmp14_ = g_strconcat ("/sys/devices/platform/omapdss/", string_to_string (overlay_name), "/manager", NULL));
-	_g_free0 (_tmp14_);
-	_g_free0 (overlay_name);
-	_g_free0 (manager_name);
-}
-
-
-void write_string_to_path (const char* content, const char* path) {
-	FILE* path_file;
-	g_return_if_fail (content != NULL);
-	g_return_if_fail (path != NULL);
-	path_file = fopen (path, "w");
-	if (path_file != NULL) {
-		g_printerr ("Writing '%s' to '%s'\n", content, path);
-		fprintf (path_file, "%s", content);
-		fflush (path_file);
-	} else {
-		g_printerr ("Could not open '%s'\n", path);
-	}
-	_fclose0 (path_file);
 }
 
 

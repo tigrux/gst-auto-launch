@@ -8,7 +8,6 @@ const Command[] COMMANDS = {
     {"quit", "Quit the event loop", "", command_quit},
     {"set", "Set properties of an object", "ssv", command_set},
     {"seek", "Seek to the specified time", "t", command_seek},
-    {"switch-video-output", "Switch overlay num to the specified manager name", "is", command_switch_video_output},
     {"navigation", "Send the specified navigation event name to an element in the given coords", "ssii", command_navigation},
     {null}
 };
@@ -158,76 +157,6 @@ void command_navigation(AutoPipeline ctx, Task task) {
     }
 
     src_pad.send_event(new Gst.Event.navigation(s));
-}
-
-void command_switch_video_output(AutoPipeline ctx, Task task) {
-    var overlay_num = task.arguments.values[0].get_int();
-    var manager_name = task.arguments.values[1].get_string();
-
-    write_string_to_path("0", "/sys/devices/platform/omapdss/overlay0/zorder");
-    write_string_to_path("1", "/sys/devices/platform/omapdss/overlay1/zorder");
-    write_string_to_path("3", "/sys/devices/platform/omapdss/overlay2/zorder");
-    write_string_to_path("2", "/sys/devices/platform/omapdss/overlay3/zorder");
-    
-    var overlay_name = @"overlay$overlay_num";
-    print("Changing manager of %s\n", overlay_name);
-
-    switch(manager_name) {
-        case "lcd1":
-            print("Enabling primary display: lcd\n");
-            write_string_to_path(
-                "1", "/sys/devices/platform/omapdss/display0/enabled");
-            manager_name = "lcd";
-            break;
-        case "lcd2":
-            print("Enabling secondary display: 2lcd\n");
-            write_string_to_path(
-                "1", "/sys/devices/platform/omapdss/display1/enabled");
-            manager_name = "2lcd";
-            break;
-        case "tv":
-            print("Enabling hdmi display: tv\n");
-            write_string_to_path(
-                "1", "/sys/devices/platform/omapdss/display2/enabled");
-            break;
-    }
-
-    if(FileUtils.test("/dev/fb1", FileTest.EXISTS)) {
-        print("2 framebuffers detected: adjusting overlay number\n");
-        overlay_num += 1;
-        overlay_name = @"overlay$overlay_num";
-        print("Updated overlay %s\n",  overlay_name);
-    }
-
-    try {
-        string overlay_enabled;
-        FileUtils.get_contents(
-            "/sys/devices/platform/omapdss/$overlay_name/enabled",
-            out overlay_enabled);
-        write_string_to_path(
-            overlay_enabled,
-            @"/sys/devices/platform/omapdss/$overlay_name/enabled");
-    }
-    catch(FileError e) {
-        printerr("Could not check if the overlay was enabled\n");
-    }
-
-    write_string_to_path(
-        "0", @"/sys/devices/platform/omapdss/$overlay_name/enabled");
-    write_string_to_path(
-        manager_name, @"/sys/devices/platform/omapdss/$overlay_name/manager");
-}
-
-
-void write_string_to_path(string content, string path) {
-    var path_file = FileStream.open(path, "w");
-    if(path_file != null) {
-        printerr("Writing '%s' to '%s'\n", content, path);
-        path_file.printf("%s", content);
-        path_file.flush();
-    }
-    else
-        printerr("Could not open '%s'\n", path);
 }
 
 
