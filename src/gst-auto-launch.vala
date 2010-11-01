@@ -61,6 +61,8 @@ int main(string[] args) {
     		tasks.append(task);
 		else if(!arg.has_prefix("--"))
             effective_args_list.append(arg);
+        else
+            return 1;
 	}
 
     if(tasks.length() == 0) {
@@ -135,7 +137,7 @@ int main(string[] args) {
         auto_pipeline.log("}\n");
     }
 
-    return 0;
+    return auto_pipeline.return_status;
 }
 
 

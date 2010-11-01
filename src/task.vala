@@ -28,7 +28,8 @@ class Task: Object {
     public uint exec(AutoPipeline ctx) {
         return Timeout.add((uint)(seconds*1000),
             () => {
-            _command.function(ctx, this);
+            if(ctx.return_status == 0)
+                _command.function(ctx, this);
             return false;
         });
     }

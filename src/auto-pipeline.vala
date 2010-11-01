@@ -14,6 +14,7 @@ class AutoPipeline: Object {
     FileStream log_stream;
 
     bool _print_messages_enabled;
+    public int return_status = 0;
 
     public bool print_messages_enabled {
         set {
@@ -100,6 +101,8 @@ class AutoPipeline: Object {
                 string s;
                 message.parse_error(out e, out s);
                 critical("Bus error: %s %s\n", e.message, s);
+                return_status = 1;
+                quit();
                 break;
             }
             case Gst.MessageType.EOS: {

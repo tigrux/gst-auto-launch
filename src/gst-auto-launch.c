@@ -45,12 +45,13 @@ typedef struct _TaskScannerClass TaskScannerClass;
 
 typedef struct _Task Task;
 typedef struct _TaskClass TaskClass;
+#define __g_list_free_g_free0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_free (var), NULL)))
+#define __g_list_free_g_object_unref0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_object_unref (var), NULL)))
 
 #define TYPE_COMMAND (command_get_type ())
 typedef struct _Command Command;
 #define _command_free0(var) ((var == NULL) ? NULL : (var = (command_free (var), NULL)))
-#define __g_list_free_g_free0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_free (var), NULL)))
-#define __g_list_free_g_object_unref0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_object_unref (var), NULL)))
+typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 #define _g_main_loop_unref0(var) ((var == NULL) ? NULL : (var = (g_main_loop_unref (var), NULL)))
 
 #define TYPE_XML_PARSER (xml_parser_get_type ())
@@ -73,6 +74,16 @@ struct _Command {
 	GDestroyNotify function_target_destroy_notify;
 };
 
+struct _AutoPipeline {
+	GObject parent_instance;
+	AutoPipelinePrivate * priv;
+	gint return_status;
+};
+
+struct _AutoPipelineClass {
+	GObjectClass parent_class;
+};
+
 
 extern gboolean print_messages;
 gboolean print_messages = FALSE;
@@ -90,6 +101,8 @@ GType task_scanner_get_type (void) G_GNUC_CONST;
 void task_scanner_print_description (TaskScanner* self);
 GType task_get_type (void) G_GNUC_CONST;
 Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg);
+static void _g_list_free_g_free (GList* self);
+static void _g_list_free_g_object_unref (GList* self);
 GType command_get_type (void) G_GNUC_CONST;
 Command* command_dup (const Command* self);
 void command_free (Command* self);
@@ -102,8 +115,6 @@ gboolean try_to_get_desc_from_xml (char** args, int args_length1, char** pipelin
 void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GError** error);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
-static void _g_list_free_g_free (GList* self);
-static void _g_list_free_g_object_unref (GList* self);
 guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
 static void _g_main_loop_quit_auto_pipeline_quit (AutoPipeline* _sender, gpointer self);
 XmlParser* xml_parser_new (void);
@@ -243,6 +254,16 @@ gint _vala_main (char** args, int args_length1) {
 				} else {
 					if (!g_str_has_prefix (arg, "--")) {
 						effective_args_list = g_list_append (effective_args_list, g_strdup (arg));
+					} else {
+						result = 1;
+						_g_object_unref0 (task);
+						_g_free0 (arg);
+						__g_list_free_g_free0 (effective_args_list);
+						__g_list_free_g_object_unref0 (tasks);
+						_g_object_unref0 (scanner);
+						_g_object_unref0 (auto_pipeline);
+						_g_option_context_free0 (opt_context);
+						return result;
 					}
 				}
 				_g_object_unref0 (task);
@@ -386,7 +407,7 @@ gint _vala_main (char** args, int args_length1) {
 		auto_pipeline_log (auto_pipeline, " 'end' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec, NULL);
 		auto_pipeline_log (auto_pipeline, "}\n", NULL);
 	}
-	result = 0;
+	result = auto_pipeline->return_status;
 	_g_main_loop_unref0 (loop);
 	_g_free0 (pipeline_desc);
 	__g_list_free_g_free0 (effective_args_list);

@@ -36,6 +36,7 @@ typedef struct _AutoPipelineClass AutoPipelineClass;
 typedef struct _Task Task;
 typedef struct _TaskClass TaskClass;
 typedef struct _Command Command;
+typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
 #define _g_free0(var) (var = (g_free (var), NULL))
 #define _gst_event_unref0(var) ((var == NULL) ? NULL : (var = (gst_event_unref (var), NULL)))
@@ -53,6 +54,16 @@ struct _Command {
 	CommandFunc function;
 	gpointer function_target;
 	GDestroyNotify function_target_destroy_notify;
+};
+
+struct _AutoPipeline {
+	GObject parent_instance;
+	AutoPipelinePrivate * priv;
+	gint return_status;
+};
+
+struct _AutoPipelineClass {
+	GObjectClass parent_class;
 };
 
 struct _Block2Data {
@@ -211,7 +222,9 @@ void command_set (AutoPipeline* ctx, Task* task) {
 	prop_name = g_strdup (g_value_get_string ((_tmp1_ = task_get_arguments (task)->values[1], &_tmp1_)));
 	element = gst_bin_get_by_name (auto_pipeline_get_pipeline (ctx), element_name);
 	if (element == NULL) {
-		g_printerr ("There is no element named '%s'\n", element_name);
+		g_printerr ("No element named '%s'\n", element_name);
+		ctx->return_status = 1;
+		g_signal_emit_by_name (ctx, "quit");
 		_gst_object_unref0 (element);
 		_g_free0 (prop_name);
 		_g_free0 (element_name);
@@ -234,6 +247,10 @@ void command_set (AutoPipeline* ctx, Task* task) {
 				prop_value = (_tmp4_ = (g_value_init (&_tmp3_, G_TYPE_INT), g_value_set_int (&_tmp3_, e_value->value), _tmp3_), G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL, _tmp4_);
 			}
 			_g_free0 (prop_string);
+		} else {
+			g_printerr ("No property '%s' in element '%s'\n", prop_name, element_name);
+			ctx->return_status = 1;
+			g_signal_emit_by_name (ctx, "quit");
 		}
 	}
 	prop_value_s = (g_value_init (&_tmp5_, G_TYPE_STRING), g_value_set_string (&_tmp5_, ""), _tmp5_);
@@ -385,7 +402,9 @@ void command_navigation (AutoPipeline* ctx, Task* task) {
 	button = _tmp4_;
 	element = gst_bin_get_by_name (auto_pipeline_get_pipeline (ctx), element_name);
 	if (element == NULL) {
-		g_printerr ("There is no element named '%s'\n", element_name);
+		g_printerr ("No element named '%s'\n", element_name);
+		ctx->return_status = 1;
+		g_signal_emit_by_name (ctx, "quit");
 		_gst_object_unref0 (element);
 		_g_free0 (event_name);
 		_g_free0 (element_name);
@@ -394,7 +413,9 @@ void command_navigation (AutoPipeline* ctx, Task* task) {
 	s = gst_structure_new (GST_NAVIGATION_EVENT_NAME, "event", G_TYPE_STRING, event_name, "button", G_TYPE_INT, button, "pointer_x", G_TYPE_DOUBLE, (double) pointer_x, "pointer_y", G_TYPE_DOUBLE, (double) pointer_y, NULL, NULL);
 	src_pad = gst_element_get_static_pad (element, "src");
 	if (src_pad == NULL) {
-		g_printerr ("Element %s does not have a src pad", element_name);
+		g_printerr ("No src pad in element %s", element_name);
+		ctx->return_status = 1;
+		g_signal_emit_by_name (ctx, "quit");
 	}
 	gst_pad_send_event (src_pad, gst_event_new_navigation (_gst_structure_copy0 (s)));
 	_gst_object_unref0 (src_pad);

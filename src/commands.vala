@@ -51,7 +51,9 @@ void command_set(AutoPipeline ctx, Task task) {
     var element = ctx.pipeline.get_by_name(element_name);
     
     if(element == null) {
-        printerr("There is no element named '%s'\n", element_name);
+        printerr("No element named '%s'\n", element_name);
+        ctx.return_status = 1;
+        ctx.quit();
         return;
     }
     
@@ -65,6 +67,12 @@ void command_set(AutoPipeline ctx, Task task) {
             weak EnumValue e_value = e_class.get_value_by_nick(prop_string);
             if(e_value != null)
                 prop_value = e_value.value;
+        }
+        else {
+            printerr(
+                "No property '%s' in element '%s'\n", prop_name, element_name);
+            ctx.return_status = 1;
+            ctx.quit();
         }
     }
 
@@ -129,7 +137,9 @@ void command_navigation(AutoPipeline ctx, Task task) {
 
     var element = ctx.pipeline.get_by_name(element_name);
     if(element == null) {
-        printerr("There is no element named '%s'\n", element_name);
+        printerr("No element named '%s'\n", element_name);
+        ctx.return_status = 1;
+        ctx.quit();
         return;
     }
 
@@ -142,7 +152,9 @@ void command_navigation(AutoPipeline ctx, Task task) {
 
     var src_pad = element.get_static_pad("src");
     if(src_pad == null) {
-        printerr("Element %s does not have a src pad", element_name);
+        printerr("No src pad in element %s", element_name);
+        ctx.return_status = 1;
+        ctx.quit();
     }
 
     src_pad.send_event(new Gst.Event.navigation(s));

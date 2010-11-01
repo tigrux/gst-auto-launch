@@ -40,6 +40,7 @@ typedef struct _TaskClass TaskClass;
 struct _AutoPipeline {
 	GObject parent_instance;
 	AutoPipelinePrivate * priv;
+	gint return_status;
 };
 
 struct _AutoPipelineClass {
@@ -228,7 +229,9 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 				s = NULL;
 				(gst_message_parse_error (message, &_tmp5_, &_tmp7_), e = (_tmp6_ = _tmp5_, _g_error_free0 (e), _tmp6_));
 				s = (_tmp8_ = _tmp7_, _g_free0 (s), _tmp8_);
-				g_critical ("auto-pipeline.vala:102: Bus error: %s %s\n", e->message, s);
+				g_critical ("auto-pipeline.vala:103: Bus error: %s %s\n", e->message, s);
+				self->return_status = 1;
+				g_signal_emit_by_name (self, "quit");
 				_g_free0 (s);
 				_g_error_free0 (e);
 				break;
@@ -334,6 +337,7 @@ static void auto_pipeline_class_init (AutoPipelineClass * klass) {
 
 static void auto_pipeline_instance_init (AutoPipeline * self) {
 	self->priv = AUTO_PIPELINE_GET_PRIVATE (self);
+	self->return_status = 0;
 }
 
 

@@ -34,6 +34,7 @@ typedef struct _AutoPipeline AutoPipeline;
 typedef struct _AutoPipelineClass AutoPipelineClass;
 typedef struct _Command Command;
 #define _g_value_array_free0(var) ((var == NULL) ? NULL : (var = (g_value_array_free (var), NULL)))
+typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 typedef struct _Block1Data Block1Data;
 
@@ -60,6 +61,16 @@ struct _TaskPrivate {
 	double _seconds;
 	Command _command;
 	GValueArray* _arguments;
+};
+
+struct _AutoPipeline {
+	GObject parent_instance;
+	AutoPipelinePrivate * priv;
+	gint return_status;
+};
+
+struct _AutoPipelineClass {
+	GObjectClass parent_class;
 };
 
 struct _Block1Data {
@@ -120,7 +131,9 @@ static gboolean _lambda1_ (Block1Data* _data1_) {
 	Task * self;
 	gboolean result = FALSE;
 	self = _data1_->self;
-	self->priv->_command.function (_data1_->ctx, self, self->priv->_command.function_target);
+	if (_data1_->ctx->return_status == 0) {
+		self->priv->_command.function (_data1_->ctx, self, self->priv->_command.function_target);
+	}
 	result = FALSE;
 	return result;
 }
