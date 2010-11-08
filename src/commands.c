@@ -42,7 +42,7 @@ typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 typedef struct _Block2Data Block2Data;
 #define _gst_structure_free0(var) ((var == NULL) ? NULL : (var = (gst_structure_free (var), NULL)))
 
-typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
+typedef void (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
@@ -77,23 +77,23 @@ void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
 void command_destroy (Command* self);
 void command_play (AutoPipeline* auto_pipeline, Task* task);
-static void _command_play_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+static void _command_play_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self);
 void command_pause (AutoPipeline* auto_pipeline, Task* task);
-static void _command_pause_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+static void _command_pause_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self);
 void command_ready (AutoPipeline* auto_pipeline, Task* task);
-static void _command_ready_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+static void _command_ready_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self);
 void command_null (AutoPipeline* auto_pipeline, Task* task);
-static void _command_null_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+static void _command_null_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self);
 void command_eos (AutoPipeline* auto_pipeline, Task* task);
-static void _command_eos_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+static void _command_eos_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self);
 void command_quit (AutoPipeline* auto_pipeline, Task* task);
-static void _command_quit_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+static void _command_quit_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self);
 void command_set (AutoPipeline* auto_pipeline, Task* task);
-static void _command_set_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+static void _command_set_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self);
 void command_seek (AutoPipeline* auto_pipeline, Task* task);
-static void _command_seek_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+static void _command_seek_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self);
 void command_navigation (AutoPipeline* auto_pipeline, Task* task);
-static void _command_navigation_command_func (AutoPipeline* ctx, Task* task, gpointer self);
+static void _command_navigation_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
 GValueArray* task_get_arguments (Task* self);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
@@ -109,48 +109,48 @@ const Command COMMANDS[11] = {{"play", "Change pipeline state to PLAYING", "", _
 "ords", "ssii", _command_navigation_command_func}, {NULL}};
 
 
-static void _command_play_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
-	command_play (ctx, task);
+static void _command_play_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self) {
+	command_play (auto_pipeline, task);
 }
 
 
-static void _command_pause_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
-	command_pause (ctx, task);
+static void _command_pause_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self) {
+	command_pause (auto_pipeline, task);
 }
 
 
-static void _command_ready_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
-	command_ready (ctx, task);
+static void _command_ready_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self) {
+	command_ready (auto_pipeline, task);
 }
 
 
-static void _command_null_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
-	command_null (ctx, task);
+static void _command_null_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self) {
+	command_null (auto_pipeline, task);
 }
 
 
-static void _command_eos_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
-	command_eos (ctx, task);
+static void _command_eos_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self) {
+	command_eos (auto_pipeline, task);
 }
 
 
-static void _command_quit_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
-	command_quit (ctx, task);
+static void _command_quit_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self) {
+	command_quit (auto_pipeline, task);
 }
 
 
-static void _command_set_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
-	command_set (ctx, task);
+static void _command_set_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self) {
+	command_set (auto_pipeline, task);
 }
 
 
-static void _command_seek_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
-	command_seek (ctx, task);
+static void _command_seek_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self) {
+	command_seek (auto_pipeline, task);
 }
 
 
-static void _command_navigation_command_func (AutoPipeline* ctx, Task* task, gpointer self) {
-	command_navigation (ctx, task);
+static void _command_navigation_command_func (AutoPipeline* auto_pipeline, Task* task, gpointer self) {
+	command_navigation (auto_pipeline, task);
 }
 
 

@@ -76,7 +76,7 @@ static gboolean __lambda0__gst_structure_foreach_func (GQuark field_id, GValue* 
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
 GType task_get_type (void) G_GNUC_CONST;
 guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
-guint task_exec (Task* self, AutoPipeline* ctx);
+guint task_exec (Task* self, AutoPipeline* auto_pipeline);
 AutoPipeline* auto_pipeline_new (void);
 AutoPipeline* auto_pipeline_construct (GType object_type);
 gboolean auto_pipeline_get_print_messages_enabled (AutoPipeline* self);

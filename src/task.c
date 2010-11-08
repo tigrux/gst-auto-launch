@@ -47,7 +47,7 @@ struct _TaskClass {
 	GObjectClass parent_class;
 };
 
-typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
+typedef void (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
@@ -76,7 +76,7 @@ struct _AutoPipelineClass {
 struct _Block1Data {
 	int _ref_count_;
 	Task * self;
-	AutoPipeline* ctx;
+	AutoPipeline* auto_pipeline;
 };
 
 
@@ -97,7 +97,7 @@ enum  {
 };
 Task* task_new (double seconds, Command* command);
 Task* task_construct (GType object_type, double seconds, Command* command);
-guint task_exec (Task* self, AutoPipeline* ctx);
+guint task_exec (Task* self, AutoPipeline* auto_pipeline);
 double task_get_seconds (Task* self);
 static gboolean _lambda1_ (Block1Data* _data1_);
 static gboolean __lambda1__gsource_func (gpointer self);
@@ -131,8 +131,8 @@ static gboolean _lambda1_ (Block1Data* _data1_) {
 	Task * self;
 	gboolean result = FALSE;
 	self = _data1_->self;
-	if (_data1_->ctx->return_status == 0) {
-		self->priv->_command.function (_data1_->ctx, self, self->priv->_command.function_target);
+	if (_data1_->auto_pipeline->return_status == 0) {
+		self->priv->_command.function (_data1_->auto_pipeline, self, self->priv->_command.function_target);
 	}
 	result = FALSE;
 	return result;
@@ -160,21 +160,21 @@ static Block1Data* block1_data_ref (Block1Data* _data1_) {
 static void block1_data_unref (Block1Data* _data1_) {
 	if (g_atomic_int_dec_and_test (&_data1_->_ref_count_)) {
 		_g_object_unref0 (_data1_->self);
-		_g_object_unref0 (_data1_->ctx);
+		_g_object_unref0 (_data1_->auto_pipeline);
 		g_slice_free (Block1Data, _data1_);
 	}
 }
 
 
-guint task_exec (Task* self, AutoPipeline* ctx) {
+guint task_exec (Task* self, AutoPipeline* auto_pipeline) {
 	guint result = 0U;
 	Block1Data* _data1_;
 	g_return_val_if_fail (self != NULL, 0U);
-	g_return_val_if_fail (ctx != NULL, 0U);
+	g_return_val_if_fail (auto_pipeline != NULL, 0U);
 	_data1_ = g_slice_new0 (Block1Data);
 	_data1_->_ref_count_ = 1;
 	_data1_->self = g_object_ref (self);
-	_data1_->ctx = _g_object_ref0 (ctx);
+	_data1_->auto_pipeline = _g_object_ref0 (auto_pipeline);
 	result = g_timeout_add_full (G_PRIORITY_DEFAULT, (guint) (task_get_seconds (self) * 1000), __lambda1__gsource_func, block1_data_ref (_data1_), block1_data_unref);
 	block1_data_unref (_data1_);
 	return result;

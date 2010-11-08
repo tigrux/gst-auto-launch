@@ -25,11 +25,11 @@ class Task: Object {
     }
 
 
-    public uint exec(AutoPipeline ctx) {
+    public uint exec(AutoPipeline auto_pipeline) {
         return Timeout.add((uint)(seconds*1000),
             () => {
-            if(ctx.return_status == 0)
-                _command.function(ctx, this);
+            if(auto_pipeline.return_status == 0)
+                _command.function(auto_pipeline, this);
             return false;
         });
     }

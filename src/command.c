@@ -32,7 +32,7 @@ typedef struct _TaskClass TaskClass;
 typedef struct _Command Command;
 #define _g_free0(var) (var = (g_free (var), NULL))
 
-typedef void (*CommandFunc) (AutoPipeline* ctx, Task* task, void* user_data);
+typedef void (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task, void* user_data);
 struct _Command {
 	char* name;
 	char* description;
