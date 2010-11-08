@@ -76,23 +76,23 @@ Command* command_dup (const Command* self);
 void command_free (Command* self);
 void command_copy (const Command* self, Command* dest);
 void command_destroy (Command* self);
-void command_play (AutoPipeline* ctx, Task* task);
+void command_play (AutoPipeline* auto_pipeline, Task* task);
 static void _command_play_command_func (AutoPipeline* ctx, Task* task, gpointer self);
-void command_pause (AutoPipeline* ctx, Task* task);
+void command_pause (AutoPipeline* auto_pipeline, Task* task);
 static void _command_pause_command_func (AutoPipeline* ctx, Task* task, gpointer self);
-void command_ready (AutoPipeline* ctx, Task* task);
+void command_ready (AutoPipeline* auto_pipeline, Task* task);
 static void _command_ready_command_func (AutoPipeline* ctx, Task* task, gpointer self);
-void command_null (AutoPipeline* ctx, Task* task);
+void command_null (AutoPipeline* auto_pipeline, Task* task);
 static void _command_null_command_func (AutoPipeline* ctx, Task* task, gpointer self);
-void command_eos (AutoPipeline* ctx, Task* task);
+void command_eos (AutoPipeline* auto_pipeline, Task* task);
 static void _command_eos_command_func (AutoPipeline* ctx, Task* task, gpointer self);
-void command_quit (AutoPipeline* ctx, Task* task);
+void command_quit (AutoPipeline* auto_pipeline, Task* task);
 static void _command_quit_command_func (AutoPipeline* ctx, Task* task, gpointer self);
-void command_set (AutoPipeline* ctx, Task* task);
+void command_set (AutoPipeline* auto_pipeline, Task* task);
 static void _command_set_command_func (AutoPipeline* ctx, Task* task, gpointer self);
-void command_seek (AutoPipeline* ctx, Task* task);
+void command_seek (AutoPipeline* auto_pipeline, Task* task);
 static void _command_seek_command_func (AutoPipeline* ctx, Task* task, gpointer self);
-void command_navigation (AutoPipeline* ctx, Task* task);
+void command_navigation (AutoPipeline* auto_pipeline, Task* task);
 static void _command_navigation_command_func (AutoPipeline* ctx, Task* task, gpointer self);
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
 GValueArray* task_get_arguments (Task* self);
@@ -154,47 +154,47 @@ static void _command_navigation_command_func (AutoPipeline* ctx, Task* task, gpo
 }
 
 
-void command_play (AutoPipeline* ctx, Task* task) {
-	g_return_if_fail (ctx != NULL);
+void command_play (AutoPipeline* auto_pipeline, Task* task) {
+	g_return_if_fail (auto_pipeline != NULL);
 	g_return_if_fail (task != NULL);
 	g_print ("Passing to PLAYING\n");
-	auto_pipeline_set_state (ctx, GST_STATE_PLAYING);
+	auto_pipeline_set_state (auto_pipeline, GST_STATE_PLAYING);
 }
 
 
-void command_pause (AutoPipeline* ctx, Task* task) {
-	g_return_if_fail (ctx != NULL);
+void command_pause (AutoPipeline* auto_pipeline, Task* task) {
+	g_return_if_fail (auto_pipeline != NULL);
 	g_return_if_fail (task != NULL);
 	g_print ("Passing to PAUSED\n");
-	auto_pipeline_set_state (ctx, GST_STATE_PAUSED);
+	auto_pipeline_set_state (auto_pipeline, GST_STATE_PAUSED);
 }
 
 
-void command_ready (AutoPipeline* ctx, Task* task) {
-	g_return_if_fail (ctx != NULL);
+void command_ready (AutoPipeline* auto_pipeline, Task* task) {
+	g_return_if_fail (auto_pipeline != NULL);
 	g_return_if_fail (task != NULL);
 	g_print ("Passing to READY\n");
-	auto_pipeline_set_state (ctx, GST_STATE_READY);
+	auto_pipeline_set_state (auto_pipeline, GST_STATE_READY);
 }
 
 
-void command_null (AutoPipeline* ctx, Task* task) {
-	g_return_if_fail (ctx != NULL);
+void command_null (AutoPipeline* auto_pipeline, Task* task) {
+	g_return_if_fail (auto_pipeline != NULL);
 	g_return_if_fail (task != NULL);
 	g_print ("Passing to NULL\n");
-	auto_pipeline_set_state (ctx, GST_STATE_NULL);
+	auto_pipeline_set_state (auto_pipeline, GST_STATE_NULL);
 }
 
 
-void command_quit (AutoPipeline* ctx, Task* task) {
-	g_return_if_fail (ctx != NULL);
+void command_quit (AutoPipeline* auto_pipeline, Task* task) {
+	g_return_if_fail (auto_pipeline != NULL);
 	g_return_if_fail (task != NULL);
 	g_print ("Quitting\n");
-	g_signal_emit_by_name (ctx, "quit");
+	g_signal_emit_by_name (auto_pipeline, "quit");
 }
 
 
-void command_set (AutoPipeline* ctx, Task* task) {
+void command_set (AutoPipeline* auto_pipeline, Task* task) {
 	GValue _tmp0_;
 	char* element_name;
 	GValue _tmp1_;
@@ -204,15 +204,15 @@ void command_set (AutoPipeline* ctx, Task* task) {
 	GValue prop_value;
 	GValue _tmp5_ = {0};
 	GValue prop_value_s;
-	g_return_if_fail (ctx != NULL);
+	g_return_if_fail (auto_pipeline != NULL);
 	g_return_if_fail (task != NULL);
 	element_name = g_strdup (g_value_get_string ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_)));
 	prop_name = g_strdup (g_value_get_string ((_tmp1_ = task_get_arguments (task)->values[1], &_tmp1_)));
-	element = gst_bin_get_by_name (auto_pipeline_get_pipeline (ctx), element_name);
+	element = gst_bin_get_by_name (auto_pipeline_get_pipeline (auto_pipeline), element_name);
 	if (element == NULL) {
 		g_printerr ("No element named '%s'\n", element_name);
-		ctx->return_status = 1;
-		g_signal_emit_by_name (ctx, "quit");
+		auto_pipeline->return_status = 1;
+		g_signal_emit_by_name (auto_pipeline, "quit");
 		_gst_object_unref0 (element);
 		_g_free0 (prop_name);
 		_g_free0 (element_name);
@@ -237,8 +237,8 @@ void command_set (AutoPipeline* ctx, Task* task) {
 			_g_free0 (prop_string);
 		} else {
 			g_printerr ("No property '%s' in element '%s'\n", prop_name, element_name);
-			ctx->return_status = 1;
-			g_signal_emit_by_name (ctx, "quit");
+			auto_pipeline->return_status = 1;
+			g_signal_emit_by_name (auto_pipeline, "quit");
 		}
 	}
 	prop_value_s = (g_value_init (&_tmp5_, G_TYPE_STRING), g_value_set_string (&_tmp5_, ""), _tmp5_);
@@ -265,13 +265,13 @@ static gpointer _gst_event_ref0 (gpointer self) {
 }
 
 
-void command_seek (AutoPipeline* ctx, Task* task) {
+void command_seek (AutoPipeline* auto_pipeline, Task* task) {
 	GValue position_value = {0};
 	GValue _tmp0_;
 	double position_seconds;
 	gint64 position_useconds;
 	GstEvent* seek_event;
-	g_return_if_fail (ctx != NULL);
+	g_return_if_fail (auto_pipeline != NULL);
 	g_return_if_fail (task != NULL);
 	g_value_init (&position_value, G_TYPE_DOUBLE);
 	g_value_transform ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_), &position_value);
@@ -279,7 +279,7 @@ void command_seek (AutoPipeline* ctx, Task* task) {
 	position_useconds = (gint64) (position_seconds * GST_SECOND);
 	seek_event = gst_event_new_seek (1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT, GST_SEEK_TYPE_SET, position_useconds, GST_SEEK_TYPE_NONE, (gint64) 0);
 	g_print ("Seeking to second %lf\n", position_seconds);
-	gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (ctx), _gst_event_ref0 (seek_event));
+	gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), _gst_event_ref0 (seek_event));
 	_gst_event_unref0 (seek_event);
 	G_IS_VALUE (&position_value) ? (g_value_unset (&position_value), NULL) : NULL;
 }
@@ -338,20 +338,20 @@ static void block2_data_unref (Block2Data* _data2_) {
 }
 
 
-void command_eos (AutoPipeline* ctx, Task* task) {
+void command_eos (AutoPipeline* auto_pipeline, Task* task) {
 	Block2Data* _data2_;
 	GstIterator* _tmp0_;
-	g_return_if_fail (ctx != NULL);
+	g_return_if_fail (auto_pipeline != NULL);
 	g_return_if_fail (task != NULL);
 	_data2_ = g_slice_new0 (Block2Data);
 	_data2_->_ref_count_ = 1;
 	_data2_->eos_was_sent = FALSE;
-	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (ctx)), __lambda2__gfunc, _data2_);
+	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (auto_pipeline)), __lambda2__gfunc, _data2_);
 	_gst_iterator_free0 (_tmp0_);
 	if (!_data2_->eos_was_sent) {
 		g_print ("Could not find a src element\n");
 		g_print ("Sending EOS to the pipeline\n");
-		gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (ctx), gst_event_new_eos ());
+		gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), gst_event_new_eos ());
 	}
 	block2_data_unref (_data2_);
 }
@@ -362,7 +362,7 @@ static gpointer _gst_structure_copy0 (gpointer self) {
 }
 
 
-void command_navigation (AutoPipeline* ctx, Task* task) {
+void command_navigation (AutoPipeline* auto_pipeline, Task* task) {
 	GValue _tmp0_;
 	char* element_name;
 	GValue _tmp1_;
@@ -376,7 +376,7 @@ void command_navigation (AutoPipeline* ctx, Task* task) {
 	GstElement* element;
 	GstStructure* s;
 	GstPad* src_pad;
-	g_return_if_fail (ctx != NULL);
+	g_return_if_fail (auto_pipeline != NULL);
 	g_return_if_fail (task != NULL);
 	element_name = g_strdup (g_value_get_string ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_)));
 	event_name = g_strdup (g_value_get_string ((_tmp1_ = task_get_arguments (task)->values[1], &_tmp1_)));
@@ -388,11 +388,11 @@ void command_navigation (AutoPipeline* ctx, Task* task) {
 		_tmp4_ = 0;
 	}
 	button = _tmp4_;
-	element = gst_bin_get_by_name (auto_pipeline_get_pipeline (ctx), element_name);
+	element = gst_bin_get_by_name (auto_pipeline_get_pipeline (auto_pipeline), element_name);
 	if (element == NULL) {
 		g_printerr ("No element named '%s'\n", element_name);
-		ctx->return_status = 1;
-		g_signal_emit_by_name (ctx, "quit");
+		auto_pipeline->return_status = 1;
+		g_signal_emit_by_name (auto_pipeline, "quit");
 		_gst_object_unref0 (element);
 		_g_free0 (event_name);
 		_g_free0 (element_name);
@@ -402,8 +402,8 @@ void command_navigation (AutoPipeline* ctx, Task* task) {
 	src_pad = gst_element_get_static_pad (element, "src");
 	if (src_pad == NULL) {
 		g_printerr ("No src pad in element %s", element_name);
-		ctx->return_status = 1;
-		g_signal_emit_by_name (ctx, "quit");
+		auto_pipeline->return_status = 1;
+		g_signal_emit_by_name (auto_pipeline, "quit");
 	}
 	gst_pad_send_event (src_pad, gst_event_new_navigation (_gst_structure_copy0 (s)));
 	_gst_object_unref0 (src_pad);
