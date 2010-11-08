@@ -14,7 +14,7 @@ AC_SUBST(CFLAGS)
 AC_SUBST(CPPFLAGS)
 AC_SUBST(LDFLAGS)
 
-VALAFLAGS="--pkg gstreamer-0.10 --pkg gstreamer-base-0.10"
+VALAFLAGS="--pkg gstreamer-0.10 --pkg gstreamer-base-0.10 --pkg posix"
 AC_SUBST(VALAFLAGS)
 
 PKG_CHECK_MODULES(PROGRAM, gstreamer-0.10 gstreamer-base-0.10)

@@ -119,5 +119,25 @@ class AutoPipeline: Object {
     public uint exec_task(Task task) {
         return task.exec(this);
     }
+
+    public void send_eos() {
+        bool eos_was_sent = false;
+        auto_pipeline.pipeline.iterate_elements().foreach(
+            (data) => {
+                var elem = data as Gst.Element;
+                if("src" in elem.name || elem is Gst.BaseSrc) {
+                    eos_was_sent = true;
+                    print("Sending EOS event to element '%s'\n", elem.get_name());
+                    elem.send_event(new Gst.Event.eos());
+                }
+            });
+
+        if(!eos_was_sent) {
+            print("Could not find a src element\n");
+            print("Sending EOS to the pipeline\n");
+            auto_pipeline.pipeline.send_event(new Gst.Event.eos());
+        }
+    }
+
 }
 

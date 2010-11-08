@@ -9,7 +9,6 @@
 #include <gst/gst.h>
 #include <float.h>
 #include <math.h>
-#include <gst/base/gstbasesrc.h>
 
 
 #define TYPE_COMMAND (command_get_type ())
@@ -38,8 +37,6 @@ typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
 #define _g_free0(var) (var = (g_free (var), NULL))
 #define _gst_event_unref0(var) ((var == NULL) ? NULL : (var = (gst_event_unref (var), NULL)))
-#define _gst_iterator_free0(var) ((var == NULL) ? NULL : (var = (gst_iterator_free (var), NULL)))
-typedef struct _Block2Data Block2Data;
 #define _gst_structure_free0(var) ((var == NULL) ? NULL : (var = (gst_structure_free (var), NULL)))
 
 typedef void (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task, void* user_data);
@@ -60,11 +57,6 @@ struct _AutoPipeline {
 
 struct _AutoPipelineClass {
 	GObjectClass parent_class;
-};
-
-struct _Block2Data {
-	int _ref_count_;
-	gboolean eos_was_sent;
 };
 
 
@@ -97,10 +89,7 @@ static void _command_navigation_command_func (AutoPipeline* auto_pipeline, Task*
 void auto_pipeline_set_state (AutoPipeline* self, GstState value);
 GValueArray* task_get_arguments (Task* self);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
-static void _lambda2_ (void* data, Block2Data* _data2_);
-static void __lambda2__gfunc (void* data, gpointer self);
-static Block2Data* block2_data_ref (Block2Data* _data2_);
-static void block2_data_unref (Block2Data* _data2_);
+void auto_pipeline_send_eos (AutoPipeline* self);
 #define GST_NAVIGATION_EVENT_NAME "application/x-gst-navigation"
 void scanner_register_symbols (GScanner* scanner, guint scope);
 static int _vala_strcmp0 (const char * str1, const char * str2);
@@ -285,75 +274,10 @@ void command_seek (AutoPipeline* auto_pipeline, Task* task) {
 }
 
 
-static gpointer _gst_object_ref0 (gpointer self) {
-	return self ? gst_object_ref (self) : NULL;
-}
-
-
-static gboolean string_contains (const char* self, const char* needle) {
-	gboolean result = FALSE;
-	g_return_val_if_fail (self != NULL, FALSE);
-	g_return_val_if_fail (needle != NULL, FALSE);
-	result = strstr (self, needle) != NULL;
-	return result;
-}
-
-
-static void _lambda2_ (void* data, Block2Data* _data2_) {
-	void* _tmp0_;
-	GstElement* elem;
-	gboolean _tmp1_ = FALSE;
-	elem = _gst_object_ref0 ((_tmp0_ = data, GST_IS_ELEMENT (_tmp0_) ? ((GstElement*) _tmp0_) : NULL));
-	if (string_contains (gst_object_get_name ((GstObject*) elem), "src")) {
-		_tmp1_ = TRUE;
-	} else {
-		_tmp1_ = GST_IS_BASE_SRC (elem);
-	}
-	if (_tmp1_) {
-		char* _tmp2_;
-		_data2_->eos_was_sent = TRUE;
-		g_print ("Sending EOS event to element '%s'\n", _tmp2_ = gst_object_get_name ((GstObject*) elem));
-		_g_free0 (_tmp2_);
-		gst_element_send_event (elem, gst_event_new_eos ());
-	}
-	_gst_object_unref0 (elem);
-}
-
-
-static void __lambda2__gfunc (void* data, gpointer self) {
-	_lambda2_ (data, self);
-}
-
-
-static Block2Data* block2_data_ref (Block2Data* _data2_) {
-	g_atomic_int_inc (&_data2_->_ref_count_);
-	return _data2_;
-}
-
-
-static void block2_data_unref (Block2Data* _data2_) {
-	if (g_atomic_int_dec_and_test (&_data2_->_ref_count_)) {
-		g_slice_free (Block2Data, _data2_);
-	}
-}
-
-
 void command_eos (AutoPipeline* auto_pipeline, Task* task) {
-	Block2Data* _data2_;
-	GstIterator* _tmp0_;
 	g_return_if_fail (auto_pipeline != NULL);
 	g_return_if_fail (task != NULL);
-	_data2_ = g_slice_new0 (Block2Data);
-	_data2_->_ref_count_ = 1;
-	_data2_->eos_was_sent = FALSE;
-	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (auto_pipeline)), __lambda2__gfunc, _data2_);
-	_gst_iterator_free0 (_tmp0_);
-	if (!_data2_->eos_was_sent) {
-		g_print ("Could not find a src element\n");
-		g_print ("Sending EOS to the pipeline\n");
-		gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), gst_event_new_eos ());
-	}
-	block2_data_unref (_data2_);
+	auto_pipeline_send_eos (auto_pipeline);
 }
 
 

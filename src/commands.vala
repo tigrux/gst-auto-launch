@@ -105,22 +105,7 @@ void command_seek(AutoPipeline auto_pipeline, Task task) {
 
 
 void command_eos(AutoPipeline auto_pipeline, Task task) {
-    bool eos_was_sent = false;
-    auto_pipeline.pipeline.iterate_elements().foreach(
-        (data) => {
-            var elem = data as Gst.Element;
-            if("src" in elem.name || elem is Gst.BaseSrc) {
-                eos_was_sent = true;
-                print("Sending EOS event to element '%s'\n", elem.get_name());
-                elem.send_event(new Gst.Event.eos());
-            }
-        });
-
-    if(!eos_was_sent) {
-        print("Could not find a src element\n");
-        print("Sending EOS to the pipeline\n");
-        auto_pipeline.pipeline.send_event(new Gst.Event.eos());
-    }
+    auto_pipeline.send_eos();
 }
 
 

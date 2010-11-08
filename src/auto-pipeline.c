@@ -9,6 +9,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <gst/gst.h>
+#include <gst/base/gstbasesrc.h>
 
 
 #define TYPE_AUTO_PIPELINE (auto_pipeline_get_type ())
@@ -36,6 +37,9 @@ typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 
 typedef struct _Task Task;
 typedef struct _TaskClass TaskClass;
+#define _gst_iterator_free0(var) ((var == NULL) ? NULL : (var = (gst_iterator_free (var), NULL)))
+#define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
+typedef struct _Block1Data Block1Data;
 
 struct _AutoPipeline {
 	GObject parent_instance;
@@ -53,7 +57,14 @@ struct _AutoPipelinePrivate {
 	GstBin* _pipeline;
 };
 
+struct _Block1Data {
+	int _ref_count_;
+	AutoPipeline * self;
+	gboolean eos_was_sent;
+};
 
+
+extern AutoPipeline* auto_pipeline;
 static gpointer auto_pipeline_parent_class = NULL;
 
 #define LOG_FILENAME "gst-auto-launch.log"
@@ -77,11 +88,16 @@ void auto_pipeline_set_state (AutoPipeline* self, GstState value);
 GType task_get_type (void) G_GNUC_CONST;
 guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
 guint task_exec (Task* self, AutoPipeline* auto_pipeline);
+void auto_pipeline_send_eos (AutoPipeline* self);
+GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
+static void _lambda2_ (void* data, Block1Data* _data1_);
+static void __lambda2__gfunc (void* data, gpointer self);
+static Block1Data* block1_data_ref (Block1Data* _data1_);
+static void block1_data_unref (Block1Data* _data1_);
 AutoPipeline* auto_pipeline_new (void);
 AutoPipeline* auto_pipeline_construct (GType object_type);
 gboolean auto_pipeline_get_print_messages_enabled (AutoPipeline* self);
 void auto_pipeline_set_print_messages_enabled (AutoPipeline* self, gboolean value);
-GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 void auto_pipeline_set_pipeline (AutoPipeline* self, GstBin* value);
 static void auto_pipeline_finalize (GObject* obj);
 static void auto_pipeline_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
@@ -259,6 +275,76 @@ guint auto_pipeline_exec_task (AutoPipeline* self, Task* task) {
 	g_return_val_if_fail (task != NULL, 0U);
 	result = task_exec (task, self);
 	return result;
+}
+
+
+static gboolean string_contains (const char* self, const char* needle) {
+	gboolean result = FALSE;
+	g_return_val_if_fail (self != NULL, FALSE);
+	g_return_val_if_fail (needle != NULL, FALSE);
+	result = strstr (self, needle) != NULL;
+	return result;
+}
+
+
+static void _lambda2_ (void* data, Block1Data* _data1_) {
+	AutoPipeline * self;
+	void* _tmp0_;
+	GstElement* elem;
+	gboolean _tmp1_ = FALSE;
+	self = _data1_->self;
+	elem = _gst_object_ref0 ((_tmp0_ = data, GST_IS_ELEMENT (_tmp0_) ? ((GstElement*) _tmp0_) : NULL));
+	if (string_contains (gst_object_get_name ((GstObject*) elem), "src")) {
+		_tmp1_ = TRUE;
+	} else {
+		_tmp1_ = GST_IS_BASE_SRC (elem);
+	}
+	if (_tmp1_) {
+		char* _tmp2_;
+		_data1_->eos_was_sent = TRUE;
+		g_print ("Sending EOS event to element '%s'\n", _tmp2_ = gst_object_get_name ((GstObject*) elem));
+		_g_free0 (_tmp2_);
+		gst_element_send_event (elem, gst_event_new_eos ());
+	}
+	_gst_object_unref0 (elem);
+}
+
+
+static void __lambda2__gfunc (void* data, gpointer self) {
+	_lambda2_ (data, self);
+}
+
+
+static Block1Data* block1_data_ref (Block1Data* _data1_) {
+	g_atomic_int_inc (&_data1_->_ref_count_);
+	return _data1_;
+}
+
+
+static void block1_data_unref (Block1Data* _data1_) {
+	if (g_atomic_int_dec_and_test (&_data1_->_ref_count_)) {
+		_g_object_unref0 (_data1_->self);
+		g_slice_free (Block1Data, _data1_);
+	}
+}
+
+
+void auto_pipeline_send_eos (AutoPipeline* self) {
+	Block1Data* _data1_;
+	GstIterator* _tmp0_;
+	g_return_if_fail (self != NULL);
+	_data1_ = g_slice_new0 (Block1Data);
+	_data1_->_ref_count_ = 1;
+	_data1_->self = g_object_ref (self);
+	_data1_->eos_was_sent = FALSE;
+	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline->priv->_pipeline), __lambda2__gfunc, _data1_);
+	_gst_iterator_free0 (_tmp0_);
+	if (!_data1_->eos_was_sent) {
+		g_print ("Could not find a src element\n");
+		g_print ("Sending EOS to the pipeline\n");
+		gst_element_send_event ((GstElement*) auto_pipeline->priv->_pipeline, gst_event_new_eos ());
+	}
+	block1_data_unref (_data1_);
 }
 
 

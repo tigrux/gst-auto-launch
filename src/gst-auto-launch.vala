@@ -6,8 +6,23 @@ const OptionEntry[] options = {
 };
 
 
+AutoPipeline auto_pipeline;
+uint how_many_control_c_pressed = 0;
+
+void on_control_c() {
+    if(auto_pipeline == null)
+        return;
+    if(how_many_control_c_pressed == 0)
+        auto_pipeline.send_eos();
+    else
+        auto_pipeline.quit();
+    how_many_control_c_pressed++;
+}
 
 int main(string[] args) {
+
+    Posix.signal(Posix.SIGINT, on_control_c);
+
     OptionContext opt_context;
     try {
         opt_context = new OptionContext("- Build pipelines and run commands on them");
@@ -21,7 +36,7 @@ int main(string[] args) {
         return -1;
     }
 
-    var auto_pipeline = new AutoPipeline();
+    auto_pipeline = new AutoPipeline();
     if(print_messages) {
         printerr("Logging message to '%s'\n", LOG_FILENAME);
         auto_pipeline.print_messages_enabled = print_messages;
