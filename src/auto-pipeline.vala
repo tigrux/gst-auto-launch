@@ -13,17 +13,17 @@ class AutoPipeline: Object {
 
     FileStream log_stream;
 
-    bool _print_messages_enabled;
+    bool _output_messages_enabled;
     public int return_status = 0;
 
-    public bool print_messages_enabled {
+    public bool output_messages_enabled {
         set {
-            if(!_print_messages_enabled && value)
+            if(!_output_messages_enabled && value)
                 log_stream = FileStream.open(LOG_FILENAME, "w");
-            _print_messages_enabled = value;
+            _output_messages_enabled = value;
         }
         get {
-            return _print_messages_enabled;
+            return _output_messages_enabled;
         }
     }
 
@@ -55,7 +55,7 @@ class AutoPipeline: Object {
 
 
     void on_bus_message(Gst.Message message) {
-        if(_print_messages_enabled) {
+        if(_output_messages_enabled) {
             var seqnum = message.get_seqnum();
             var src = message.src;
             var s = message.get_structure();

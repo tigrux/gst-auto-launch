@@ -1,7 +1,11 @@
-bool print_messages;
+bool output_messages;
+bool force_eos;
 
 const OptionEntry[] options = {
-    { "gst-messages", 'm', 0, OptionArg.NONE, ref print_messages, "Print messages", null },
+    { "gst-messages", 'm', 0, OptionArg.NONE, ref output_messages,
+      "Output messages", null },
+    { "eos-on-shutdown", 'e', 0, OptionArg.NONE, ref force_eos,
+      "Force EOS on sources before shutting the pipeline down", null },
     {null}
 };
 
@@ -20,9 +24,6 @@ void on_control_c() {
 }
 
 int main(string[] args) {
-
-    Posix.signal(Posix.SIGINT, on_control_c);
-
     OptionContext opt_context;
     try {
         opt_context = new OptionContext("- Build pipelines and run commands on them");
@@ -37,14 +38,18 @@ int main(string[] args) {
     }
 
     auto_pipeline = new AutoPipeline();
-    if(print_messages) {
+
+    if(force_eos)
+        Posix.signal(Posix.SIGINT, on_control_c);
+
+    if(output_messages) {
         printerr("Logging message to '%s'\n", LOG_FILENAME);
-        auto_pipeline.print_messages_enabled = print_messages;
+        auto_pipeline.output_messages_enabled = output_messages;
     }
 
     TimeVal tv;
 
-    if(print_messages) {
+    if(output_messages) {
         auto_pipeline.log("{\n");
         tv = TimeVal();
         auto_pipeline.log(" 'start' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
@@ -118,12 +123,12 @@ int main(string[] args) {
     }
 
     try {
-        if(print_messages) {
+        if(output_messages) {
             tv = TimeVal();
             auto_pipeline.log(" 'description' : '%s',\n", pipeline_desc);
         }
         auto_pipeline.parse_launch(pipeline_desc);
-        if(print_messages) {
+        if(output_messages) {
             tv = TimeVal();
             auto_pipeline.log(" 'launch' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
         }
@@ -140,13 +145,13 @@ int main(string[] args) {
         auto_pipeline.exec_task(task);
     var loop = new MainLoop();
     auto_pipeline.quit.connect(loop.quit);
-    if(print_messages)
+    if(output_messages)
         auto_pipeline.log(" 'message' : [\n");
     loop.run();
-    if(print_messages)
+    if(output_messages)
         auto_pipeline.log(" ],\n");
     auto_pipeline.state = Gst.State.NULL;
-    if(print_messages) {
+    if(output_messages) {
         tv = TimeVal();
         auto_pipeline.log(" 'end' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
         auto_pipeline.log("}\n");

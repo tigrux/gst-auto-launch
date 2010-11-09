@@ -6,8 +6,8 @@
 #include <glib-object.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
 #include <gst/gst.h>
+#include <signal.h>
 #include <float.h>
 #include <math.h>
 #include <glib/gstdio.h>
@@ -86,8 +86,10 @@ struct _AutoPipelineClass {
 };
 
 
-extern gboolean print_messages;
-gboolean print_messages = FALSE;
+extern gboolean output_messages;
+gboolean output_messages = FALSE;
+extern gboolean force_eos;
+gboolean force_eos = FALSE;
 extern AutoPipeline* auto_pipeline;
 AutoPipeline* auto_pipeline = NULL;
 extern guint how_many_control_c_pressed;
@@ -97,11 +99,11 @@ GType auto_pipeline_get_type (void) G_GNUC_CONST;
 void on_control_c (void);
 void auto_pipeline_send_eos (AutoPipeline* self);
 gint _vala_main (char** args, int args_length1);
-static void _on_control_c_sighandler_t (gint signal);
 AutoPipeline* auto_pipeline_new (void);
 AutoPipeline* auto_pipeline_construct (GType object_type);
+static void _on_control_c_sighandler_t (gint signal);
 #define LOG_FILENAME "gst-auto-launch.log"
-void auto_pipeline_set_print_messages_enabled (AutoPipeline* self, gboolean value);
+void auto_pipeline_set_output_messages_enabled (AutoPipeline* self, gboolean value);
 void auto_pipeline_log (AutoPipeline* self, const char* format, ...);
 TaskScanner* task_scanner_new (void);
 TaskScanner* task_scanner_construct (GType object_type);
@@ -133,7 +135,7 @@ char* xml_parser_get (XmlParser* self, const char* key);
 static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func);
 static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func);
 
-const GOptionEntry options[2] = {{"gst-messages", 'm', 0, G_OPTION_ARG_NONE, &print_messages, "Print messages", NULL}, {NULL}};
+const GOptionEntry options[3] = {{"gst-messages", 'm', 0, G_OPTION_ARG_NONE, &output_messages, "Output messages", NULL}, {"eos-on-shutdown", 'e', 0, G_OPTION_ARG_NONE, &force_eos, "Force EOS on sources before shutting the pipeline down", NULL}, {NULL}};
 
 
 void on_control_c (void) {
@@ -188,7 +190,6 @@ gint _vala_main (char** args, int args_length1) {
 	char* pipeline_desc;
 	GMainLoop* loop;
 	GError * _inner_error_ = NULL;
-	signal (SIGINT, _on_control_c_sighandler_t);
 	opt_context = NULL;
 	{
 		GOptionContext* _tmp0_;
@@ -229,11 +230,14 @@ gint _vala_main (char** args, int args_length1) {
 		return 0;
 	}
 	auto_pipeline = (_tmp1_ = auto_pipeline_new (), _g_object_unref0 (auto_pipeline), _tmp1_);
-	if (print_messages) {
-		g_printerr ("Logging message to '%s'\n", LOG_FILENAME);
-		auto_pipeline_set_print_messages_enabled (auto_pipeline, print_messages);
+	if (force_eos) {
+		signal (SIGINT, _on_control_c_sighandler_t);
 	}
-	if (print_messages) {
+	if (output_messages) {
+		g_printerr ("Logging message to '%s'\n", LOG_FILENAME);
+		auto_pipeline_set_output_messages_enabled (auto_pipeline, output_messages);
+	}
+	if (output_messages) {
 		GTimeVal _tmp2_ = {0};
 		auto_pipeline_log (auto_pipeline, "{\n", NULL);
 		tv = (g_get_current_time (&_tmp2_), _tmp2_);
@@ -354,7 +358,7 @@ gint _vala_main (char** args, int args_length1) {
 		effective_args = (_vala_array_free (effective_args, effective_args_length1, (GDestroyNotify) g_free), NULL);
 	}
 	{
-		if (print_messages) {
+		if (output_messages) {
 			GTimeVal _tmp10_ = {0};
 			tv = (g_get_current_time (&_tmp10_), _tmp10_);
 			auto_pipeline_log (auto_pipeline, " 'description' : '%s',\n", pipeline_desc, NULL);
@@ -363,7 +367,7 @@ gint _vala_main (char** args, int args_length1) {
 		if (_inner_error_ != NULL) {
 			goto __catch1_g_error;
 		}
-		if (print_messages) {
+		if (output_messages) {
 			GTimeVal _tmp11_ = {0};
 			tv = (g_get_current_time (&_tmp11_), _tmp11_);
 			auto_pipeline_log (auto_pipeline, " 'launch' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec, NULL);
@@ -416,15 +420,15 @@ gint _vala_main (char** args, int args_length1) {
 	}
 	loop = g_main_loop_new (NULL, FALSE);
 	g_signal_connect (auto_pipeline, "quit", (GCallback) _g_main_loop_quit_auto_pipeline_quit, loop);
-	if (print_messages) {
+	if (output_messages) {
 		auto_pipeline_log (auto_pipeline, " 'message' : [\n", NULL);
 	}
 	g_main_loop_run (loop);
-	if (print_messages) {
+	if (output_messages) {
 		auto_pipeline_log (auto_pipeline, " ],\n", NULL);
 	}
 	auto_pipeline_set_state (auto_pipeline, GST_STATE_NULL);
-	if (print_messages) {
+	if (output_messages) {
 		GTimeVal _tmp12_ = {0};
 		tv = (g_get_current_time (&_tmp12_), _tmp12_);
 		auto_pipeline_log (auto_pipeline, " 'end' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec, NULL);

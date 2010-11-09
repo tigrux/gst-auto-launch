@@ -53,7 +53,7 @@ struct _AutoPipelineClass {
 
 struct _AutoPipelinePrivate {
 	FILE* log_stream;
-	gboolean _print_messages_enabled;
+	gboolean _output_messages_enabled;
 	GstBin* _pipeline;
 };
 
@@ -74,7 +74,7 @@ GType auto_pipeline_get_type (void) G_GNUC_CONST;
 #define AUTO_PIPELINE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), TYPE_AUTO_PIPELINE, AutoPipelinePrivate))
 enum  {
 	AUTO_PIPELINE_DUMMY_PROPERTY,
-	AUTO_PIPELINE_PRINT_MESSAGES_ENABLED,
+	AUTO_PIPELINE_OUTPUT_MESSAGES_ENABLED,
 	AUTO_PIPELINE_STATE,
 	AUTO_PIPELINE_PIPELINE
 };
@@ -96,8 +96,8 @@ static Block1Data* block1_data_ref (Block1Data* _data1_);
 static void block1_data_unref (Block1Data* _data1_);
 AutoPipeline* auto_pipeline_new (void);
 AutoPipeline* auto_pipeline_construct (GType object_type);
-gboolean auto_pipeline_get_print_messages_enabled (AutoPipeline* self);
-void auto_pipeline_set_print_messages_enabled (AutoPipeline* self, gboolean value);
+gboolean auto_pipeline_get_output_messages_enabled (AutoPipeline* self);
+void auto_pipeline_set_output_messages_enabled (AutoPipeline* self, gboolean value);
 void auto_pipeline_set_pipeline (AutoPipeline* self, GstBin* value);
 static void auto_pipeline_finalize (GObject* obj);
 static void auto_pipeline_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
@@ -177,7 +177,7 @@ static gboolean __lambda0__gst_structure_foreach_func (GQuark field_id, GValue* 
 static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* message) {
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (message != NULL);
-	if (self->priv->_print_messages_enabled) {
+	if (self->priv->_output_messages_enabled) {
 		guint32 seqnum;
 		GstObject* src;
 		GstStructure* s;
@@ -360,18 +360,18 @@ AutoPipeline* auto_pipeline_new (void) {
 }
 
 
-gboolean auto_pipeline_get_print_messages_enabled (AutoPipeline* self) {
+gboolean auto_pipeline_get_output_messages_enabled (AutoPipeline* self) {
 	gboolean result;
 	g_return_val_if_fail (self != NULL, FALSE);
-	result = self->priv->_print_messages_enabled;
+	result = self->priv->_output_messages_enabled;
 	return result;
 }
 
 
-void auto_pipeline_set_print_messages_enabled (AutoPipeline* self, gboolean value) {
+void auto_pipeline_set_output_messages_enabled (AutoPipeline* self, gboolean value) {
 	gboolean _tmp0_ = FALSE;
 	g_return_if_fail (self != NULL);
-	if (!self->priv->_print_messages_enabled) {
+	if (!self->priv->_output_messages_enabled) {
 		_tmp0_ = value;
 	} else {
 		_tmp0_ = FALSE;
@@ -380,8 +380,8 @@ void auto_pipeline_set_print_messages_enabled (AutoPipeline* self, gboolean valu
 		FILE* _tmp1_;
 		self->priv->log_stream = (_tmp1_ = fopen (LOG_FILENAME, "w"), _fclose0 (self->priv->log_stream), _tmp1_);
 	}
-	self->priv->_print_messages_enabled = value;
-	g_object_notify ((GObject *) self, "print-messages-enabled");
+	self->priv->_output_messages_enabled = value;
+	g_object_notify ((GObject *) self, "output-messages-enabled");
 }
 
 
@@ -414,7 +414,7 @@ static void auto_pipeline_class_init (AutoPipelineClass * klass) {
 	G_OBJECT_CLASS (klass)->get_property = auto_pipeline_get_property;
 	G_OBJECT_CLASS (klass)->set_property = auto_pipeline_set_property;
 	G_OBJECT_CLASS (klass)->finalize = auto_pipeline_finalize;
-	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_PRINT_MESSAGES_ENABLED, g_param_spec_boolean ("print-messages-enabled", "print-messages-enabled", "print-messages-enabled", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_OUTPUT_MESSAGES_ENABLED, g_param_spec_boolean ("output-messages-enabled", "output-messages-enabled", "output-messages-enabled", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_STATE, g_param_spec_enum ("state", "state", "state", GST_TYPE_STATE, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_PIPELINE, g_param_spec_object ("pipeline", "pipeline", "pipeline", GST_TYPE_BIN, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_signal_new ("quit", TYPE_AUTO_PIPELINE, G_SIGNAL_RUN_LAST, 0, NULL, NULL, g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
@@ -452,8 +452,8 @@ static void auto_pipeline_get_property (GObject * object, guint property_id, GVa
 	AutoPipeline * self;
 	self = AUTO_PIPELINE (object);
 	switch (property_id) {
-		case AUTO_PIPELINE_PRINT_MESSAGES_ENABLED:
-		g_value_set_boolean (value, auto_pipeline_get_print_messages_enabled (self));
+		case AUTO_PIPELINE_OUTPUT_MESSAGES_ENABLED:
+		g_value_set_boolean (value, auto_pipeline_get_output_messages_enabled (self));
 		break;
 		case AUTO_PIPELINE_PIPELINE:
 		g_value_set_object (value, auto_pipeline_get_pipeline (self));
@@ -469,8 +469,8 @@ static void auto_pipeline_set_property (GObject * object, guint property_id, con
 	AutoPipeline * self;
 	self = AUTO_PIPELINE (object);
 	switch (property_id) {
-		case AUTO_PIPELINE_PRINT_MESSAGES_ENABLED:
-		auto_pipeline_set_print_messages_enabled (self, g_value_get_boolean (value));
+		case AUTO_PIPELINE_OUTPUT_MESSAGES_ENABLED:
+		auto_pipeline_set_output_messages_enabled (self, g_value_get_boolean (value));
 		break;
 		case AUTO_PIPELINE_STATE:
 		auto_pipeline_set_state (self, g_value_get_enum (value));
