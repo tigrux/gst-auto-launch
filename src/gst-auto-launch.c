@@ -134,6 +134,7 @@ gboolean xml_parser_parse_file (XmlParser* self, const char* filename, GError** 
 char* xml_parser_get (XmlParser* self, const char* key);
 static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func);
 static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func);
+static gint _vala_array_length (gpointer array);
 
 const GOptionEntry options[3] = {{"gst-messages", 'm', 0, G_OPTION_ARG_NONE, &output_messages, "Output messages", NULL}, {"eos-on-shutdown", 'e', 0, G_OPTION_ARG_NONE, &force_eos, "Force EOS on sources before shutting the pipeline down", NULL}, {NULL}};
 
@@ -158,6 +159,15 @@ static void _on_control_c_sighandler_t (gint signal) {
 
 static gpointer _g_object_ref0 (gpointer self) {
 	return self ? g_object_ref (self) : NULL;
+}
+
+
+static gboolean string_contains (const char* self, const char* needle) {
+	gboolean result = FALSE;
+	g_return_val_if_fail (self != NULL, FALSE);
+	g_return_val_if_fail (needle != NULL, FALSE);
+	result = strstr (self, needle) != NULL;
+	return result;
 }
 
 
@@ -283,7 +293,27 @@ gint _vala_main (char** args, int args_length1) {
 					tasks = g_list_append (tasks, _g_object_ref0 (task));
 				} else {
 					if (!g_str_has_prefix (arg, "--")) {
-						effective_args_list = g_list_append (effective_args_list, g_strdup (arg));
+						gboolean _tmp6_ = FALSE;
+						if (string_contains (arg, " ")) {
+							_tmp6_ = string_contains (arg, "=");
+						} else {
+							_tmp6_ = FALSE;
+						}
+						if (_tmp6_) {
+							gint parts_length1;
+							gint _parts_size_;
+							char** _tmp8_;
+							char** _tmp7_;
+							char** parts;
+							char* new_arg;
+							parts = (_tmp8_ = _tmp7_ = g_strsplit (arg, "=", 2), parts_length1 = _vala_array_length (_tmp7_), _parts_size_ = parts_length1, _tmp8_);
+							new_arg = g_strdup_printf ("%s=\"%s\"", parts[0], parts[1]);
+							effective_args_list = g_list_append (effective_args_list, g_strdup (new_arg));
+							_g_free0 (new_arg);
+							parts = (_vala_array_free (parts, parts_length1, (GDestroyNotify) g_free), NULL);
+						} else {
+							effective_args_list = g_list_append (effective_args_list, g_strdup (arg));
+						}
 					} else {
 						result = 1;
 						_g_object_unref0 (task);
@@ -332,13 +362,13 @@ gint _vala_main (char** args, int args_length1) {
 		guint i;
 		gint effective_args_length1;
 		gint _effective_args_size_;
-		char** _tmp7_;
-		gint _tmp6_;
+		char** _tmp10_;
+		gint _tmp9_;
 		char** effective_args;
-		char* _tmp9_;
+		char* _tmp12_;
 		g_printerr ("Getting pipeline description from the command line\n");
 		i = (guint) 0;
-		effective_args = (_tmp7_ = g_new0 (char*, (_tmp6_ = g_list_length (effective_args_list)) + 1), effective_args_length1 = _tmp6_, _effective_args_size_ = effective_args_length1, _tmp7_);
+		effective_args = (_tmp10_ = g_new0 (char*, (_tmp9_ = g_list_length (effective_args_list)) + 1), effective_args_length1 = _tmp9_, _effective_args_size_ = effective_args_length1, _tmp10_);
 		{
 			GList* arg_collection;
 			GList* arg_it;
@@ -347,20 +377,20 @@ gint _vala_main (char** args, int args_length1) {
 				char* arg;
 				arg = g_strdup ((const char*) arg_it->data);
 				{
-					char* _tmp8_;
-					effective_args[i] = (_tmp8_ = g_strdup (arg), _g_free0 (effective_args[i]), _tmp8_);
+					char* _tmp11_;
+					effective_args[i] = (_tmp11_ = g_strdup (arg), _g_free0 (effective_args[i]), _tmp11_);
 					i++;
 					_g_free0 (arg);
 				}
 			}
 		}
-		pipeline_desc = (_tmp9_ = g_strjoinv (" ", effective_args), _g_free0 (pipeline_desc), _tmp9_);
+		pipeline_desc = (_tmp12_ = g_strjoinv (" ", effective_args), _g_free0 (pipeline_desc), _tmp12_);
 		effective_args = (_vala_array_free (effective_args, effective_args_length1, (GDestroyNotify) g_free), NULL);
 	}
 	{
 		if (output_messages) {
-			GTimeVal _tmp10_ = {0};
-			tv = (g_get_current_time (&_tmp10_), _tmp10_);
+			GTimeVal _tmp13_ = {0};
+			tv = (g_get_current_time (&_tmp13_), _tmp13_);
 			auto_pipeline_log (auto_pipeline, " 'description' : '%s',\n", pipeline_desc, NULL);
 		}
 		auto_pipeline_parse_launch (auto_pipeline, pipeline_desc, &_inner_error_);
@@ -368,8 +398,8 @@ gint _vala_main (char** args, int args_length1) {
 			goto __catch1_g_error;
 		}
 		if (output_messages) {
-			GTimeVal _tmp11_ = {0};
-			tv = (g_get_current_time (&_tmp11_), _tmp11_);
+			GTimeVal _tmp14_ = {0};
+			tv = (g_get_current_time (&_tmp14_), _tmp14_);
 			auto_pipeline_log (auto_pipeline, " 'launch' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec, NULL);
 		}
 	}
@@ -429,8 +459,8 @@ gint _vala_main (char** args, int args_length1) {
 	}
 	auto_pipeline_set_state (auto_pipeline, GST_STATE_NULL);
 	if (output_messages) {
-		GTimeVal _tmp12_ = {0};
-		tv = (g_get_current_time (&_tmp12_), _tmp12_);
+		GTimeVal _tmp15_ = {0};
+		tv = (g_get_current_time (&_tmp15_), _tmp15_);
 		auto_pipeline_log (auto_pipeline, " 'end' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec, NULL);
 		auto_pipeline_log (auto_pipeline, "}\n", NULL);
 	}
@@ -542,6 +572,18 @@ static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNoti
 static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func) {
 	_vala_array_destroy (array, array_length, destroy_func);
 	g_free (array);
+}
+
+
+static gint _vala_array_length (gpointer array) {
+	int length;
+	length = 0;
+	if (array) {
+		while (((gpointer*) array)[length]) {
+			length++;
+		}
+	}
+	return length;
 }
 
 

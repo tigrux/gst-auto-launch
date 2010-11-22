@@ -79,8 +79,15 @@ int main(string[] args) {
     	var task = scanner.get_task_from_arg(arg);
     	if(task != null)
     		tasks.append(task);
-		else if(!arg.has_prefix("--"))
-            effective_args_list.append(arg);
+		else if(!arg.has_prefix("--")) {
+		    if(" " in arg && "=" in arg) {
+		        string[] parts = arg.split("=", 2);
+		        string new_arg = "%s=\"%s\"".printf(parts[0],parts[1]);
+    		    effective_args_list.append(new_arg);
+		    }
+		    else
+                effective_args_list.append(arg);
+        }
         else
             return 1;
 	}
