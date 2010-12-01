@@ -262,13 +262,10 @@ gint _vala_main (char** args, int args_length1) {
 		g_printerr ("Commands are of the form <seconds>:<command>\n");
 		g_printerr ("Supported commands are:\n");
 		task_scanner_print_description (scanner);
-		g_printerr ("\n" \
-"If no xml file can be parsed, it will get the pipeline from the comman" \
-"d line\n" \
-"\n");
-		g_printerr ("Examples:\n");
-		g_printerr ("  %s pipelines.xml videotest 0:pause 1:play +5:eos\n", args[0]);
+		g_printerr ("\nExamples:\n");
 		g_printerr ("  %s videotestsrc ! autovideosink 0:pause 1:play +5:eos\n", args[0]);
+		g_printerr ("  %s videotestsrc ! clockoverlay name=clock ! autovideosink 0:play 2:s" \
+"et:clock:valignment:bottom 5:eos\n", args[0]);
 		result = 1;
 		_g_object_unref0 (scanner);
 		_g_option_context_free0 (opt_context);

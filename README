@@ -1,25 +1,30 @@
 gst-auto-launch is an improved version of gst-launch that accepts commands.
 
-Usage: ./gst-auto-launch <pipelines.xml> <pipeline_id> <commands>
+Usage: ./gst-auto-launch <pipeline description> <list of commands>
 Where each command is of the form <seconds>:<name>
+
 Supported commands are:
   pause:
     Change pipeline state to PAUSED
+  seek:
+    Seek to the specified time
   null:
     Change pipeline state to NULL
+  stop:
+    Change pipeline state to READY
+  eos:
+    Send eos to the source elements
+  set:
+    Set properties of an object
+  quit:
+    Quit the event loop
   ready:
     Change pipeline state to READY
   play:
     Change pipeline state to PLAYING
-  eos:
-    Send eos to the source elements
-  quit:
-    Quit the event loop
+  navigation:
+    Send the specified navigation event name to an element in the given coords
 
-If no xml file can be parsed, it will get the pipeline
-from the command line.
-
-Examples:
-gst-auto-launch pipelines.xml videotest 0:pause 1:play +5:eos
+Example:
 gst-auto-launch videotestsrc ! autovideosink 0:pause 1:play +5:eos
-
+gst-auto-launch videotestsrc ! clockoverlay name=clock ! autovideosink 0:play 2:set:clock:valignment:bottom 5:eos

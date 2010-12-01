@@ -64,10 +64,9 @@ int main(string[] args) {
 
         scanner.print_description();
 
-        printerr("\nIf no xml file can be parsed, it will get the pipeline from the command line\n\n");
-        printerr("Examples:\n");
-        printerr("  %s pipelines.xml videotest 0:pause 1:play +5:eos\n", args[0]);
+        printerr("\nExamples:\n");
         printerr("  %s videotestsrc ! autovideosink 0:pause 1:play +5:eos\n", args[0]);
+        printerr("  %s videotestsrc ! clockoverlay name=clock ! autovideosink 0:play 2:set:clock:valignment:bottom 5:eos\n", args[0]);
 
         return 1;
     }
