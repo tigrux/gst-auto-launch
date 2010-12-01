@@ -1,4 +1,0 @@
-<pipeline id="videotest">
-    videotestsrc ! timeoverlay shaded-background=true silent=true ! autovideosink
-</pipeline>
-
