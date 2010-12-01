@@ -1,10 +1,10 @@
 class TaskScanner: Object {
-	Scanner scanner;
+    Scanner scanner;
     double last_time_seconds;
 
 
     public TaskScanner() {
-    	last_time_seconds = 0;
+        last_time_seconds = 0;
         scanner = new Scanner(null);
         scanner.config.scan_identifier_1char = true;
         scanner.config.identifier_2_string = true;
@@ -180,7 +180,7 @@ class TaskScanner: Object {
 
 
     public Command? lookup_command(string command_name) {
-    	return (Command?)scanner.lookup_symbol(command_name);
+        return (Command?)scanner.lookup_symbol(command_name);
     }
 }
 

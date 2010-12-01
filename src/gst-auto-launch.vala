@@ -72,25 +72,25 @@ int main(string[] args) {
         return 1;
     }
 
-	var tasks = new List<Task> ();
+    var tasks = new List<Task> ();
     var effective_args_list = new List<string> ();
 
-	foreach(var arg in args[1:args.length]) {
-    	var task = scanner.get_task_from_arg(arg);
-    	if(task != null)
-    		tasks.append(task);
-		else if(!arg.has_prefix("--")) {
-		    if(" " in arg && "=" in arg) {
-		        string[] parts = arg.split("=", 2);
-		        string new_arg = "%s=\"%s\"".printf(parts[0],parts[1]);
-    		    effective_args_list.append(new_arg);
-		    }
-		    else
+    foreach(var arg in args[1:args.length]) {
+        var task = scanner.get_task_from_arg(arg);
+        if(task != null)
+            tasks.append(task);
+        else if(!arg.has_prefix("--")) {
+            if(" " in arg && "=" in arg) {
+                string[] parts = arg.split("=", 2);
+                string new_arg = "%s=\"%s\"".printf(parts[0],parts[1]);
+                effective_args_list.append(new_arg);
+            }
+            else
                 effective_args_list.append(arg);
         }
         else
             return 1;
-	}
+    }
 
     if(tasks.length() == 0) {
         var auto_symbol = "play";
