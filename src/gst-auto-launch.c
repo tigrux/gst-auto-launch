@@ -65,14 +65,12 @@ typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 typedef struct _XmlParser XmlParser;
 typedef struct _XmlParserClass XmlParserClass;
 
-typedef void (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task, void* user_data);
+typedef void (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task);
 struct _Command {
 	char* name;
 	char* description;
 	char* args_desc;
 	CommandFunc function;
-	gpointer function_target;
-	GDestroyNotify function_target_destroy_notify;
 };
 
 struct _AutoPipeline {

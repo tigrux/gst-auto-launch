@@ -32,14 +32,12 @@ typedef struct _TaskClass TaskClass;
 typedef struct _Command Command;
 #define _g_free0(var) (var = (g_free (var), NULL))
 
-typedef void (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task, void* user_data);
+typedef void (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task);
 struct _Command {
 	char* name;
 	char* description;
 	char* args_desc;
 	CommandFunc function;
-	gpointer function_target;
-	GDestroyNotify function_target_destroy_notify;
 };
 
 
@@ -96,10 +94,6 @@ void command_destroy (Command* self) {
 	_g_free0 (self->name);
 	_g_free0 (self->description);
 	_g_free0 (self->args_desc);
-	((*self).function_target_destroy_notify == NULL) ? NULL : ((*self).function_target_destroy_notify ((*self).function_target), NULL);
-	self->function = NULL;
-	(*self).function_target = NULL;
-	(*self).function_target_destroy_notify = NULL;
 }
 
 

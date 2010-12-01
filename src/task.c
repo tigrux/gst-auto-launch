@@ -47,14 +47,12 @@ struct _TaskClass {
 	GObjectClass parent_class;
 };
 
-typedef void (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task, void* user_data);
+typedef void (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task);
 struct _Command {
 	char* name;
 	char* description;
 	char* args_desc;
 	CommandFunc function;
-	gpointer function_target;
-	GDestroyNotify function_target_destroy_notify;
 };
 
 struct _TaskPrivate {
@@ -132,7 +130,7 @@ static gboolean _lambda1_ (Block2Data* _data2_) {
 	gboolean result = FALSE;
 	self = _data2_->self;
 	if (_data2_->auto_pipeline->return_status == 0) {
-		self->priv->_command.function (_data2_->auto_pipeline, self, self->priv->_command.function_target);
+		self->priv->_command.function (_data2_->auto_pipeline, self);
 	}
 	result = FALSE;
 	return result;

@@ -1,3 +1,4 @@
+[CCode (has_target=false)]
 delegate void CommandFunc(AutoPipeline auto_pipeline, Task task);
 
 

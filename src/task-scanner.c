@@ -62,14 +62,12 @@ struct _TaskScannerPrivate {
 	double last_time_seconds;
 };
 
-typedef void (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task, void* user_data);
+typedef void (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task);
 struct _Command {
 	char* name;
 	char* description;
 	char* args_desc;
 	CommandFunc function;
-	gpointer function_target;
-	GDestroyNotify function_target_destroy_notify;
 };
 
 
