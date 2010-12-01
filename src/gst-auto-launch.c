@@ -65,7 +65,7 @@ typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 typedef struct _XmlParser XmlParser;
 typedef struct _XmlParserClass XmlParserClass;
 
-typedef void (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task);
+typedef gint (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task);
 struct _Command {
 	char* name;
 	char* description;

@@ -28,8 +28,13 @@ class Task: Object {
     public uint exec(AutoPipeline auto_pipeline) {
         return Timeout.add((uint)(seconds*1000),
             () => {
-            if(auto_pipeline.return_status == 0)
-                _command.function(auto_pipeline, this);
+            if(auto_pipeline.return_status == 0) {
+                int status = _command.function(auto_pipeline, this);
+                if(status != 0) {
+                    auto_pipeline.return_status = status;
+                    auto_pipeline.quit();
+                }
+            }
             return false;
         });
     }

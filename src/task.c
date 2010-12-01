@@ -47,7 +47,7 @@ struct _TaskClass {
 	GObjectClass parent_class;
 };
 
-typedef void (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task);
+typedef gint (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task);
 struct _Command {
 	char* name;
 	char* description;
@@ -130,7 +130,12 @@ static gboolean _lambda1_ (Block2Data* _data2_) {
 	gboolean result = FALSE;
 	self = _data2_->self;
 	if (_data2_->auto_pipeline->return_status == 0) {
-		self->priv->_command.function (_data2_->auto_pipeline, self);
+		gint status;
+		status = self->priv->_command.function (_data2_->auto_pipeline, self);
+		if (status != 0) {
+			_data2_->auto_pipeline->return_status = status;
+			g_signal_emit_by_name (_data2_->auto_pipeline, "quit");
+		}
 	}
 	result = FALSE;
 	return result;

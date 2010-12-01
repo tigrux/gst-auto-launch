@@ -1,5 +1,5 @@
 [CCode (has_target=false)]
-delegate void CommandFunc(AutoPipeline auto_pipeline, Task task);
+delegate int CommandFunc(AutoPipeline auto_pipeline, Task task);
 
 
 struct Command {

@@ -62,7 +62,7 @@ struct _TaskScannerPrivate {
 	double last_time_seconds;
 };
 
-typedef void (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task);
+typedef gint (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task);
 struct _Command {
 	char* name;
 	char* description;

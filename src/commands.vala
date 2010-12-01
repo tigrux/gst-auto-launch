@@ -13,45 +13,48 @@ const Command[] COMMANDS = {
 };
 
 
-void command_play(AutoPipeline auto_pipeline, Task task) {
+int command_play(AutoPipeline auto_pipeline, Task task) {
     print("Passing to PLAYING\n");
     auto_pipeline.state = Gst.State.PLAYING;
+    return 0;
 }
 
 
-void command_pause(AutoPipeline auto_pipeline, Task task) {
+int command_pause(AutoPipeline auto_pipeline, Task task) {
     print("Passing to PAUSED\n");
     auto_pipeline.state = Gst.State.PAUSED;
+    return 0;
 }
 
 
-void command_ready(AutoPipeline auto_pipeline, Task task) {
+int command_ready(AutoPipeline auto_pipeline, Task task) {
     print("Passing to READY\n");
     auto_pipeline.state = Gst.State.READY;
+    return 0;
 }
 
 
-void command_null(AutoPipeline auto_pipeline, Task task) {
+int command_null(AutoPipeline auto_pipeline, Task task) {
     print("Passing to NULL\n");
     auto_pipeline.state = Gst.State.NULL;
+    return 0;
 }
 
 
-void command_quit(AutoPipeline auto_pipeline, Task task) {
+int command_quit(AutoPipeline auto_pipeline, Task task) {
     print("Quitting\n");
     auto_pipeline.quit();
+    return 0;
 }
 
 
-void command_set(AutoPipeline auto_pipeline, Task task) {
+int command_set(AutoPipeline auto_pipeline, Task task) {
     var element_name = task.arguments.values[0].get_string();
     
     var element = auto_pipeline.pipeline.get_by_name(element_name);
     if(element == null) {
         printerr("No element named '%s'\n", element_name);
-        auto_pipeline.return_status = 1;
-        auto_pipeline.quit();
-        return;
+        return 1;
     }
 
     var prop_name = task.arguments.values[1].get_string();
@@ -59,9 +62,7 @@ void command_set(AutoPipeline auto_pipeline, Task task) {
     
     if(prop_spec == null) {
         printerr("No property '%s' in element '%s'\n", prop_name, element_name);
-        auto_pipeline.return_status = 1;
-        auto_pipeline.quit();
-        return;
+        return 1;
     }
     var prop_type = prop_spec.value_type;
 
@@ -76,9 +77,7 @@ void command_set(AutoPipeline auto_pipeline, Task task) {
             else {
                 printerr("'%s' is not a valid value for enum '%s'\n",
                     prop_string, prop_type.name());
-                auto_pipeline.return_status = 1;
-                auto_pipeline.quit();
-                return;
+                return 1;
             }
         }
     }
@@ -92,19 +91,18 @@ void command_set(AutoPipeline auto_pipeline, Task task) {
     if(!prop_spec.value_convert(prop_value, converted_value, true)) {
         print("'%s' is not a valid value for property '%s' of type '%s'\n",
             value_as_string, prop_name, prop_type.name());
-        auto_pipeline.return_status = 1;
-        auto_pipeline.quit();
-        return;
+        return 1;
     }
 
     print("Setting property '%s' of element '%s' to '%s'\n",
         prop_name, element.get_name(), value_as_string);
 
     element.set_property(prop_name, converted_value);
+    return 0;
 }
 
 
-void command_seek(AutoPipeline auto_pipeline, Task task) {
+int command_seek(AutoPipeline auto_pipeline, Task task) {
     var position_value = Value(typeof(double));
     task.arguments.values[0].transform(ref position_value);
     var position_seconds = position_value.get_double();
@@ -119,18 +117,20 @@ void command_seek(AutoPipeline auto_pipeline, Task task) {
 
     print("Seeking to second %lf\n", position_seconds);
     auto_pipeline.pipeline.send_event(seek_event);
+    return 0;
 }
 
 
-void command_eos(AutoPipeline auto_pipeline, Task task) {
+int command_eos(AutoPipeline auto_pipeline, Task task) {
     auto_pipeline.send_eos();
+    return 1;
 }
 
 
 const string GST_NAVIGATION_EVENT_NAME = "application/x-gst-navigation";
 
 
-void command_navigation(AutoPipeline auto_pipeline, Task task) {
+int command_navigation(AutoPipeline auto_pipeline, Task task) {
     var element_name = task.arguments.values[0].get_string();
     var event_name = task.arguments.values[1].get_string();
     var pointer_x = task.arguments.values[2].get_int();
@@ -140,9 +140,7 @@ void command_navigation(AutoPipeline auto_pipeline, Task task) {
     var element = auto_pipeline.pipeline.get_by_name(element_name);
     if(element == null) {
         printerr("No element named '%s'\n", element_name);
-        auto_pipeline.return_status = 1;
-        auto_pipeline.quit();
-        return;
+        return 1;
     }
 
     var s = new Gst.Structure(GST_NAVIGATION_EVENT_NAME,
@@ -155,11 +153,11 @@ void command_navigation(AutoPipeline auto_pipeline, Task task) {
     var src_pad = element.get_static_pad("src");
     if(src_pad == null) {
         printerr("No src pad in element %s", element_name);
-        auto_pipeline.return_status = 1;
-        auto_pipeline.quit();
+        return 1;
     }
 
     src_pad.send_event(new Gst.Event.navigation(s));
+    return 0;
 }
 
 
