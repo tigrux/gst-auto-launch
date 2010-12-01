@@ -15,29 +15,29 @@ const Command[] COMMANDS = {
 
 int command_play(AutoPipeline auto_pipeline, Task task) {
     print("Passing to PLAYING\n");
-    auto_pipeline.pipeline.set_state(Gst.State.PLAYING);
-    return 0;
+    var status = auto_pipeline.pipeline.set_state(Gst.State.PLAYING);
+    return status != Gst.StateChangeReturn.FAILURE ? 0 : 1;
 }
 
 
 int command_pause(AutoPipeline auto_pipeline, Task task) {
     print("Passing to PAUSED\n");
-    auto_pipeline.pipeline.set_state(Gst.State.PAUSED);
-    return 0;
+    var status = auto_pipeline.pipeline.set_state(Gst.State.PAUSED);
+    return status != Gst.StateChangeReturn.FAILURE ? 0 : 1;
 }
 
 
 int command_ready(AutoPipeline auto_pipeline, Task task) {
     print("Passing to READY\n");
-    auto_pipeline.pipeline.set_state(Gst.State.READY);
-    return 0;
+    var status = auto_pipeline.pipeline.set_state(Gst.State.READY);
+    return status != Gst.StateChangeReturn.FAILURE ? 0 : 1;
 }
 
 
 int command_null(AutoPipeline auto_pipeline, Task task) {
     print("Passing to NULL\n");
-    auto_pipeline.pipeline.set_state(Gst.State.NULL);
-    return 0;
+    var status = auto_pipeline.pipeline.set_state(Gst.State.NULL);
+    return status != Gst.StateChangeReturn.FAILURE ? 0 : 1;
 }
 
 
