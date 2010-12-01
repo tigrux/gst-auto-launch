@@ -127,9 +127,6 @@ int command_eos(AutoPipeline auto_pipeline, Task task) {
 }
 
 
-const string GST_NAVIGATION_EVENT_NAME = "application/x-gst-navigation";
-
-
 int command_navigation(AutoPipeline auto_pipeline, Task task) {
     var element_name = task.arguments.values[0].get_string();
     var event_name = task.arguments.values[1].get_string();
@@ -143,7 +140,7 @@ int command_navigation(AutoPipeline auto_pipeline, Task task) {
         return 1;
     }
 
-    var s = new Gst.Structure(GST_NAVIGATION_EVENT_NAME,
+    var s = new Gst.Structure("application/x-gst-navigation",
         "event", typeof(string), event_name,
         "button", typeof(int), button,
         "pointer_x", typeof(double), (double)pointer_x,

@@ -76,7 +76,6 @@ static gint _command_navigation_command_func (AutoPipeline* auto_pipeline, Task*
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 GValueArray* task_get_arguments (Task* self);
 void auto_pipeline_send_eos (AutoPipeline* self);
-#define GST_NAVIGATION_EVENT_NAME "application/x-gst-navigation"
 void scanner_register_symbols (GScanner* scanner, guint scope);
 static int _vala_strcmp0 (const char * str1, const char * str2);
 
@@ -404,7 +403,7 @@ gint command_navigation (AutoPipeline* auto_pipeline, Task* task) {
 		_g_free0 (element_name);
 		return result;
 	}
-	s = gst_structure_new (GST_NAVIGATION_EVENT_NAME, "event", G_TYPE_STRING, event_name, "button", G_TYPE_INT, button, "pointer_x", G_TYPE_DOUBLE, (double) pointer_x, "pointer_y", G_TYPE_DOUBLE, (double) pointer_y, NULL, NULL);
+	s = gst_structure_new ("application/x-gst-navigation", "event", G_TYPE_STRING, event_name, "button", G_TYPE_INT, button, "pointer_x", G_TYPE_DOUBLE, (double) pointer_x, "pointer_y", G_TYPE_DOUBLE, (double) pointer_y, NULL, NULL);
 	src_pad = gst_element_get_static_pad (element, "src");
 	if (src_pad == NULL) {
 		g_printerr ("No src pad in element %s", element_name);
