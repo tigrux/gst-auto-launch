@@ -82,11 +82,14 @@ int main(string[] args) {
         else if(!arg.has_prefix("--")) {
             if(" " in arg && "=" in arg) {
                 string[] parts = arg.split("=", 2);
-                string new_arg = "%s=\"%s\"".printf(parts[0],parts[1]);
-                effective_args_list.append(new_arg);
+                Regex prop_name_regex = /^[A-Za-z][a-zA-Z0-9_-]+$/;
+                if(prop_name_regex.match(parts[0])) {
+                    string new_arg = "%s=\"%s\"".printf(parts[0],parts[1]);
+                    effective_args_list.append(new_arg);
+                    continue;
+                }
             }
-            else
-                effective_args_list.append(arg);
+            effective_args_list.append(arg);
         }
         else
             return 1;

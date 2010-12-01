@@ -46,6 +46,7 @@ typedef struct _TaskScannerClass TaskScannerClass;
 
 typedef struct _Task Task;
 typedef struct _TaskClass TaskClass;
+#define _g_regex_unref0(var) ((var == NULL) ? NULL : (var = (g_regex_unref (var), NULL)))
 #define __g_list_free_g_free0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_free (var), NULL)))
 #define __g_list_free_g_object_unref0(var) ((var == NULL) ? NULL : (var = (_g_list_free_g_object_unref (var), NULL)))
 
@@ -134,6 +135,7 @@ static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify 
 static gint _vala_array_length (gpointer array);
 
 const GOptionEntry options[3] = {{"gst-messages", 'm', 0, G_OPTION_ARG_NONE, &output_messages, "Output messages", NULL}, {"eos-on-shutdown", 'e', 0, G_OPTION_ARG_NONE, &force_eos, "Force EOS on sources before shutting the pipeline down", NULL}, {NULL}};
+static GRegex* _tmp9_regex_0 = NULL;
 
 
 void on_control_c (void) {
@@ -165,6 +167,20 @@ static gboolean string_contains (const char* self, const char* needle) {
 	g_return_val_if_fail (needle != NULL, FALSE);
 	result = strstr (self, needle) != NULL;
 	return result;
+}
+
+
+static inline GRegex* _thread_safe_regex_init (GRegex** re, const gchar * pattern, GRegexMatchFlags match_options) {
+	if (g_once_init_enter ((volatile gsize*) re)) {
+		GRegex* val = g_regex_new (pattern, match_options, 0, NULL);
+		g_once_init_leave ((volatile gsize*) re, (gsize) val);
+	}
+	return *re;
+}
+
+
+static gpointer _g_regex_ref0 (gpointer self) {
+	return self ? g_regex_ref (self) : NULL;
 }
 
 
@@ -302,15 +318,25 @@ gint _vala_main (char** args, int args_length1) {
 							char** _tmp8_;
 							char** _tmp7_;
 							char** parts;
-							char* new_arg;
+							GRegex* _tmp9_;
+							GRegex* prop_name_regex;
 							parts = (_tmp8_ = _tmp7_ = g_strsplit (arg, "=", 2), parts_length1 = _vala_array_length (_tmp7_), _parts_size_ = parts_length1, _tmp8_);
-							new_arg = g_strdup_printf ("%s=\"%s\"", parts[0], parts[1]);
-							effective_args_list = g_list_append (effective_args_list, g_strdup (new_arg));
-							_g_free0 (new_arg);
+							prop_name_regex = _g_regex_ref0 (_thread_safe_regex_init (&_tmp9_regex_0, "^[A-Za-z][a-zA-Z0-9_-]+$", 0));
+							if (g_regex_match (prop_name_regex, parts[0], 0, NULL)) {
+								char* new_arg;
+								new_arg = g_strdup_printf ("%s=\"%s\"", parts[0], parts[1]);
+								effective_args_list = g_list_append (effective_args_list, g_strdup (new_arg));
+								_g_free0 (new_arg);
+								_g_regex_unref0 (prop_name_regex);
+								parts = (_vala_array_free (parts, parts_length1, (GDestroyNotify) g_free), NULL);
+								_g_object_unref0 (task);
+								_g_free0 (arg);
+								continue;
+							}
+							_g_regex_unref0 (prop_name_regex);
 							parts = (_vala_array_free (parts, parts_length1, (GDestroyNotify) g_free), NULL);
-						} else {
-							effective_args_list = g_list_append (effective_args_list, g_strdup (arg));
 						}
+						effective_args_list = g_list_append (effective_args_list, g_strdup (arg));
 					} else {
 						result = 1;
 						_g_object_unref0 (task);
@@ -359,13 +385,13 @@ gint _vala_main (char** args, int args_length1) {
 		guint i;
 		gint effective_args_length1;
 		gint _effective_args_size_;
-		char** _tmp10_;
-		gint _tmp9_;
+		char** _tmp11_;
+		gint _tmp10_;
 		char** effective_args;
-		char* _tmp12_;
+		char* _tmp13_;
 		g_printerr ("Getting pipeline description from the command line\n");
 		i = (guint) 0;
-		effective_args = (_tmp10_ = g_new0 (char*, (_tmp9_ = g_list_length (effective_args_list)) + 1), effective_args_length1 = _tmp9_, _effective_args_size_ = effective_args_length1, _tmp10_);
+		effective_args = (_tmp11_ = g_new0 (char*, (_tmp10_ = g_list_length (effective_args_list)) + 1), effective_args_length1 = _tmp10_, _effective_args_size_ = effective_args_length1, _tmp11_);
 		{
 			GList* arg_collection;
 			GList* arg_it;
@@ -374,20 +400,20 @@ gint _vala_main (char** args, int args_length1) {
 				char* arg;
 				arg = g_strdup ((const char*) arg_it->data);
 				{
-					char* _tmp11_;
-					effective_args[i] = (_tmp11_ = g_strdup (arg), _g_free0 (effective_args[i]), _tmp11_);
+					char* _tmp12_;
+					effective_args[i] = (_tmp12_ = g_strdup (arg), _g_free0 (effective_args[i]), _tmp12_);
 					i++;
 					_g_free0 (arg);
 				}
 			}
 		}
-		pipeline_desc = (_tmp12_ = g_strjoinv (" ", effective_args), _g_free0 (pipeline_desc), _tmp12_);
+		pipeline_desc = (_tmp13_ = g_strjoinv (" ", effective_args), _g_free0 (pipeline_desc), _tmp13_);
 		effective_args = (_vala_array_free (effective_args, effective_args_length1, (GDestroyNotify) g_free), NULL);
 	}
 	{
 		if (output_messages) {
-			GTimeVal _tmp13_ = {0};
-			tv = (g_get_current_time (&_tmp13_), _tmp13_);
+			GTimeVal _tmp14_ = {0};
+			tv = (g_get_current_time (&_tmp14_), _tmp14_);
 			auto_pipeline_log (auto_pipeline, " 'description' : '%s',\n", pipeline_desc, NULL);
 		}
 		auto_pipeline_parse_launch (auto_pipeline, pipeline_desc, &_inner_error_);
@@ -395,8 +421,8 @@ gint _vala_main (char** args, int args_length1) {
 			goto __catch1_g_error;
 		}
 		if (output_messages) {
-			GTimeVal _tmp14_ = {0};
-			tv = (g_get_current_time (&_tmp14_), _tmp14_);
+			GTimeVal _tmp15_ = {0};
+			tv = (g_get_current_time (&_tmp15_), _tmp15_);
 			auto_pipeline_log (auto_pipeline, " 'launch' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec, NULL);
 		}
 	}
@@ -456,8 +482,8 @@ gint _vala_main (char** args, int args_length1) {
 	}
 	gst_element_set_state ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), GST_STATE_NULL);
 	if (output_messages) {
-		GTimeVal _tmp15_ = {0};
-		tv = (g_get_current_time (&_tmp15_), _tmp15_);
+		GTimeVal _tmp16_ = {0};
+		tv = (g_get_current_time (&_tmp16_), _tmp16_);
 		auto_pipeline_log (auto_pipeline, " 'end' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec, NULL);
 		auto_pipeline_log (auto_pipeline, "}\n", NULL);
 	}
