@@ -15,28 +15,28 @@ const Command[] COMMANDS = {
 
 int command_play(AutoPipeline auto_pipeline, Task task) {
     print("Passing to PLAYING\n");
-    auto_pipeline.state = Gst.State.PLAYING;
+    auto_pipeline.pipeline.set_state(Gst.State.PLAYING);
     return 0;
 }
 
 
 int command_pause(AutoPipeline auto_pipeline, Task task) {
     print("Passing to PAUSED\n");
-    auto_pipeline.state = Gst.State.PAUSED;
+    auto_pipeline.pipeline.set_state(Gst.State.PAUSED);
     return 0;
 }
 
 
 int command_ready(AutoPipeline auto_pipeline, Task task) {
     print("Passing to READY\n");
-    auto_pipeline.state = Gst.State.READY;
+    auto_pipeline.pipeline.set_state(Gst.State.READY);
     return 0;
 }
 
 
 int command_null(AutoPipeline auto_pipeline, Task task) {
     print("Passing to NULL\n");
-    auto_pipeline.state = Gst.State.NULL;
+    auto_pipeline.pipeline.set_state(Gst.State.NULL);
     return 0;
 }
 

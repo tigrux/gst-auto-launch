@@ -73,9 +73,8 @@ gint command_seek (AutoPipeline* auto_pipeline, Task* task);
 static gint _command_seek_command_func (AutoPipeline* auto_pipeline, Task* task);
 gint command_navigation (AutoPipeline* auto_pipeline, Task* task);
 static gint _command_navigation_command_func (AutoPipeline* auto_pipeline, Task* task);
-void auto_pipeline_set_state (AutoPipeline* self, GstState value);
-GValueArray* task_get_arguments (Task* self);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
+GValueArray* task_get_arguments (Task* self);
 void auto_pipeline_send_eos (AutoPipeline* self);
 #define GST_NAVIGATION_EVENT_NAME "application/x-gst-navigation"
 void scanner_register_symbols (GScanner* scanner, guint scope);
@@ -153,7 +152,7 @@ gint command_play (AutoPipeline* auto_pipeline, Task* task) {
 	g_return_val_if_fail (auto_pipeline != NULL, 0);
 	g_return_val_if_fail (task != NULL, 0);
 	g_print ("Passing to PLAYING\n");
-	auto_pipeline_set_state (auto_pipeline, GST_STATE_PLAYING);
+	gst_element_set_state ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), GST_STATE_PLAYING);
 	result = 0;
 	return result;
 }
@@ -164,7 +163,7 @@ gint command_pause (AutoPipeline* auto_pipeline, Task* task) {
 	g_return_val_if_fail (auto_pipeline != NULL, 0);
 	g_return_val_if_fail (task != NULL, 0);
 	g_print ("Passing to PAUSED\n");
-	auto_pipeline_set_state (auto_pipeline, GST_STATE_PAUSED);
+	gst_element_set_state ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), GST_STATE_PAUSED);
 	result = 0;
 	return result;
 }
@@ -175,7 +174,7 @@ gint command_ready (AutoPipeline* auto_pipeline, Task* task) {
 	g_return_val_if_fail (auto_pipeline != NULL, 0);
 	g_return_val_if_fail (task != NULL, 0);
 	g_print ("Passing to READY\n");
-	auto_pipeline_set_state (auto_pipeline, GST_STATE_READY);
+	gst_element_set_state ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), GST_STATE_READY);
 	result = 0;
 	return result;
 }
@@ -186,7 +185,7 @@ gint command_null (AutoPipeline* auto_pipeline, Task* task) {
 	g_return_val_if_fail (auto_pipeline != NULL, 0);
 	g_return_val_if_fail (task != NULL, 0);
 	g_print ("Passing to NULL\n");
-	auto_pipeline_set_state (auto_pipeline, GST_STATE_NULL);
+	gst_element_set_state ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), GST_STATE_NULL);
 	result = 0;
 	return result;
 }

@@ -75,7 +75,6 @@ GType auto_pipeline_get_type (void) G_GNUC_CONST;
 enum  {
 	AUTO_PIPELINE_DUMMY_PROPERTY,
 	AUTO_PIPELINE_OUTPUT_MESSAGES_ENABLED,
-	AUTO_PIPELINE_STATE,
 	AUTO_PIPELINE_PIPELINE
 };
 void auto_pipeline_log (AutoPipeline* self, const char* format, ...);
@@ -84,12 +83,11 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 static void _auto_pipeline_on_bus_message_gst_bus_message (GstBus* _sender, GstMessage* message, gpointer self);
 static gboolean _lambda0_ (GQuark q, GValue* v, AutoPipeline* self);
 static gboolean __lambda0__gst_structure_foreach_func (GQuark field_id, GValue* value, gpointer self);
-void auto_pipeline_set_state (AutoPipeline* self, GstState value);
+GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 GType task_get_type (void) G_GNUC_CONST;
 guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
 guint task_exec (Task* self, AutoPipeline* auto_pipeline);
 void auto_pipeline_send_eos (AutoPipeline* self);
-GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 static void _lambda2_ (void* data, Block1Data* _data1_);
 static void __lambda2__gfunc (void* data, gpointer self);
 static Block1Data* block1_data_ref (Block1Data* _data1_);
@@ -245,7 +243,7 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 				s = NULL;
 				(gst_message_parse_error (message, &_tmp5_, &_tmp7_), e = (_tmp6_ = _tmp5_, _g_error_free0 (e), _tmp6_));
 				s = (_tmp8_ = _tmp7_, _g_free0 (s), _tmp8_);
-				g_critical ("auto-pipeline.vala:103: Bus error: %s %s\n", e->message, s);
+				g_critical ("auto-pipeline.vala:97: Bus error: %s %s\n", e->message, s);
 				self->return_status = 1;
 				g_signal_emit_by_name (self, "quit");
 				_g_free0 (s);
@@ -256,7 +254,7 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 		case GST_MESSAGE_EOS:
 		{
 			{
-				auto_pipeline_set_state (self, GST_STATE_NULL);
+				gst_element_set_state ((GstElement*) self->priv->_pipeline, GST_STATE_NULL);
 				g_signal_emit_by_name (self, "quit");
 				break;
 			}
@@ -385,13 +383,6 @@ void auto_pipeline_set_output_messages_enabled (AutoPipeline* self, gboolean val
 }
 
 
-void auto_pipeline_set_state (AutoPipeline* self, GstState value) {
-	g_return_if_fail (self != NULL);
-	gst_element_set_state ((GstElement*) self->priv->_pipeline, value);
-	g_object_notify ((GObject *) self, "state");
-}
-
-
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self) {
 	GstBin* result;
 	g_return_val_if_fail (self != NULL, NULL);
@@ -415,7 +406,6 @@ static void auto_pipeline_class_init (AutoPipelineClass * klass) {
 	G_OBJECT_CLASS (klass)->set_property = auto_pipeline_set_property;
 	G_OBJECT_CLASS (klass)->finalize = auto_pipeline_finalize;
 	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_OUTPUT_MESSAGES_ENABLED, g_param_spec_boolean ("output-messages-enabled", "output-messages-enabled", "output-messages-enabled", FALSE, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
-	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_STATE, g_param_spec_enum ("state", "state", "state", GST_TYPE_STATE, 0, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), AUTO_PIPELINE_PIPELINE, g_param_spec_object ("pipeline", "pipeline", "pipeline", GST_TYPE_BIN, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_signal_new ("quit", TYPE_AUTO_PIPELINE, G_SIGNAL_RUN_LAST, 0, NULL, NULL, g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
 }
@@ -471,9 +461,6 @@ static void auto_pipeline_set_property (GObject * object, guint property_id, con
 	switch (property_id) {
 		case AUTO_PIPELINE_OUTPUT_MESSAGES_ENABLED:
 		auto_pipeline_set_output_messages_enabled (self, g_value_get_boolean (value));
-		break;
-		case AUTO_PIPELINE_STATE:
-		auto_pipeline_set_state (self, g_value_get_enum (value));
 		break;
 		case AUTO_PIPELINE_PIPELINE:
 		auto_pipeline_set_pipeline (self, g_value_get_object (value));

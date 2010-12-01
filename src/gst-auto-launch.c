@@ -122,7 +122,6 @@ Task* task_construct (GType object_type, double seconds, Command* command);
 gboolean try_to_get_desc_from_xml (char** args, int args_length1, char** pipeline_desc);
 void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GError** error);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
-void auto_pipeline_set_state (AutoPipeline* self, GstState value);
 guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
 static void _g_main_loop_quit_auto_pipeline_quit (AutoPipeline* _sender, gpointer self);
 XmlParser* xml_parser_new (void);
@@ -410,7 +409,7 @@ gint _vala_main (char** args, int args_length1) {
 		{
 			g_printerr ("Error: %s\n", e->message);
 			if (auto_pipeline_get_pipeline (auto_pipeline) != NULL) {
-				auto_pipeline_set_state (auto_pipeline, GST_STATE_NULL);
+				gst_element_set_state ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), GST_STATE_NULL);
 			}
 			result = 1;
 			_g_error_free0 (e);
@@ -455,7 +454,7 @@ gint _vala_main (char** args, int args_length1) {
 	if (output_messages) {
 		auto_pipeline_log (auto_pipeline, " ],\n", NULL);
 	}
-	auto_pipeline_set_state (auto_pipeline, GST_STATE_NULL);
+	gst_element_set_state ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), GST_STATE_NULL);
 	if (output_messages) {
 		GTimeVal _tmp15_ = {0};
 		tv = (g_get_current_time (&_tmp15_), _tmp15_);

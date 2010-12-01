@@ -144,7 +144,7 @@ int main(string[] args) {
     catch(Error e) {
         printerr("Error: %s\n", e.message);
         if(auto_pipeline.pipeline != null)
-            auto_pipeline.state = Gst.State.NULL;
+            auto_pipeline.pipeline.set_state(Gst.State.NULL);
         return 1;
     }
 
@@ -157,7 +157,7 @@ int main(string[] args) {
     loop.run();
     if(output_messages)
         auto_pipeline.log(" ],\n");
-    auto_pipeline.state = Gst.State.NULL;
+    auto_pipeline.pipeline.set_state(Gst.State.NULL);
     if(output_messages) {
         tv = TimeVal();
         auto_pipeline.log(" 'end' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);

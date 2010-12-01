@@ -34,12 +34,6 @@ class AutoPipeline: Object {
         vprintf(format, args_vl);
     }
 
-    public Gst.State state {
-        set {
-            _pipeline.set_state(value);
-        }
-    }
-
 
     public Gst.Bin pipeline {
         get; set;
@@ -106,7 +100,7 @@ class AutoPipeline: Object {
                 break;
             }
             case Gst.MessageType.EOS: {
-                state = Gst.State.NULL;
+                pipeline.set_state(Gst.State.NULL);
                 quit();
                 break;
             }
