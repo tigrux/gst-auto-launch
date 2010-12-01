@@ -6,7 +6,6 @@ bin_PROGRAMS = gst-auto-launch
 
 gst_auto_launch_VALASOURCES = \
 	auto-pipeline.vala \
-	xml-parser.vala \
 	task-scanner.vala \
 	task.vala \
 	gst-auto-launch.vala \

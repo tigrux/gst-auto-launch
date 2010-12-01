@@ -84,7 +84,7 @@ int main(string[] args) {
                 var parts = arg.split("=", 2);
                 var prop_name_regex = /^[A-Za-z][a-zA-Z0-9_-]+$/;
                 if(prop_name_regex.match(parts[0])) {
-                    string new_arg = "%s=\"%s\"".printf(parts[0],parts[1]);
+                    var new_arg = "%s=\"%s\"".printf(parts[0],parts[1]);
                     effective_args_list.append(new_arg);
                     continue;
                 }
@@ -107,30 +107,13 @@ int main(string[] args) {
             printerr("Could not find a command named '%s'\n", auto_symbol);
     }
 
-    var should_parse_xml = false;
-    
-    if(effective_args_list.length() == 2)
-        should_parse_xml = true;
-
-    string pipeline_desc = null;
-
-    if(should_parse_xml) {
-        should_parse_xml = try_to_get_desc_from_xml(args, ref pipeline_desc);
-        if(!should_parse_xml)
-            printerr("Could not get pipeline description from xml file\n");
+    var i = 0;
+    var effective_args = new string[effective_args_list.length()];
+    foreach(var arg in effective_args_list) {
+        effective_args[i] = arg;
+        i++;
     }
-
-    if(!should_parse_xml) {
-        printerr("Getting pipeline description from the command line\n");
-
-        uint i = 0;
-        var effective_args = new string[effective_args_list.length()];
-        foreach(var arg in effective_args_list) {
-            effective_args[i] = arg;
-            i++;
-        }
-        pipeline_desc = string.joinv(" ", effective_args);
-    }
+    var pipeline_desc = string.joinv(" ", effective_args);
 
     try {
         if(output_messages) {
@@ -168,41 +151,5 @@ int main(string[] args) {
     }
 
     return auto_pipeline.return_status;
-}
-
-
-bool try_to_get_desc_from_xml(string[] args, ref string pipeline_desc) {
-    var xml_file = args[1];
-    if(!FileUtils.test(xml_file, FileTest.IS_REGULAR)) {
-        printerr("'%s' is not a regular file\n", xml_file);
-        return false;
-    }
-
-    var parser = new XmlParser();
-    var parsed = false;
-
-    try {
-        parsed = parser.parse_file(xml_file);
-    }
-    catch(Error e) {
-        printerr("Error: %s\n", e.message);
-        return false;
-    }
-
-    if(!parsed) {
-        printerr("Could not parse file '%s'\n", xml_file);
-        return false;
-    }
-
-    var pipeline_id = args[2];
-
-    pipeline_desc = parser[pipeline_id];
-    if(pipeline_desc == null) {
-        printerr("No pipeline found for id '%s'\n", pipeline_id);
-        return false;
-    }
-
-    printerr("Getting pipeline description from file '%s'\n", xml_file);
-    return true;
 }
 
