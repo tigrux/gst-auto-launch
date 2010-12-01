@@ -45,44 +45,62 @@ void command_quit(AutoPipeline auto_pipeline, Task task) {
 
 void command_set(AutoPipeline auto_pipeline, Task task) {
     var element_name = task.arguments.values[0].get_string();
-    var prop_name = task.arguments.values[1].get_string();
     
     var element = auto_pipeline.pipeline.get_by_name(element_name);
-    
     if(element == null) {
         printerr("No element named '%s'\n", element_name);
         auto_pipeline.return_status = 1;
         auto_pipeline.quit();
         return;
     }
+
+    var prop_name = task.arguments.values[1].get_string();
+    weak ParamSpec prop_spec = element.get_class().find_property(prop_name);
     
+    if(prop_spec == null) {
+        printerr("No property '%s' in element '%s'\n", prop_name, element_name);
+        auto_pipeline.return_status = 1;
+        auto_pipeline.quit();
+        return;
+    }
+    var prop_type = prop_spec.value_type;
+
     var prop_value = task.arguments.values[2];
-    
     if(prop_value.holds(typeof(string))) {
-        weak ParamSpec prop = element.get_class().find_property(prop_name);
-        if(prop != null) {
-            weak EnumClass e_class = (EnumClass)prop.value_type.class_peek();
-            var prop_string = prop_value.get_string();
-            weak EnumValue e_value = e_class.get_value_by_nick(prop_string);
-            if(e_value != null)
-                prop_value = e_value.value;
-        }
-        else {
-            printerr(
-                "No property '%s' in element '%s'\n", prop_name, element_name);
-            auto_pipeline.return_status = 1;
-            auto_pipeline.quit();
+        var prop_string = prop_value.get_string();
+        if(prop_type.is_enum()) {
+            weak EnumClass enum_class = (EnumClass)prop_type.class_peek();
+            weak EnumValue enum_value = enum_class.get_value_by_nick(prop_string);
+            if(enum_value != null)
+                prop_value = enum_value.value;
+            else {
+                printerr("'%s' is not a valid value for enum '%s'\n",
+                    prop_string, prop_type.name());
+                auto_pipeline.return_status = 1;
+                auto_pipeline.quit();
+                return;
+            }
         }
     }
 
-    Value prop_value_s = "";
-    if(prop_value.transform(ref prop_value_s))
-        print("Setting property '%s' of element '%s' to '%s'\n",
-            prop_name, element.get_name(), prop_value_s.get_string());
-    else
-        print("Setting property '%s' of element '%s'\n",
-            prop_name, element.get_name());
-    element.set_property(prop_name, prop_value);
+    Value string_value = "";
+    prop_value.transform(ref string_value);
+    var value_as_string = string_value.get_string();
+
+    Value converted_value = Value(prop_type);
+
+    if(!prop_spec.value_convert(prop_value, converted_value, true)) {
+        print("'%s' is not a valid value for property '%s' of type '%s'\n",
+            value_as_string, prop_name, prop_type.name());
+        auto_pipeline.return_status = 1;
+        auto_pipeline.quit();
+        return;
+    }
+
+    print("Setting property '%s' of element '%s' to '%s'\n",
+        prop_name, element.get_name(), value_as_string);
+
+    element.set_property(prop_name, converted_value);
 }
 
 

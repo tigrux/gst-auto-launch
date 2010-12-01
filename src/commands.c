@@ -186,65 +186,95 @@ void command_quit (AutoPipeline* auto_pipeline, Task* task) {
 void command_set (AutoPipeline* auto_pipeline, Task* task) {
 	GValue _tmp0_;
 	char* element_name;
+	GstElement* element;
 	GValue _tmp1_;
 	char* prop_name;
-	GstElement* element;
+	GParamSpec* prop_spec;
+	GType prop_type;
 	GValue _tmp2_ = {0};
 	GValue prop_value;
 	GValue _tmp5_ = {0};
-	GValue prop_value_s;
+	GValue string_value;
+	char* value_as_string;
+	GValue converted_value = {0};
+	char* _tmp6_;
 	g_return_if_fail (auto_pipeline != NULL);
 	g_return_if_fail (task != NULL);
 	element_name = g_strdup (g_value_get_string ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_)));
-	prop_name = g_strdup (g_value_get_string ((_tmp1_ = task_get_arguments (task)->values[1], &_tmp1_)));
 	element = gst_bin_get_by_name (auto_pipeline_get_pipeline (auto_pipeline), element_name);
 	if (element == NULL) {
 		g_printerr ("No element named '%s'\n", element_name);
 		auto_pipeline->return_status = 1;
 		g_signal_emit_by_name (auto_pipeline, "quit");
 		_gst_object_unref0 (element);
-		_g_free0 (prop_name);
 		_g_free0 (element_name);
 		return;
 	}
+	prop_name = g_strdup (g_value_get_string ((_tmp1_ = task_get_arguments (task)->values[1], &_tmp1_)));
+	prop_spec = g_object_class_find_property (G_OBJECT_GET_CLASS ((GObject*) element), prop_name);
+	if (prop_spec == NULL) {
+		g_printerr ("No property '%s' in element '%s'\n", prop_name, element_name);
+		auto_pipeline->return_status = 1;
+		g_signal_emit_by_name (auto_pipeline, "quit");
+		_g_free0 (prop_name);
+		_gst_object_unref0 (element);
+		_g_free0 (element_name);
+		return;
+	}
+	prop_type = prop_spec->value_type;
 	prop_value = G_IS_VALUE (&task_get_arguments (task)->values[2]) ? (g_value_init (&_tmp2_, G_VALUE_TYPE (&task_get_arguments (task)->values[2])), g_value_copy (&task_get_arguments (task)->values[2], &_tmp2_), _tmp2_) : task_get_arguments (task)->values[2];
 	if (G_VALUE_HOLDS (&prop_value, G_TYPE_STRING)) {
-		GParamSpec* prop;
-		prop = g_object_class_find_property (G_OBJECT_GET_CLASS ((GObject*) element), prop_name);
-		if (prop != NULL) {
-			GEnumClass* e_class;
-			char* prop_string;
-			GEnumValue* e_value;
-			e_class = (GEnumClass*) g_type_class_peek (prop->value_type);
-			prop_string = g_strdup (g_value_get_string (&prop_value));
-			e_value = g_enum_get_value_by_nick (e_class, prop_string);
-			if (e_value != NULL) {
+		char* prop_string;
+		prop_string = g_strdup (g_value_get_string (&prop_value));
+		if (G_TYPE_IS_ENUM (prop_type)) {
+			GEnumClass* enum_class;
+			GEnumValue* enum_value;
+			enum_class = (GEnumClass*) g_type_class_peek (prop_type);
+			enum_value = g_enum_get_value_by_nick (enum_class, prop_string);
+			if (enum_value != NULL) {
 				GValue _tmp3_ = {0};
 				GValue _tmp4_;
-				prop_value = (_tmp4_ = (g_value_init (&_tmp3_, G_TYPE_INT), g_value_set_int (&_tmp3_, e_value->value), _tmp3_), G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL, _tmp4_);
+				prop_value = (_tmp4_ = (g_value_init (&_tmp3_, G_TYPE_INT), g_value_set_int (&_tmp3_, enum_value->value), _tmp3_), G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL, _tmp4_);
+			} else {
+				g_printerr ("'%s' is not a valid value for enum '%s'\n", prop_string, g_type_name (prop_type));
+				auto_pipeline->return_status = 1;
+				g_signal_emit_by_name (auto_pipeline, "quit");
+				_g_free0 (prop_string);
+				G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL;
+				_g_free0 (prop_name);
+				_gst_object_unref0 (element);
+				_g_free0 (element_name);
+				return;
 			}
-			_g_free0 (prop_string);
-		} else {
-			g_printerr ("No property '%s' in element '%s'\n", prop_name, element_name);
-			auto_pipeline->return_status = 1;
-			g_signal_emit_by_name (auto_pipeline, "quit");
 		}
+		_g_free0 (prop_string);
 	}
-	prop_value_s = (g_value_init (&_tmp5_, G_TYPE_STRING), g_value_set_string (&_tmp5_, ""), _tmp5_);
-	if (g_value_transform (&prop_value, &prop_value_s)) {
-		char* _tmp6_;
-		g_print ("Setting property '%s' of element '%s' to '%s'\n", prop_name, _tmp6_ = gst_object_get_name ((GstObject*) element), g_value_get_string (&prop_value_s));
-		_g_free0 (_tmp6_);
-	} else {
-		char* _tmp7_;
-		g_print ("Setting property '%s' of element '%s'\n", prop_name, _tmp7_ = gst_object_get_name ((GstObject*) element));
-		_g_free0 (_tmp7_);
+	string_value = (g_value_init (&_tmp5_, G_TYPE_STRING), g_value_set_string (&_tmp5_, ""), _tmp5_);
+	g_value_transform (&prop_value, &string_value);
+	value_as_string = g_strdup (g_value_get_string (&string_value));
+	g_value_init (&converted_value, prop_type);
+	if (!g_param_value_convert (prop_spec, &prop_value, &converted_value, TRUE)) {
+		g_print ("'%s' is not a valid value for property '%s' of type '%s'\n", value_as_string, prop_name, g_type_name (prop_type));
+		auto_pipeline->return_status = 1;
+		g_signal_emit_by_name (auto_pipeline, "quit");
+		G_IS_VALUE (&converted_value) ? (g_value_unset (&converted_value), NULL) : NULL;
+		_g_free0 (value_as_string);
+		G_IS_VALUE (&string_value) ? (g_value_unset (&string_value), NULL) : NULL;
+		G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL;
+		_g_free0 (prop_name);
+		_gst_object_unref0 (element);
+		_g_free0 (element_name);
+		return;
 	}
-	g_object_set_property ((GObject*) element, prop_name, &prop_value);
-	G_IS_VALUE (&prop_value_s) ? (g_value_unset (&prop_value_s), NULL) : NULL;
+	g_print ("Setting property '%s' of element '%s' to '%s'\n", prop_name, _tmp6_ = gst_object_get_name ((GstObject*) element), value_as_string);
+	_g_free0 (_tmp6_);
+	g_object_set_property ((GObject*) element, prop_name, &converted_value);
+	G_IS_VALUE (&converted_value) ? (g_value_unset (&converted_value), NULL) : NULL;
+	_g_free0 (value_as_string);
+	G_IS_VALUE (&string_value) ? (g_value_unset (&string_value), NULL) : NULL;
 	G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL;
-	_gst_object_unref0 (element);
 	_g_free0 (prop_name);
+	_gst_object_unref0 (element);
 	_g_free0 (element_name);
 }
 
