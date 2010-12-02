@@ -85,7 +85,7 @@ class TaskScanner: Object {
 
         for(uint arg_i = 0; arg_i < arg_n; arg_i++) {
             char arg_desc = command.get_arg_desc(arg_i);
-            Value arg_value = task.arguments.values[arg_i];
+            unowned Value arg_value = task.arguments.values[arg_i];
             switch(arg_desc) {
                 case 's':
                     if(!arg_value.holds(typeof(string))) {

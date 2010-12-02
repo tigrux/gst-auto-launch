@@ -1,6 +1,6 @@
 class Task: Object {
     double _seconds;
-    Command _command;
+    unowned Command? _command;
     ValueArray _arguments;
 
 

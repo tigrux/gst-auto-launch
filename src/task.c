@@ -56,7 +56,7 @@ struct _Command {
 
 struct _TaskPrivate {
 	double _seconds;
-	Command _command;
+	Command* _command;
 	GValueArray* _arguments;
 };
 
@@ -100,13 +100,11 @@ static void task_get_property (GObject * object, guint property_id, GValue * val
 
 Task* task_construct (GType object_type, double seconds, Command* command) {
 	Task * self;
-	Command _tmp0_ = {0};
-	Command _tmp1_;
-	GValueArray* _tmp2_;
+	GValueArray* _tmp0_;
 	self = (Task*) g_object_new (object_type, NULL);
 	self->priv->_seconds = seconds;
-	self->priv->_command = (_tmp1_ = (command_copy (command, &_tmp0_), _tmp0_), command_destroy (&self->priv->_command), _tmp1_);
-	self->priv->_arguments = (_tmp2_ = g_value_array_new ((guint) 0), _g_value_array_free0 (self->priv->_arguments), _tmp2_);
+	self->priv->_command = command;
+	self->priv->_arguments = (_tmp0_ = g_value_array_new ((guint) 0), _g_value_array_free0 (self->priv->_arguments), _tmp0_);
 	return self;
 }
 
@@ -122,7 +120,7 @@ static gboolean _lambda2_ (Block2Data* _data2_) {
 	self = _data2_->self;
 	if (auto_pipeline_get_return_status (_data2_->auto_pipeline) == 0) {
 		gint status;
-		status = self->priv->_command.function (_data2_->auto_pipeline, self);
+		status = (*self->priv->_command).function (_data2_->auto_pipeline, self);
 		if (status != 0) {
 			auto_pipeline_set_return_status (_data2_->auto_pipeline, status);
 			g_signal_emit_by_name (_data2_->auto_pipeline, "quit");
@@ -209,7 +207,6 @@ static void task_instance_init (Task * self) {
 static void task_finalize (GObject* obj) {
 	Task * self;
 	self = TASK (obj);
-	command_destroy (&self->priv->_command);
 	_g_value_array_free0 (self->priv->_arguments);
 	G_OBJECT_CLASS (task_parent_class)->finalize (obj);
 }

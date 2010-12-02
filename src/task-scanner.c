@@ -272,7 +272,6 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 			_tmp16_ = TRUE;
 			while (TRUE) {
 				gchar arg_desc;
-				GValue _tmp17_ = {0};
 				GValue arg_value;
 				if (!_tmp16_) {
 					arg_i++;
@@ -282,14 +281,13 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 					break;
 				}
 				arg_desc = command_get_arg_desc (command, arg_i);
-				arg_value = G_IS_VALUE (&task_get_arguments (task)->values[arg_i]) ? (g_value_init (&_tmp17_, G_VALUE_TYPE (&task_get_arguments (task)->values[arg_i])), g_value_copy (&task_get_arguments (task)->values[arg_i], &_tmp17_), _tmp17_) : task_get_arguments (task)->values[arg_i];
+				arg_value = task_get_arguments (task)->values[arg_i];
 				switch (arg_desc) {
 					case 's':
 					{
 						if (!G_VALUE_HOLDS (&arg_value, G_TYPE_STRING)) {
 							g_printerr ("Argument %u of '%s' must be a string\n", arg_i, (*command).name);
 							result = NULL;
-							G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
 							_g_object_unref0 (task);
 							return result;
 						}
@@ -300,7 +298,6 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 						if (!G_VALUE_HOLDS (&arg_value, G_TYPE_INT)) {
 							g_printerr ("Argument %u of '%s' must be an integer\n", arg_i, (*command).name);
 							result = NULL;
-							G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
 							_g_object_unref0 (task);
 							return result;
 						}
@@ -311,7 +308,6 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 						if (!G_VALUE_HOLDS (&arg_value, G_TYPE_DOUBLE)) {
 							g_printerr ("Argument %u of '%s' must be in seconds\n", arg_i, (*command).name);
 							result = NULL;
-							G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
 							_g_object_unref0 (task);
 							return result;
 						}
@@ -319,14 +315,12 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 						if (number < 0.0) {
 							g_printerr ("Argument %u of '%s' cannot be negative\n", arg_i, (*command).name);
 							result = NULL;
-							G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
 							_g_object_unref0 (task);
 							return result;
 						}
 						break;
 					}
 				}
-				G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
 			}
 		}
 	}
