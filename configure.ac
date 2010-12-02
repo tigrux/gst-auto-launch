@@ -1,4 +1,4 @@
-AC_INIT([gst-auto-launch], [0.3.16], [tigrux@gmail.com], [gst-auto-launch])
+AC_INIT([gst-auto-launch], [0.3.17], [tigrux@gmail.com], [gst-auto-launch])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE([foreign])
