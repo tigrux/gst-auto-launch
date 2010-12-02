@@ -169,7 +169,7 @@ class TaskScanner: Object {
 
 
     public void print_description() {
-        scanner.scope_foreach_symbol(0,
+        scanner.scope_foreach_symbol(0U,
             (key, val) => {
                 string name = (string)key;
                 weak Command? command = (Command?)val;

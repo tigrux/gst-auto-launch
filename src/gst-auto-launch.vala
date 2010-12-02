@@ -2,16 +2,14 @@ bool output_messages;
 bool force_eos;
 
 const OptionEntry[] options = {
-    { "gst-messages", 'm', 0, OptionArg.NONE, ref output_messages,
-      "Output messages", null },
-    { "eos-on-shutdown", 'e', 0, OptionArg.NONE, ref force_eos,
-      "Force EOS on sources before shutting the pipeline down", null },
+    { "gst-messages", 'm', 0, OptionArg.NONE, ref output_messages, "Output messages", null },
+    { "eos-on-shutdown", 'e', 0, OptionArg.NONE, ref force_eos, "Force EOS on sources before shutting the pipeline down", null },
     {null}
 };
 
 
-AutoPipeline auto_pipeline;
 uint how_many_control_c_pressed = 0;
+AutoPipeline auto_pipeline;
 
 void on_control_c() {
     if(auto_pipeline == null)
@@ -22,6 +20,7 @@ void on_control_c() {
         auto_pipeline.quit();
     how_many_control_c_pressed++;
 }
+
 
 int main(string[] args) {
     OptionContext opt_context;
@@ -135,8 +134,10 @@ int main(string[] args) {
 
     foreach(Task task in tasks)
         auto_pipeline.exec_task(task);
+
     MainLoop loop = new MainLoop();
     auto_pipeline.quit.connect(loop.quit);
+
     if(output_messages)
         auto_pipeline.log(" 'message' : [\n");
     loop.run();

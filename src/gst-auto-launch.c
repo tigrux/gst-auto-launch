@@ -77,10 +77,10 @@ extern gboolean output_messages;
 gboolean output_messages = FALSE;
 extern gboolean force_eos;
 gboolean force_eos = FALSE;
-extern AutoPipeline* auto_pipeline;
-AutoPipeline* auto_pipeline = NULL;
 extern guint how_many_control_c_pressed;
 guint how_many_control_c_pressed = (guint) 0;
+extern AutoPipeline* auto_pipeline;
+AutoPipeline* auto_pipeline = NULL;
 
 GType auto_pipeline_get_type (void) G_GNUC_CONST;
 void on_control_c (void);

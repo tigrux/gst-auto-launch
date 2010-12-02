@@ -414,7 +414,7 @@ static void __lambda3__gh_func (void* key, void* value, gpointer self) {
 
 void task_scanner_print_description (TaskScanner* self) {
 	g_return_if_fail (self != NULL);
-	g_scanner_scope_foreach_symbol (self->priv->scanner, (guint) 0, __lambda3__gh_func, self);
+	g_scanner_scope_foreach_symbol (self->priv->scanner, 0U, __lambda3__gh_func, self);
 }
 
 
