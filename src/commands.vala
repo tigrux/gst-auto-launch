@@ -112,14 +112,12 @@ int command_seek(AutoPipeline auto_pipeline, Task task) {
             Gst.SeekType.NONE, 0);
 
     print("Seeking to second %lf\n", position_seconds);
-    auto_pipeline.pipeline.send_event(seek_event);
-    return 0;
+    return auto_pipeline.pipeline.send_event(seek_event) ? 0 : 1;
 }
 
 
 int command_eos(AutoPipeline auto_pipeline, Task task) {
-    auto_pipeline.send_eos();
-    return 1;
+    return auto_pipeline.send_eos() ? 0 : 1;
 }
 
 

@@ -51,6 +51,7 @@ struct _Block1Data {
 	int _ref_count_;
 	AutoPipeline * self;
 	gboolean eos_was_sent;
+	gboolean source_was_found;
 };
 
 
@@ -77,7 +78,7 @@ static gboolean __lambda0__gst_structure_foreach_func (GQuark field_id, GValue* 
 void auto_pipeline_set_return_status (AutoPipeline* self, gint value);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 gboolean auto_pipeline_set_state (AutoPipeline* self, GstState state);
-void auto_pipeline_send_eos (AutoPipeline* self);
+gboolean auto_pipeline_send_eos (AutoPipeline* self);
 static void _lambda1_ (void* data, Block1Data* _data1_);
 static void __lambda1__gfunc (void* data, gpointer self);
 static Block1Data* block1_data_ref (Block1Data* _data1_);
@@ -289,10 +290,12 @@ static void _lambda1_ (void* data, Block1Data* _data1_) {
 	}
 	if (_tmp1_) {
 		char* _tmp2_;
-		_data1_->eos_was_sent = TRUE;
+		_data1_->source_was_found = TRUE;
 		g_print ("Sending EOS event to element '%s'\n", _tmp2_ = gst_object_get_name ((GstObject*) elem));
 		_g_free0 (_tmp2_);
-		gst_element_send_event (elem, gst_event_new_eos ());
+		if (!gst_element_send_event (elem, gst_event_new_eos ())) {
+			_data1_->eos_was_sent = FALSE;
+		}
 	}
 	_gst_object_unref0 (elem);
 }
@@ -317,22 +320,36 @@ static void block1_data_unref (Block1Data* _data1_) {
 }
 
 
-void auto_pipeline_send_eos (AutoPipeline* self) {
+gboolean auto_pipeline_send_eos (AutoPipeline* self) {
+	gboolean result = FALSE;
 	Block1Data* _data1_;
 	GstIterator* _tmp0_;
-	g_return_if_fail (self != NULL);
+	gboolean _tmp1_ = FALSE;
+	g_return_val_if_fail (self != NULL, FALSE);
 	_data1_ = g_slice_new0 (Block1Data);
 	_data1_->_ref_count_ = 1;
 	_data1_->self = g_object_ref (self);
-	_data1_->eos_was_sent = FALSE;
+	_data1_->eos_was_sent = TRUE;
+	_data1_->source_was_found = FALSE;
 	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline->priv->_pipeline), __lambda1__gfunc, _data1_);
 	_gst_iterator_free0 (_tmp0_);
-	if (!_data1_->eos_was_sent) {
-		g_print ("Could not find a src element\n");
-		g_print ("Sending EOS to the pipeline\n");
-		gst_element_send_event ((GstElement*) auto_pipeline->priv->_pipeline, gst_event_new_eos ());
+	if (!_data1_->source_was_found) {
+		_tmp1_ = TRUE;
+	} else {
+		_tmp1_ = !_data1_->eos_was_sent;
 	}
+	if (_tmp1_) {
+		if (!_data1_->source_was_found) {
+			g_print ("Could not find a src element\n");
+		}
+		g_print ("Sending EOS to the pipeline\n");
+		result = gst_element_send_event ((GstElement*) auto_pipeline->priv->_pipeline, gst_event_new_eos ());
+		block1_data_unref (_data1_);
+		return result;
+	}
+	result = TRUE;
 	block1_data_unref (_data1_);
+	return result;
 }
 
 

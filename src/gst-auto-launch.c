@@ -73,7 +73,7 @@ AutoPipeline* auto_pipeline = NULL;
 
 GType auto_pipeline_get_type (void) G_GNUC_CONST;
 void on_control_c (void);
-void auto_pipeline_send_eos (AutoPipeline* self);
+gboolean auto_pipeline_send_eos (AutoPipeline* self);
 gint _vala_main (char** args, int args_length1);
 AutoPipeline* auto_pipeline_new (void);
 AutoPipeline* auto_pipeline_construct (GType object_type);

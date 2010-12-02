@@ -76,7 +76,7 @@ static gint _command_navigation_command_func (AutoPipeline* auto_pipeline, Task*
 gboolean auto_pipeline_set_state (AutoPipeline* self, GstState state);
 GValueArray* task_get_arguments (Task* self);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
-void auto_pipeline_send_eos (AutoPipeline* self);
+gboolean auto_pipeline_send_eos (AutoPipeline* self);
 void scanner_register_symbols (GScanner* scanner);
 static int _vala_strcmp0 (const char * str1, const char * str2);
 
@@ -329,6 +329,7 @@ gint command_seek (AutoPipeline* auto_pipeline, Task* task) {
 	double position_seconds;
 	gint64 position_useconds;
 	GstEvent* seek_event;
+	gint _tmp1_ = 0;
 	g_return_val_if_fail (auto_pipeline != NULL, 0);
 	g_return_val_if_fail (task != NULL, 0);
 	g_value_init (&position_value, G_TYPE_DOUBLE);
@@ -337,8 +338,12 @@ gint command_seek (AutoPipeline* auto_pipeline, Task* task) {
 	position_useconds = (gint64) (position_seconds * GST_SECOND);
 	seek_event = gst_event_new_seek (1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT, GST_SEEK_TYPE_SET, position_useconds, GST_SEEK_TYPE_NONE, (gint64) 0);
 	g_print ("Seeking to second %lf\n", position_seconds);
-	gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), _gst_event_ref0 (seek_event));
-	result = 0;
+	if (gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), _gst_event_ref0 (seek_event))) {
+		_tmp1_ = 0;
+	} else {
+		_tmp1_ = 1;
+	}
+	result = _tmp1_;
 	_gst_event_unref0 (seek_event);
 	G_IS_VALUE (&position_value) ? (g_value_unset (&position_value), NULL) : NULL;
 	return result;
@@ -347,10 +352,15 @@ gint command_seek (AutoPipeline* auto_pipeline, Task* task) {
 
 gint command_eos (AutoPipeline* auto_pipeline, Task* task) {
 	gint result = 0;
+	gint _tmp0_ = 0;
 	g_return_val_if_fail (auto_pipeline != NULL, 0);
 	g_return_val_if_fail (task != NULL, 0);
-	auto_pipeline_send_eos (auto_pipeline);
-	result = 1;
+	if (auto_pipeline_send_eos (auto_pipeline)) {
+		_tmp0_ = 0;
+	} else {
+		_tmp0_ = 1;
+	}
+	result = _tmp0_;
 	return result;
 }
 

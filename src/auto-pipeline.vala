@@ -115,24 +115,27 @@ class AutoPipeline: Object {
     }
 
 
-    public void send_eos() {
-        bool eos_was_sent = false;
+    public bool send_eos() {
+        bool eos_was_sent = true;
+        bool source_was_found = false;
         auto_pipeline.pipeline.iterate_elements().foreach(
             (data) => {
                 Gst.Element elem = data as Gst.Element;
                 if("src" in elem.name || elem is Gst.BaseSrc) {
-                    eos_was_sent = true;
+                    source_was_found = true;
                     print("Sending EOS event to element '%s'\n", elem.get_name());
-                    elem.send_event(new Gst.Event.eos());
+                    if(!elem.send_event(new Gst.Event.eos()))
+                        eos_was_sent = false;
                 }
             });
 
-        if(!eos_was_sent) {
-            print("Could not find a src element\n");
+        if(!source_was_found || !eos_was_sent) {
+            if(!source_was_found)
+                print("Could not find a src element\n");
             print("Sending EOS to the pipeline\n");
-            auto_pipeline.pipeline.send_event(new Gst.Event.eos());
+            return auto_pipeline.pipeline.send_event(new Gst.Event.eos());
         }
+        return true;
     }
-
 }
 
