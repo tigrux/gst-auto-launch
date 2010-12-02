@@ -73,8 +73,9 @@ gint command_seek (AutoPipeline* auto_pipeline, Task* task);
 static gint _command_seek_command_func (AutoPipeline* auto_pipeline, Task* task);
 gint command_navigation (AutoPipeline* auto_pipeline, Task* task);
 static gint _command_navigation_command_func (AutoPipeline* auto_pipeline, Task* task);
-GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
+gboolean auto_pipeline_set_state (AutoPipeline* self, GstState state);
 GValueArray* task_get_arguments (Task* self);
+GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 void auto_pipeline_send_eos (AutoPipeline* self);
 void scanner_register_symbols (GScanner* scanner);
 static int _vala_strcmp0 (const char * str1, const char * str2);
@@ -148,13 +149,11 @@ static gint _command_navigation_command_func (AutoPipeline* auto_pipeline, Task*
 
 gint command_play (AutoPipeline* auto_pipeline, Task* task) {
 	gint result = 0;
-	GstStateChangeReturn status;
 	gint _tmp0_ = 0;
 	g_return_val_if_fail (auto_pipeline != NULL, 0);
 	g_return_val_if_fail (task != NULL, 0);
 	g_print ("Passing to PLAYING\n");
-	status = gst_element_set_state ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), GST_STATE_PLAYING);
-	if (status != GST_STATE_CHANGE_FAILURE) {
+	if (auto_pipeline_set_state (auto_pipeline, GST_STATE_PLAYING)) {
 		_tmp0_ = 0;
 	} else {
 		_tmp0_ = 1;
@@ -166,13 +165,11 @@ gint command_play (AutoPipeline* auto_pipeline, Task* task) {
 
 gint command_pause (AutoPipeline* auto_pipeline, Task* task) {
 	gint result = 0;
-	GstStateChangeReturn status;
 	gint _tmp0_ = 0;
 	g_return_val_if_fail (auto_pipeline != NULL, 0);
 	g_return_val_if_fail (task != NULL, 0);
 	g_print ("Passing to PAUSED\n");
-	status = gst_element_set_state ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), GST_STATE_PAUSED);
-	if (status != GST_STATE_CHANGE_FAILURE) {
+	if (auto_pipeline_set_state (auto_pipeline, GST_STATE_PAUSED)) {
 		_tmp0_ = 0;
 	} else {
 		_tmp0_ = 1;
@@ -184,13 +181,11 @@ gint command_pause (AutoPipeline* auto_pipeline, Task* task) {
 
 gint command_ready (AutoPipeline* auto_pipeline, Task* task) {
 	gint result = 0;
-	GstStateChangeReturn status;
 	gint _tmp0_ = 0;
 	g_return_val_if_fail (auto_pipeline != NULL, 0);
 	g_return_val_if_fail (task != NULL, 0);
 	g_print ("Passing to READY\n");
-	status = gst_element_set_state ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), GST_STATE_READY);
-	if (status != GST_STATE_CHANGE_FAILURE) {
+	if (auto_pipeline_set_state (auto_pipeline, GST_STATE_READY)) {
 		_tmp0_ = 0;
 	} else {
 		_tmp0_ = 1;
@@ -202,13 +197,11 @@ gint command_ready (AutoPipeline* auto_pipeline, Task* task) {
 
 gint command_null (AutoPipeline* auto_pipeline, Task* task) {
 	gint result = 0;
-	GstStateChangeReturn status;
 	gint _tmp0_ = 0;
 	g_return_val_if_fail (auto_pipeline != NULL, 0);
 	g_return_val_if_fail (task != NULL, 0);
 	g_print ("Passing to NULL\n");
-	status = gst_element_set_state ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), GST_STATE_NULL);
-	if (status != GST_STATE_CHANGE_FAILURE) {
+	if (auto_pipeline_set_state (auto_pipeline, GST_STATE_NULL)) {
 		_tmp0_ = 0;
 	} else {
 		_tmp0_ = 1;

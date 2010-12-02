@@ -110,6 +110,11 @@ class AutoPipeline: Object {
     }
 
 
+    public bool set_state(Gst.State state) {
+        return pipeline.set_state(state) != Gst.StateChangeReturn.FAILURE;
+    }
+
+
     public void send_eos() {
         bool eos_was_sent = false;
         auto_pipeline.pipeline.iterate_elements().foreach(

@@ -76,6 +76,7 @@ static gboolean _lambda0_ (GQuark q, GValue* v, AutoPipeline* self);
 static gboolean __lambda0__gst_structure_foreach_func (GQuark field_id, GValue* value, gpointer self);
 void auto_pipeline_set_return_status (AutoPipeline* self, gint value);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
+gboolean auto_pipeline_set_state (AutoPipeline* self, GstState state);
 void auto_pipeline_send_eos (AutoPipeline* self);
 static void _lambda1_ (void* data, Block1Data* _data1_);
 static void __lambda1__gfunc (void* data, gpointer self);
@@ -254,6 +255,14 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 			break;
 		}
 	}
+}
+
+
+gboolean auto_pipeline_set_state (AutoPipeline* self, GstState state) {
+	gboolean result = FALSE;
+	g_return_val_if_fail (self != NULL, FALSE);
+	result = gst_element_set_state ((GstElement*) self->priv->_pipeline, state) != GST_STATE_CHANGE_FAILURE;
+	return result;
 }
 
 
