@@ -427,15 +427,24 @@ gint command_navigation (AutoPipeline* auto_pipeline, Task* task) {
 
 
 void scanner_register_symbols (GScanner* scanner, guint scope) {
-	Command* command;
 	g_return_if_fail (scanner != NULL);
-	command = &COMMANDS[0];
-	while (TRUE) {
-		if (!((*command).name != NULL)) {
-			break;
+	{
+		gint i;
+		i = 0;
+		{
+			gboolean _tmp0_;
+			_tmp0_ = TRUE;
+			while (TRUE) {
+				if (!_tmp0_) {
+					i++;
+				}
+				_tmp0_ = FALSE;
+				if (!(COMMANDS[i].name != NULL)) {
+					break;
+				}
+				g_scanner_scope_add_symbol (scanner, scope, COMMANDS[i].name, &COMMANDS[i]);
+			}
 		}
-		g_scanner_scope_add_symbol (scanner, scope, (*command).name, command);
-		command++;
 	}
 }
 

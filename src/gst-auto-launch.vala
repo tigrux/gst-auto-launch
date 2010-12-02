@@ -97,7 +97,7 @@ int main(string[] args) {
     if(tasks.length() == 0) {
         string auto_symbol = "play";
         printerr("No commands given, will exec '%s' automatically\n", auto_symbol);
-        Command? auto_command = scanner.lookup_command(auto_symbol);
+        weak Command? auto_command = scanner.lookup_command(auto_symbol);
         if(auto_command != null) {
             Task auto_task = new Task(0, auto_command);
             tasks.append(auto_task);

@@ -172,14 +172,14 @@ class TaskScanner: Object {
         scanner.scope_foreach_symbol(0,
             (key, val) => {
                 string name = (string)key;
-                Command *command = (Command*)val;
-                printerr("  %s:\n    %s\n", name, command->description);
+                weak Command? command = (Command?)val;
+                printerr("  %s:\n    %s\n", name, command.description);
             }
         );
     }
 
 
-    public Command? lookup_command(string command_name) {
+    public unowned Command? lookup_command(string command_name) {
         return (Command?)scanner.lookup_symbol(command_name);
     }
 }

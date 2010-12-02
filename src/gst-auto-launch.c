@@ -51,7 +51,6 @@ typedef struct _TaskClass TaskClass;
 
 #define TYPE_COMMAND (command_get_type ())
 typedef struct _Command Command;
-#define _command_free0(var) ((var == NULL) ? NULL : (var = (command_free (var), NULL)))
 typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 #define _g_main_loop_unref0(var) ((var == NULL) ? NULL : (var = (g_main_loop_unref (var), NULL)))
 
@@ -352,7 +351,6 @@ gint _vala_main (char** args, int args_length1) {
 		} else {
 			g_printerr ("Could not find a command named '%s'\n", auto_symbol);
 		}
-		_command_free0 (auto_command);
 		_g_free0 (auto_symbol);
 	}
 	i = 0;

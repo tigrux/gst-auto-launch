@@ -64,13 +64,11 @@ static glong string_get_length (const char* self) {
 
 gchar command_get_arg_desc (Command *self, guint arg_i) {
 	gchar result = '\0';
-	gchar arg_desc;
 	if (arg_i >= string_get_length ((*self).args_desc)) {
 		result = (gchar) 0;
 		return result;
 	}
-	arg_desc = ((gchar*) (*self).args_desc)[arg_i];
-	result = arg_desc;
+	result = (gchar) g_utf8_get_char (g_utf8_offset_to_pointer ((*self).args_desc, arg_i));
 	return result;
 }
 

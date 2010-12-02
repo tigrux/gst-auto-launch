@@ -163,10 +163,7 @@ int command_navigation(AutoPipeline auto_pipeline, Task task) {
 
 
 void scanner_register_symbols(Scanner scanner, uint scope) {
-    Command *command = &COMMANDS[0];
-    while(command->name != null) {
-        scanner.scope_add_symbol(scope, command->name, command);
-        command++;
-    }
+    for(int i=0; COMMANDS[i].name != null; i++)
+        scanner.scope_add_symbol(scope, COMMANDS[i].name, &COMMANDS[i]);
 }
 

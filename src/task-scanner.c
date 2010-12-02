@@ -434,7 +434,7 @@ Command* task_scanner_lookup_command (TaskScanner* self, const char* command_nam
 	Command* result = NULL;
 	g_return_val_if_fail (self != NULL, NULL);
 	g_return_val_if_fail (command_name != NULL, NULL);
-	result = _command_dup0 ((Command*) g_scanner_lookup_symbol (self->priv->scanner, command_name));
+	result = (Command*) g_scanner_lookup_symbol (self->priv->scanner, command_name);
 	return result;
 }
 
