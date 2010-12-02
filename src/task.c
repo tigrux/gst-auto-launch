@@ -34,7 +34,6 @@ typedef struct _AutoPipeline AutoPipeline;
 typedef struct _AutoPipelineClass AutoPipelineClass;
 typedef struct _Command Command;
 #define _g_value_array_free0(var) ((var == NULL) ? NULL : (var = (g_value_array_free (var), NULL)))
-typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 typedef struct _Block2Data Block2Data;
 
@@ -59,16 +58,6 @@ struct _TaskPrivate {
 	double _seconds;
 	Command _command;
 	GValueArray* _arguments;
-};
-
-struct _AutoPipeline {
-	GObject parent_instance;
-	AutoPipelinePrivate * priv;
-	gint return_status;
-};
-
-struct _AutoPipelineClass {
-	GObjectClass parent_class;
 };
 
 struct _Block2Data {
@@ -98,6 +87,8 @@ Task* task_construct (GType object_type, double seconds, Command* command);
 guint task_exec (Task* self, AutoPipeline* auto_pipeline);
 double task_get_seconds (Task* self);
 static gboolean _lambda1_ (Block2Data* _data2_);
+gint auto_pipeline_get_return_status (AutoPipeline* self);
+void auto_pipeline_set_return_status (AutoPipeline* self, gint value);
 static gboolean __lambda1__gsource_func (gpointer self);
 static Block2Data* block2_data_ref (Block2Data* _data2_);
 static void block2_data_unref (Block2Data* _data2_);
@@ -129,11 +120,11 @@ static gboolean _lambda1_ (Block2Data* _data2_) {
 	Task * self;
 	gboolean result = FALSE;
 	self = _data2_->self;
-	if (_data2_->auto_pipeline->return_status == 0) {
+	if (auto_pipeline_get_return_status (_data2_->auto_pipeline) == 0) {
 		gint status;
 		status = self->priv->_command.function (_data2_->auto_pipeline, self);
 		if (status != 0) {
-			_data2_->auto_pipeline->return_status = status;
+			auto_pipeline_set_return_status (_data2_->auto_pipeline, status);
 			g_signal_emit_by_name (_data2_->auto_pipeline, "quit");
 		}
 	}

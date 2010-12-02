@@ -51,7 +51,6 @@ typedef struct _TaskClass TaskClass;
 
 #define TYPE_COMMAND (command_get_type ())
 typedef struct _Command Command;
-typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 #define _g_main_loop_unref0(var) ((var == NULL) ? NULL : (var = (g_main_loop_unref (var), NULL)))
 
 typedef gint (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task);
@@ -60,16 +59,6 @@ struct _Command {
 	char* description;
 	char* args_desc;
 	CommandFunc function;
-};
-
-struct _AutoPipeline {
-	GObject parent_instance;
-	AutoPipelinePrivate * priv;
-	gint return_status;
-};
-
-struct _AutoPipelineClass {
-	GObjectClass parent_class;
 };
 
 
@@ -112,6 +101,7 @@ void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GE
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
 static void _g_main_loop_quit_auto_pipeline_quit (AutoPipeline* _sender, gpointer self);
+gint auto_pipeline_get_return_status (AutoPipeline* self);
 static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func);
 static void _vala_array_free (gpointer array, gint array_length, GDestroyNotify destroy_func);
 static gint _vala_array_length (gpointer array);
@@ -450,7 +440,7 @@ gint _vala_main (char** args, int args_length1) {
 		auto_pipeline_log (auto_pipeline, " 'end' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec, NULL);
 		auto_pipeline_log (auto_pipeline, "}\n", NULL);
 	}
-	result = auto_pipeline->return_status;
+	result = auto_pipeline_get_return_status (auto_pipeline);
 	_g_main_loop_unref0 (loop);
 	_g_free0 (pipeline_desc);
 	effective_args = (_vala_array_free (effective_args, effective_args_length1, (GDestroyNotify) g_free), NULL);

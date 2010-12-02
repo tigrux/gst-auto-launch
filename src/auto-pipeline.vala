@@ -14,7 +14,7 @@ class AutoPipeline: Object {
     FileStream log_stream;
 
     bool _output_messages_enabled;
-    public int return_status = 0;
+    public int return_status {get; set; default = 0;}
 
     public bool output_messages_enabled {
         set {
