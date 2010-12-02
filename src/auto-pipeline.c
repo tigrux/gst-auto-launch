@@ -25,7 +25,6 @@ typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 #define _fclose0(var) ((var == NULL) ? NULL : (var = (fclose (var), NULL)))
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
 #define _g_free0(var) (var = (g_free (var), NULL))
-#define _gst_structure_free0(var) ((var == NULL) ? NULL : (var = (gst_structure_free (var), NULL)))
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 #define _gst_iterator_free0(var) ((var == NULL) ? NULL : (var = (gst_iterator_free (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
@@ -139,11 +138,6 @@ void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GE
 }
 
 
-static gpointer _gst_structure_copy0 (gpointer self) {
-	return self ? gst_structure_copy (self) : NULL;
-}
-
-
 static gboolean _lambda0_ (GQuark q, GValue* v, AutoPipeline* self) {
 	gboolean result = FALSE;
 	GValue _tmp0_ = {0};
@@ -170,12 +164,12 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 	if (self->priv->_output_messages_enabled) {
 		guint32 seqnum;
 		GstObject* src;
-		GstStructure* s;
+		const GstStructure* s;
 		char* src_name;
 		GTimeVal tv = {0};
 		seqnum = gst_message_get_seqnum (message);
-		src = _gst_object_ref0 (message->src);
-		s = _gst_structure_copy0 (gst_message_get_structure (message));
+		src = message->src;
+		s = gst_message_get_structure (message);
 		src_name = NULL;
 		if (GST_IS_ELEMENT (src)) {
 			char* _tmp0_;
@@ -218,8 +212,6 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 		}
 		auto_pipeline_log (self, "  },\n", NULL);
 		_g_free0 (src_name);
-		_gst_structure_free0 (s);
-		_gst_object_unref0 (src);
 	}
 	switch (message->type) {
 		case GST_MESSAGE_ERROR:

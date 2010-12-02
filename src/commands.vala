@@ -134,20 +134,20 @@ int command_navigation(AutoPipeline auto_pipeline, Task task) {
         return 1;
     }
 
-    Gst.Structure s = new Gst.Structure("application/x-gst-navigation",
-        "event", typeof(string), event_name,
-        "button", typeof(int), button,
-        "pointer_x", typeof(double), (double)pointer_x,
-        "pointer_y", typeof(double), (double)pointer_y,
-        null);
-
     Gst.Pad src_pad = element.get_static_pad("src");
     if(src_pad == null) {
         printerr("No src pad in element %s", element_name);
         return 1;
     }
 
-    src_pad.send_event(new Gst.Event.navigation(s));
+    src_pad.send_event(
+        new Gst.Event.navigation(
+            new Gst.Structure("application/x-gst-navigation",
+                "event", typeof(string), event_name,
+                "button", typeof(int), button,
+                "pointer_x", typeof(double), (double)pointer_x,
+                "pointer_y", typeof(double), (double)pointer_y,
+                null)));
     return 0;
 }
 

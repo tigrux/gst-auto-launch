@@ -36,7 +36,6 @@ typedef struct _Command Command;
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
 #define _g_free0(var) (var = (g_free (var), NULL))
 #define _gst_event_unref0(var) ((var == NULL) ? NULL : (var = (gst_event_unref (var), NULL)))
-#define _gst_structure_free0(var) ((var == NULL) ? NULL : (var = (gst_structure_free (var), NULL)))
 
 typedef gint (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task);
 struct _Command {
@@ -365,11 +364,6 @@ gint command_eos (AutoPipeline* auto_pipeline, Task* task) {
 }
 
 
-static gpointer _gst_structure_copy0 (gpointer self) {
-	return self ? gst_structure_copy (self) : NULL;
-}
-
-
 gint command_navigation (AutoPipeline* auto_pipeline, Task* task) {
 	gint result = 0;
 	GValue _tmp0_;
@@ -383,7 +377,6 @@ gint command_navigation (AutoPipeline* auto_pipeline, Task* task) {
 	gint _tmp4_ = 0;
 	gint button;
 	GstElement* element;
-	GstStructure* s;
 	GstPad* src_pad;
 	g_return_val_if_fail (auto_pipeline != NULL, 0);
 	g_return_val_if_fail (task != NULL, 0);
@@ -406,22 +399,19 @@ gint command_navigation (AutoPipeline* auto_pipeline, Task* task) {
 		_g_free0 (element_name);
 		return result;
 	}
-	s = gst_structure_new ("application/x-gst-navigation", "event", G_TYPE_STRING, event_name, "button", G_TYPE_INT, button, "pointer_x", G_TYPE_DOUBLE, (double) pointer_x, "pointer_y", G_TYPE_DOUBLE, (double) pointer_y, NULL, NULL);
 	src_pad = gst_element_get_static_pad (element, "src");
 	if (src_pad == NULL) {
 		g_printerr ("No src pad in element %s", element_name);
 		result = 1;
 		_gst_object_unref0 (src_pad);
-		_gst_structure_free0 (s);
 		_gst_object_unref0 (element);
 		_g_free0 (event_name);
 		_g_free0 (element_name);
 		return result;
 	}
-	gst_pad_send_event (src_pad, gst_event_new_navigation (_gst_structure_copy0 (s)));
+	gst_pad_send_event (src_pad, gst_event_new_navigation (gst_structure_new ("application/x-gst-navigation", "event", G_TYPE_STRING, event_name, "button", G_TYPE_INT, button, "pointer_x", G_TYPE_DOUBLE, (double) pointer_x, "pointer_y", G_TYPE_DOUBLE, (double) pointer_y, NULL, NULL)));
 	result = 0;
 	_gst_object_unref0 (src_pad);
-	_gst_structure_free0 (s);
 	_gst_object_unref0 (element);
 	_g_free0 (event_name);
 	_g_free0 (element_name);

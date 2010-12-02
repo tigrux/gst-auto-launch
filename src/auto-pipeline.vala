@@ -51,8 +51,8 @@ class AutoPipeline: Object {
     void on_bus_message(Gst.Message message) {
         if(_output_messages_enabled) {
             uint32 seqnum = message.get_seqnum();
-            Gst.Object src = message.src;
-            Gst.Structure s = message.get_structure();
+            unowned Gst.Object src = message.src;
+            unowned Gst.Structure s = message.get_structure();
             string src_name = null;
             
             if(src is Gst.Element)
