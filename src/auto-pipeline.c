@@ -69,9 +69,7 @@ enum  {
 	AUTO_PIPELINE_PIPELINE
 };
 void auto_pipeline_log (AutoPipeline* self, const char* format, ...);
-void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GError** error);
 static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* message);
-static void _auto_pipeline_on_bus_message_gst_bus_message (GstBus* _sender, GstMessage* message, gpointer self);
 static gboolean _lambda0_ (GQuark q, GValue* v, AutoPipeline* self);
 static gboolean __lambda0__gst_structure_foreach_func (GQuark field_id, GValue* value, gpointer self);
 void auto_pipeline_set_return_status (AutoPipeline* self, gint value);
@@ -88,6 +86,7 @@ gint auto_pipeline_get_return_status (AutoPipeline* self);
 gboolean auto_pipeline_get_output_messages_enabled (AutoPipeline* self);
 void auto_pipeline_set_output_messages_enabled (AutoPipeline* self, gboolean value);
 void auto_pipeline_set_pipeline (AutoPipeline* self, GstBin* value);
+static void _auto_pipeline_on_bus_message_gst_bus_message (GstBus* _sender, GstMessage* message, gpointer self);
 static void auto_pipeline_finalize (GObject* obj);
 static void auto_pipeline_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
 static void auto_pipeline_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
@@ -109,32 +108,6 @@ void auto_pipeline_log (AutoPipeline* self, const char* format, ...) {
 
 static gpointer _gst_object_ref0 (gpointer self) {
 	return self ? gst_object_ref (self) : NULL;
-}
-
-
-static void _auto_pipeline_on_bus_message_gst_bus_message (GstBus* _sender, GstMessage* message, gpointer self) {
-	auto_pipeline_on_bus_message (self, message);
-}
-
-
-void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GError** error) {
-	GstElement* _tmp0_;
-	GstElement* _tmp1_;
-	GstBin* _tmp2_;
-	GstBus* bus;
-	GError * _inner_error_ = NULL;
-	g_return_if_fail (self != NULL);
-	g_return_if_fail (description != NULL);
-	_tmp0_ = gst_parse_launch (description, &_inner_error_);
-	if (_inner_error_ != NULL) {
-		g_propagate_error (error, _inner_error_);
-		return;
-	}
-	self->priv->_pipeline = (_tmp2_ = (_tmp1_ = _tmp0_, GST_IS_BIN (_tmp1_) ? ((GstBin*) _tmp1_) : NULL), _gst_object_unref0 (self->priv->_pipeline), _tmp2_);
-	bus = _gst_object_ref0 (((GstElement*) self->priv->_pipeline)->bus);
-	gst_bus_add_signal_watch (bus);
-	g_signal_connect_object (bus, "message", (GCallback) _auto_pipeline_on_bus_message_gst_bus_message, self, 0);
-	_gst_object_unref0 (bus);
 }
 
 
@@ -227,7 +200,7 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 				s = NULL;
 				(gst_message_parse_error (message, &_tmp5_, &_tmp7_), e = (_tmp6_ = _tmp5_, _g_error_free0 (e), _tmp6_));
 				s = (_tmp8_ = _tmp7_, _g_free0 (s), _tmp8_);
-				g_critical ("auto-pipeline.vala:97: Bus error: %s %s\n", e->message, s);
+				g_critical ("auto-pipeline.vala:100: Bus error: %s %s\n", e->message, s);
 				auto_pipeline_set_return_status (self, 1);
 				g_signal_emit_by_name (self, "quit");
 				_g_free0 (s);
@@ -238,7 +211,7 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 		case GST_MESSAGE_EOS:
 		{
 			{
-				gst_element_set_state ((GstElement*) self->priv->_pipeline, GST_STATE_NULL);
+				gst_element_set_state ((GstElement*) auto_pipeline_get_pipeline (self), GST_STATE_NULL);
 				g_signal_emit_by_name (self, "quit");
 				break;
 			}
@@ -254,7 +227,7 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 gboolean auto_pipeline_set_state (AutoPipeline* self, GstState state) {
 	gboolean result = FALSE;
 	g_return_val_if_fail (self != NULL, FALSE);
-	result = gst_element_set_state ((GstElement*) self->priv->_pipeline, state) != GST_STATE_CHANGE_FAILURE;
+	result = gst_element_set_state ((GstElement*) auto_pipeline_get_pipeline (self), state) != GST_STATE_CHANGE_FAILURE;
 	return result;
 }
 
@@ -323,7 +296,7 @@ gboolean auto_pipeline_send_eos (AutoPipeline* self) {
 	_data1_->self = g_object_ref (self);
 	_data1_->eos_was_sent = TRUE;
 	_data1_->source_was_found = FALSE;
-	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline->priv->_pipeline), __lambda1__gfunc, _data1_);
+	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (auto_pipeline)), __lambda1__gfunc, _data1_);
 	_gst_iterator_free0 (_tmp0_);
 	if (!_data1_->source_was_found) {
 		_tmp1_ = TRUE;
@@ -335,7 +308,7 @@ gboolean auto_pipeline_send_eos (AutoPipeline* self) {
 			g_print ("Could not find a src element\n");
 		}
 		g_print ("Sending EOS to the pipeline\n");
-		result = gst_element_send_event ((GstElement*) auto_pipeline->priv->_pipeline, gst_event_new_eos ());
+		result = gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), gst_event_new_eos ());
 		block1_data_unref (_data1_);
 		return result;
 	}
@@ -405,10 +378,20 @@ GstBin* auto_pipeline_get_pipeline (AutoPipeline* self) {
 }
 
 
+static void _auto_pipeline_on_bus_message_gst_bus_message (GstBus* _sender, GstMessage* message, gpointer self) {
+	auto_pipeline_on_bus_message (self, message);
+}
+
+
 void auto_pipeline_set_pipeline (AutoPipeline* self, GstBin* value) {
 	GstBin* _tmp0_;
+	GstBus* bus;
 	g_return_if_fail (self != NULL);
 	self->priv->_pipeline = (_tmp0_ = _gst_object_ref0 (value), _gst_object_unref0 (self->priv->_pipeline), _tmp0_);
+	bus = _gst_object_ref0 (((GstElement*) self->priv->_pipeline)->bus);
+	gst_bus_add_signal_watch (bus);
+	g_signal_connect_object (bus, "message", (GCallback) _auto_pipeline_on_bus_message_gst_bus_message, self, 0);
+	_gst_object_unref0 (bus);
 	g_object_notify ((GObject *) self, "pipeline");
 }
 

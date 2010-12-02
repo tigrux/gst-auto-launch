@@ -35,16 +35,19 @@ class AutoPipeline: Object {
     }
 
 
+    Gst.Bin _pipeline;
+
     public Gst.Bin pipeline {
-        get; set;
-    }
+        get {
+            return _pipeline;
+        }
 
-
-    public void parse_launch(string description) throws Error {
-        _pipeline = Gst.parse_launch(description) as Gst.Bin;
-        Gst.Bus bus = _pipeline.bus;
-        bus.add_signal_watch();
-        bus.message.connect(on_bus_message);
+        set {
+            _pipeline = value;
+            Gst.Bus bus = _pipeline.bus;
+            bus.add_signal_watch();
+            bus.message.connect(on_bus_message);
+        }
     }
 
 

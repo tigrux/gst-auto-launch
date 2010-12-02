@@ -106,11 +106,12 @@ int main(string[] args) {
     }
 
     int i = 0;
-    string[] effective_args = new string[effective_args_list.length()];
+    string[] effective_args = new string[effective_args_list.length()+1];
     foreach(string arg in effective_args_list) {
         effective_args[i] = arg;
         i++;
     }
+    effective_args[i] = null;
     string pipeline_desc = string.joinv(" ", effective_args);
 
     try {
@@ -118,7 +119,7 @@ int main(string[] args) {
             tv = TimeVal();
             auto_pipeline.log(" 'description' : '%s',\n", pipeline_desc);
         }
-        auto_pipeline.parse_launch(pipeline_desc);
+        auto_pipeline.pipeline = Gst.parse_launchv(effective_args) as Gst.Bin;
         if(output_messages) {
             tv = TimeVal();
             auto_pipeline.log(" 'launch' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);

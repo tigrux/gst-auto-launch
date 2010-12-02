@@ -51,6 +51,7 @@ typedef struct _TaskClass TaskClass;
 
 #define TYPE_COMMAND (command_get_type ())
 typedef struct _Command Command;
+#define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
 #define _g_main_loop_unref0(var) ((var == NULL) ? NULL : (var = (g_main_loop_unref (var), NULL)))
 
 typedef gint (*CommandFunc) (AutoPipeline* auto_pipeline, Task* task);
@@ -97,7 +98,7 @@ void command_destroy (Command* self);
 Command* task_scanner_lookup_command (TaskScanner* self, const char* command_name);
 Task* task_new (double seconds, Command* command);
 Task* task_construct (GType object_type, double seconds, Command* command);
-void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GError** error);
+void auto_pipeline_set_pipeline (AutoPipeline* self, GstBin* value);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 guint task_exec (Task* self, AutoPipeline* auto_pipeline);
 static void _g_main_loop_quit_auto_pipeline_quit (AutoPipeline* _sender, gpointer self);
@@ -187,6 +188,7 @@ gint _vala_main (char** args, int args_length1) {
 	char** _tmp11_;
 	gint _tmp10_;
 	char** effective_args;
+	char* _tmp13_;
 	char* pipeline_desc;
 	GMainLoop* loop;
 	GError * _inner_error_ = NULL;
@@ -344,7 +346,7 @@ gint _vala_main (char** args, int args_length1) {
 		_g_free0 (auto_symbol);
 	}
 	i = 0;
-	effective_args = (_tmp11_ = g_new0 (char*, (_tmp10_ = g_list_length (effective_args_list)) + 1), effective_args_length1 = _tmp10_, _effective_args_size_ = effective_args_length1, _tmp11_);
+	effective_args = (_tmp11_ = g_new0 (char*, (_tmp10_ = g_list_length (effective_args_list) + 1) + 1), effective_args_length1 = _tmp10_, _effective_args_size_ = effective_args_length1, _tmp11_);
 	{
 		GList* arg_collection;
 		GList* arg_it;
@@ -360,20 +362,26 @@ gint _vala_main (char** args, int args_length1) {
 			}
 		}
 	}
+	effective_args[i] = (_tmp13_ = NULL, _g_free0 (effective_args[i]), _tmp13_);
 	pipeline_desc = g_strjoinv (" ", effective_args);
 	{
-		if (output_messages) {
-			GTimeVal _tmp13_ = {0};
-			tv = (g_get_current_time (&_tmp13_), _tmp13_);
-			auto_pipeline_log (auto_pipeline, " 'description' : '%s',\n", pipeline_desc, NULL);
-		}
-		auto_pipeline_parse_launch (auto_pipeline, pipeline_desc, &_inner_error_);
-		if (_inner_error_ != NULL) {
-			goto __catch1_g_error;
-		}
+		GstElement* _tmp15_;
+		GstElement* _tmp16_;
+		GstBin* _tmp17_;
 		if (output_messages) {
 			GTimeVal _tmp14_ = {0};
 			tv = (g_get_current_time (&_tmp14_), _tmp14_);
+			auto_pipeline_log (auto_pipeline, " 'description' : '%s',\n", pipeline_desc, NULL);
+		}
+		_tmp15_ = gst_parse_launchv (effective_args, &_inner_error_);
+		if (_inner_error_ != NULL) {
+			goto __catch1_g_error;
+		}
+		auto_pipeline_set_pipeline (auto_pipeline, _tmp17_ = (_tmp16_ = _tmp15_, GST_IS_BIN (_tmp16_) ? ((GstBin*) _tmp16_) : NULL));
+		_gst_object_unref0 (_tmp17_);
+		if (output_messages) {
+			GTimeVal _tmp18_ = {0};
+			tv = (g_get_current_time (&_tmp18_), _tmp18_);
 			auto_pipeline_log (auto_pipeline, " 'launch' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec, NULL);
 		}
 	}
@@ -435,8 +443,8 @@ gint _vala_main (char** args, int args_length1) {
 	}
 	gst_element_set_state ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), GST_STATE_NULL);
 	if (output_messages) {
-		GTimeVal _tmp15_ = {0};
-		tv = (g_get_current_time (&_tmp15_), _tmp15_);
+		GTimeVal _tmp19_ = {0};
+		tv = (g_get_current_time (&_tmp19_), _tmp19_);
 		auto_pipeline_log (auto_pipeline, " 'end' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec, NULL);
 		auto_pipeline_log (auto_pipeline, "}\n", NULL);
 	}
