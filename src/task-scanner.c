@@ -46,7 +46,6 @@ typedef struct _AutoPipelineClass AutoPipelineClass;
 typedef struct _Command Command;
 #define _g_free0(var) (var = (g_free (var), NULL))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
-#define _command_free0(var) ((var == NULL) ? NULL : (var = (command_free (var), NULL)))
 
 struct _TaskScanner {
 	GObject parent_instance;
@@ -142,11 +141,6 @@ static glong string_get_length (const char* self) {
 }
 
 
-static gpointer _command_dup0 (gpointer self) {
-	return self ? command_dup (self) : NULL;
-}
-
-
 Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 	Task* result = NULL;
 	GTokenType token = 0;
@@ -185,7 +179,7 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 		result = NULL;
 		return result;
 	}
-	command = _command_dup0 ((Command*) self->priv->scanner->value.v_symbol);
+	command = (Command*) self->priv->scanner->value.v_symbol;
 	task = task_new (number, command);
 	arg_n = (guint) 0;
 	while (TRUE) {
@@ -268,7 +262,6 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 		g_printerr ("Command '%s' takes %u arguments (got %u)\n", (*command).name, command_get_n_args (command), task_get_arguments (task)->n_values);
 		result = NULL;
 		_g_object_unref0 (task);
-		_command_free0 (command);
 		return result;
 	}
 	{
@@ -298,7 +291,6 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 							result = NULL;
 							G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
 							_g_object_unref0 (task);
-							_command_free0 (command);
 							return result;
 						}
 						break;
@@ -310,7 +302,6 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 							result = NULL;
 							G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
 							_g_object_unref0 (task);
-							_command_free0 (command);
 							return result;
 						}
 						break;
@@ -322,7 +313,6 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 							result = NULL;
 							G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
 							_g_object_unref0 (task);
-							_command_free0 (command);
 							return result;
 						}
 						number = g_value_get_double (&arg_value);
@@ -331,7 +321,6 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 							result = NULL;
 							G_IS_VALUE (&arg_value) ? (g_value_unset (&arg_value), NULL) : NULL;
 							_g_object_unref0 (task);
-							_command_free0 (command);
 							return result;
 						}
 						break;
@@ -342,7 +331,6 @@ Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg) {
 		}
 	}
 	result = task;
-	_command_free0 (command);
 	return result;
 }
 

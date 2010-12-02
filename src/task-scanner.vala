@@ -40,7 +40,7 @@ class TaskScanner: Object {
             return null;
         }
 
-        Command? command = (Command?)scanner.value.symbol;
+        weak Command? command = (Command?)scanner.value.symbol;
         Task task = new Task(number, command);
 
         uint arg_n = 0;
