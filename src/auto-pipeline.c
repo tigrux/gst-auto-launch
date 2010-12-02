@@ -27,16 +27,6 @@ typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 #define _g_free0(var) (var = (g_free (var), NULL))
 #define _gst_structure_free0(var) ((var == NULL) ? NULL : (var = (gst_structure_free (var), NULL)))
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
-
-#define TYPE_TASK (task_get_type ())
-#define TASK(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_TASK, Task))
-#define TASK_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), TYPE_TASK, TaskClass))
-#define IS_TASK(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TYPE_TASK))
-#define IS_TASK_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), TYPE_TASK))
-#define TASK_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), TYPE_TASK, TaskClass))
-
-typedef struct _Task Task;
-typedef struct _TaskClass TaskClass;
 #define _gst_iterator_free0(var) ((var == NULL) ? NULL : (var = (gst_iterator_free (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 typedef struct _Block1Data Block1Data;
@@ -86,12 +76,9 @@ static gboolean _lambda0_ (GQuark q, GValue* v, AutoPipeline* self);
 static gboolean __lambda0__gst_structure_foreach_func (GQuark field_id, GValue* value, gpointer self);
 void auto_pipeline_set_return_status (AutoPipeline* self, gint value);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
-GType task_get_type (void) G_GNUC_CONST;
-guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
-guint task_exec (Task* self, AutoPipeline* auto_pipeline);
 void auto_pipeline_send_eos (AutoPipeline* self);
-static void _lambda2_ (void* data, Block1Data* _data1_);
-static void __lambda2__gfunc (void* data, gpointer self);
+static void _lambda1_ (void* data, Block1Data* _data1_);
+static void __lambda1__gfunc (void* data, gpointer self);
 static Block1Data* block1_data_ref (Block1Data* _data1_);
 static void block1_data_unref (Block1Data* _data1_);
 AutoPipeline* auto_pipeline_new (void);
@@ -270,15 +257,6 @@ static void auto_pipeline_on_bus_message (AutoPipeline* self, GstMessage* messag
 }
 
 
-guint auto_pipeline_exec_task (AutoPipeline* self, Task* task) {
-	guint result = 0U;
-	g_return_val_if_fail (self != NULL, 0U);
-	g_return_val_if_fail (task != NULL, 0U);
-	result = task_exec (task, self);
-	return result;
-}
-
-
 static gboolean string_contains (const char* self, const char* needle) {
 	gboolean result = FALSE;
 	g_return_val_if_fail (self != NULL, FALSE);
@@ -288,7 +266,7 @@ static gboolean string_contains (const char* self, const char* needle) {
 }
 
 
-static void _lambda2_ (void* data, Block1Data* _data1_) {
+static void _lambda1_ (void* data, Block1Data* _data1_) {
 	AutoPipeline * self;
 	void* _tmp0_;
 	GstElement* elem;
@@ -311,8 +289,8 @@ static void _lambda2_ (void* data, Block1Data* _data1_) {
 }
 
 
-static void __lambda2__gfunc (void* data, gpointer self) {
-	_lambda2_ (data, self);
+static void __lambda1__gfunc (void* data, gpointer self) {
+	_lambda1_ (data, self);
 }
 
 
@@ -338,7 +316,7 @@ void auto_pipeline_send_eos (AutoPipeline* self) {
 	_data1_->_ref_count_ = 1;
 	_data1_->self = g_object_ref (self);
 	_data1_->eos_was_sent = FALSE;
-	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline->priv->_pipeline), __lambda2__gfunc, _data1_);
+	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline->priv->_pipeline), __lambda1__gfunc, _data1_);
 	_gst_iterator_free0 (_tmp0_);
 	if (!_data1_->eos_was_sent) {
 		g_print ("Could not find a src element\n");

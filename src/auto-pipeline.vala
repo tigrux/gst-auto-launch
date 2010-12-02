@@ -110,10 +110,6 @@ class AutoPipeline: Object {
     }
 
 
-    public uint exec_task(Task task) {
-        return task.exec(this);
-    }
-
     public void send_eos() {
         bool eos_was_sent = false;
         auto_pipeline.pipeline.iterate_elements().foreach(

@@ -99,7 +99,7 @@ Task* task_new (double seconds, Command* command);
 Task* task_construct (GType object_type, double seconds, Command* command);
 void auto_pipeline_parse_launch (AutoPipeline* self, const char* description, GError** error);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
-guint auto_pipeline_exec_task (AutoPipeline* self, Task* task);
+guint task_exec (Task* self, AutoPipeline* auto_pipeline);
 static void _g_main_loop_quit_auto_pipeline_quit (AutoPipeline* _sender, gpointer self);
 gint auto_pipeline_get_return_status (AutoPipeline* self);
 static void _vala_array_destroy (gpointer array, gint array_length, GDestroyNotify destroy_func);
@@ -419,7 +419,7 @@ gint _vala_main (char** args, int args_length1) {
 			Task* task;
 			task = _g_object_ref0 ((Task*) task_it->data);
 			{
-				auto_pipeline_exec_task (auto_pipeline, task);
+				task_exec (task, auto_pipeline);
 				_g_object_unref0 (task);
 			}
 		}

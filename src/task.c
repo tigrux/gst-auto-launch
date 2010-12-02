@@ -86,10 +86,10 @@ Task* task_new (double seconds, Command* command);
 Task* task_construct (GType object_type, double seconds, Command* command);
 guint task_exec (Task* self, AutoPipeline* auto_pipeline);
 double task_get_seconds (Task* self);
-static gboolean _lambda1_ (Block2Data* _data2_);
+static gboolean _lambda2_ (Block2Data* _data2_);
 gint auto_pipeline_get_return_status (AutoPipeline* self);
 void auto_pipeline_set_return_status (AutoPipeline* self, gint value);
-static gboolean __lambda1__gsource_func (gpointer self);
+static gboolean __lambda2__gsource_func (gpointer self);
 static Block2Data* block2_data_ref (Block2Data* _data2_);
 static void block2_data_unref (Block2Data* _data2_);
 GValueArray* task_get_arguments (Task* self);
@@ -116,7 +116,7 @@ Task* task_new (double seconds, Command* command) {
 }
 
 
-static gboolean _lambda1_ (Block2Data* _data2_) {
+static gboolean _lambda2_ (Block2Data* _data2_) {
 	Task * self;
 	gboolean result = FALSE;
 	self = _data2_->self;
@@ -133,9 +133,9 @@ static gboolean _lambda1_ (Block2Data* _data2_) {
 }
 
 
-static gboolean __lambda1__gsource_func (gpointer self) {
+static gboolean __lambda2__gsource_func (gpointer self) {
 	gboolean result;
-	result = _lambda1_ (self);
+	result = _lambda2_ (self);
 	return result;
 }
 
@@ -169,7 +169,7 @@ guint task_exec (Task* self, AutoPipeline* auto_pipeline) {
 	_data2_->_ref_count_ = 1;
 	_data2_->self = g_object_ref (self);
 	_data2_->auto_pipeline = _g_object_ref0 (auto_pipeline);
-	result = g_timeout_add_full (G_PRIORITY_DEFAULT, (guint) (task_get_seconds (self) * 1000), __lambda1__gsource_func, block2_data_ref (_data2_), block2_data_unref);
+	result = g_timeout_add_full (G_PRIORITY_DEFAULT, (guint) (task_get_seconds (self) * 1000), __lambda2__gsource_func, block2_data_ref (_data2_), block2_data_unref);
 	block2_data_unref (_data2_);
 	return result;
 }

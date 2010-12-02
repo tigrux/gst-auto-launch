@@ -133,7 +133,7 @@ int main(string[] args) {
     }
 
     foreach(Task task in tasks)
-        auto_pipeline.exec_task(task);
+        task.exec(auto_pipeline);
 
     MainLoop loop = new MainLoop();
     auto_pipeline.quit.connect(loop.quit);
