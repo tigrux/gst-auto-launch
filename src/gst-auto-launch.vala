@@ -55,7 +55,7 @@ int main(string[] args) {
         auto_pipeline.log(" 'start' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
     }
 
-    var scanner = new TaskScanner();
+    TaskScanner scanner = new TaskScanner();
 
     if(args.length < 2) {
         printerr(opt_context.get_help(true, null));        
@@ -71,19 +71,19 @@ int main(string[] args) {
         return 1;
     }
 
-    var tasks = new List<Task> ();
-    var effective_args_list = new List<string> ();
+    List<Task> tasks = new List<Task> ();
+    List<string> effective_args_list = new List<string> ();
 
-    foreach(var arg in args[1:args.length]) {
-        var task = scanner.get_task_from_arg(arg);
+    foreach(string arg in args[1:args.length]) {
+        Task? task = scanner.get_task_from_arg(arg);
         if(task != null)
             tasks.append(task);
         else if(!arg.has_prefix("--")) {
             if(" " in arg && "=" in arg) {
-                var parts = arg.split("=", 2);
-                var prop_name_regex = /^[A-Za-z][a-zA-Z0-9_-]+$/;
+                string[] parts = arg.split("=", 2);
+                Regex prop_name_regex = /^[A-Za-z][a-zA-Z0-9_-]+$/;
                 if(prop_name_regex.match(parts[0])) {
-                    var new_arg = "%s=\"%s\"".printf(parts[0],parts[1]);
+                    string new_arg = "%s=\"%s\"".printf(parts[0],parts[1]);
                     effective_args_list.append(new_arg);
                     continue;
                 }
@@ -95,24 +95,24 @@ int main(string[] args) {
     }
 
     if(tasks.length() == 0) {
-        var auto_symbol = "play";
+        string auto_symbol = "play";
         printerr("No commands given, will exec '%s' automatically\n", auto_symbol);
-        var auto_command = scanner.lookup_command(auto_symbol);
+        Command? auto_command = scanner.lookup_command(auto_symbol);
         if(auto_command != null) {
-            var auto_task = new Task(0, auto_command);
+            Task auto_task = new Task(0, auto_command);
             tasks.append(auto_task);
         }
         else
             printerr("Could not find a command named '%s'\n", auto_symbol);
     }
 
-    var i = 0;
-    var effective_args = new string[effective_args_list.length()];
-    foreach(var arg in effective_args_list) {
+    int i = 0;
+    string[] effective_args = new string[effective_args_list.length()];
+    foreach(string arg in effective_args_list) {
         effective_args[i] = arg;
         i++;
     }
-    var pipeline_desc = string.joinv(" ", effective_args);
+    string pipeline_desc = string.joinv(" ", effective_args);
 
     try {
         if(output_messages) {
@@ -133,9 +133,9 @@ int main(string[] args) {
         return 1;
     }
 
-    foreach(var task in tasks)
+    foreach(Task task in tasks)
         auto_pipeline.exec_task(task);
-    var loop = new MainLoop();
+    MainLoop loop = new MainLoop();
     auto_pipeline.quit.connect(loop.quit);
     if(output_messages)
         auto_pipeline.log(" 'message' : [\n");

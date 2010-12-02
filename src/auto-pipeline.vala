@@ -28,7 +28,7 @@ class AutoPipeline: Object {
     }
 
     public void log(string format, ...) {
-        var args_vl = va_list();
+        va_list args_vl = va_list();
         if(log_stream != null)
             vfprintf(log_stream, format, args_vl);
         vprintf(format, args_vl);
@@ -42,7 +42,7 @@ class AutoPipeline: Object {
 
     public void parse_launch(string description) throws Error {
         _pipeline = Gst.parse_launch(description) as Gst.Bin;
-        var bus = _pipeline.bus;
+        Gst.Bus bus = _pipeline.bus;
         bus.add_signal_watch();
         bus.message.connect(on_bus_message);
     }
@@ -50,17 +50,17 @@ class AutoPipeline: Object {
 
     void on_bus_message(Gst.Message message) {
         if(_output_messages_enabled) {
-            var seqnum = message.get_seqnum();
-            var src = message.src;
-            var s = message.get_structure();
+            uint32 seqnum = message.get_seqnum();
+            Gst.Object src = message.src;
+            Gst.Structure s = message.get_structure();
             string src_name = null;
             
             if(src is Gst.Element)
                 src_name = src.name;
             else if(src is Gst.Pad) {
-                var pad = (Gst.Pad)src;
-                var pad_name = pad.name;
-                var parent_name = pad.get_parent_element().name;
+                Gst.Pad pad = (Gst.Pad)src;
+                string pad_name = pad.name;
+                string parent_name = pad.get_parent_element().name;
                 src_name = "%s:%s".printf(parent_name, pad_name);
             }
             else if(src is Gst.Object)
@@ -69,7 +69,7 @@ class AutoPipeline: Object {
             log("  {\n");
             log("   'seqnum' : %u,\n", seqnum);
             log("   'type' : '%s',\n", message.type.to_string());
-            var tv = TimeVal();
+            TimeVal tv = TimeVal();
             log("   'time' : %lu.%06lu,\n", tv.tv_sec, tv.tv_usec);
             if(src_name != null)
                 log("   'src' : '%s',\n", src_name);
@@ -118,7 +118,7 @@ class AutoPipeline: Object {
         bool eos_was_sent = false;
         auto_pipeline.pipeline.iterate_elements().foreach(
             (data) => {
-                var elem = data as Gst.Element;
+                Gst.Element elem = data as Gst.Element;
                 if("src" in elem.name || elem is Gst.BaseSrc) {
                     eos_was_sent = true;
                     print("Sending EOS event to element '%s'\n", elem.get_name());

@@ -22,7 +22,7 @@ class TaskScanner: Object {
 
         TokenType token;
 
-        var number = get_seconds(out token);
+        double number = get_seconds(out token);
         if(token != TokenType.INT && token != TokenType.FLOAT)
             return null;
 
@@ -40,17 +40,17 @@ class TaskScanner: Object {
             return null;
         }
 
-        var command = (Command?)scanner.value.symbol;
-        var task = new Task(number, command);
+        Command? command = (Command?)scanner.value.symbol;
+        Task task = new Task(number, command);
 
         uint arg_n = 0;
         while( (token = scanner.get_next_token()) == ':') {
-            var arg_desc = command.get_arg_desc(arg_n);
+            char arg_desc = command.get_arg_desc(arg_n);
 
             token = scanner.peek_next_token();
             if(token == TokenType.STRING) {
                 scanner.get_next_token();
-                var s = scanner.value.string;
+                string s = scanner.value.string;
                 if(s == "true")
                     task.arguments.append(true);
                 else if(s == "false")
@@ -84,8 +84,8 @@ class TaskScanner: Object {
         }
 
         for(uint arg_i = 0; arg_i < arg_n; arg_i++) {
-            var arg_desc = command.get_arg_desc(arg_i);
-            var arg_value = task.arguments.values[arg_i];
+            char arg_desc = command.get_arg_desc(arg_i);
+            Value arg_value = task.arguments.values[arg_i];
             switch(arg_desc) {
                 case 's':
                     if(!arg_value.holds(typeof(string))) {
@@ -123,7 +123,7 @@ class TaskScanner: Object {
 
     double get_seconds(out TokenType last_token) {
         int relative;
-        var seconds = get_number(out last_token, out relative);
+        double seconds = get_number(out last_token, out relative);
 
         if(relative != 0)
             seconds += relative * last_time_seconds;
@@ -134,7 +134,7 @@ class TaskScanner: Object {
 
     double get_signed_number(out TokenType last_token) {
         int relative;
-        var number = get_number(out last_token, out relative);
+        double number = get_number(out last_token, out relative);
 
         if(relative == -1)
             return -number;
@@ -144,7 +144,7 @@ class TaskScanner: Object {
 
     double get_number(out TokenType last_token, out int relative) {
         double number;
-        var token = scanner.get_next_token();
+        TokenType token = scanner.get_next_token();
 
         if(token == '+')
             relative = 1;
@@ -171,8 +171,8 @@ class TaskScanner: Object {
     public void print_description() {
         scanner.scope_foreach_symbol(0,
             (key, val) => {
-                var name = (string)key;
-                var command = (Command*)val;
+                string name = (string)key;
+                Command *command = (Command*)val;
                 printerr("  %s:\n    %s\n", name, command->description);
             }
         );
