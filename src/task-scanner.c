@@ -79,7 +79,7 @@ enum  {
 };
 TaskScanner* task_scanner_new (void);
 TaskScanner* task_scanner_construct (GType object_type);
-void scanner_register_symbols (GScanner* scanner, guint scope);
+void scanner_register_symbols (GScanner* scanner);
 GType task_get_type (void) G_GNUC_CONST;
 Task* task_scanner_get_task_from_arg (TaskScanner* self, const char* arg);
 static double task_scanner_get_seconds (TaskScanner* self, GTokenType* last_token);
@@ -113,7 +113,7 @@ TaskScanner* task_scanner_construct (GType object_type) {
 	self->priv->scanner = (_tmp0_ = g_scanner_new (NULL), _g_scanner_destroy0 (self->priv->scanner), _tmp0_);
 	(*self->priv->scanner->config).scan_identifier_1char = TRUE;
 	(*self->priv->scanner->config).identifier_2_string = TRUE;
-	scanner_register_symbols (self->priv->scanner, (guint) 0);
+	scanner_register_symbols (self->priv->scanner);
 	(*self->priv->scanner->config).cset_identifier_nth = G_CSET_a_2_z G_CSET_A_2_Z " _-0123456789" G_CSET_LATINC G_CSET_LATINS;
 	return self;
 }

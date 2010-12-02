@@ -162,8 +162,8 @@ int command_navigation(AutoPipeline auto_pipeline, Task task) {
 }
 
 
-void scanner_register_symbols(Scanner scanner, uint scope) {
+void scanner_register_symbols(Scanner scanner) {
     for(int i=0; COMMANDS[i].name != null; i++)
-        scanner.scope_add_symbol(scope, COMMANDS[i].name, &COMMANDS[i]);
+        scanner.scope_add_symbol(0U, COMMANDS[i].name, &COMMANDS[i]);
 }
 

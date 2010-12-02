@@ -76,7 +76,7 @@ static gint _command_navigation_command_func (AutoPipeline* auto_pipeline, Task*
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 GValueArray* task_get_arguments (Task* self);
 void auto_pipeline_send_eos (AutoPipeline* self);
-void scanner_register_symbols (GScanner* scanner, guint scope);
+void scanner_register_symbols (GScanner* scanner);
 static int _vala_strcmp0 (const char * str1, const char * str2);
 
 const Command COMMANDS[11] = {{"play", "Change pipeline state to PLAYING", "", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", "", _command_pause_command_func}, {"ready", "Change pipeline state to READY", "", _command_ready_command_func}, {"stop", "Change pipeline state to READY", "", _command_ready_command_func}, {"null", "Change pipeline state to NULL", "", _command_null_command_func}, {"eos", "Send eos to the source elements", "", _command_eos_command_func}, {"quit", "Quit the event loop", "", _command_quit_command_func}, {"set", "Set properties of an object", "ssv", _command_set_command_func}, {"seek", "Seek to the specified time", "t", _command_seek_command_func}, {"navigation", "Send the specified navigation event name to an element in the given co" \
@@ -426,7 +426,7 @@ gint command_navigation (AutoPipeline* auto_pipeline, Task* task) {
 }
 
 
-void scanner_register_symbols (GScanner* scanner, guint scope) {
+void scanner_register_symbols (GScanner* scanner) {
 	g_return_if_fail (scanner != NULL);
 	{
 		gint i;
@@ -442,7 +442,7 @@ void scanner_register_symbols (GScanner* scanner, guint scope) {
 				if (!(COMMANDS[i].name != NULL)) {
 					break;
 				}
-				g_scanner_scope_add_symbol (scanner, scope, COMMANDS[i].name, &COMMANDS[i]);
+				g_scanner_scope_add_symbol (scanner, 0U, COMMANDS[i].name, &COMMANDS[i]);
 			}
 		}
 	}

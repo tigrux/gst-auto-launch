@@ -8,7 +8,7 @@ class TaskScanner: Object {
         scanner = new Scanner(null);
         scanner.config.scan_identifier_1char = true;
         scanner.config.identifier_2_string = true;
-        scanner_register_symbols(scanner, 0);
+        scanner_register_symbols(scanner);
         scanner.config.cset_identifier_nth =
             CharacterSet.a_2_z + CharacterSet.A_2_Z + " _-0123456789" +
             CharacterSet.LATINC + CharacterSet.LATINS;
