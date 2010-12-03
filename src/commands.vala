@@ -62,7 +62,7 @@ int command_set(AutoPipeline auto_pipeline, Task task) {
     }
     Type prop_type = prop_spec.value_type;
 
-    Value prop_value = task.arguments.values[2];
+    weak Value prop_value = task.arguments.values[2];
     if(prop_value.holds(typeof(string))) {
         string prop_string = prop_value.get_string();
         if(prop_type.is_enum()) {
@@ -78,7 +78,7 @@ int command_set(AutoPipeline auto_pipeline, Task task) {
         }
     }
 
-    Value string_value = "";
+    Value string_value = Value(typeof(string));
     prop_value.transform(ref string_value);
     string value_as_string = string_value.get_string();
 

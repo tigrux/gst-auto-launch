@@ -230,13 +230,11 @@ gint command_set (AutoPipeline* auto_pipeline, Task* task) {
 	char* prop_name;
 	GParamSpec* prop_spec;
 	GType prop_type;
-	GValue _tmp2_ = {0};
 	GValue prop_value;
-	GValue _tmp5_ = {0};
-	GValue string_value;
+	GValue string_value = {0};
 	char* value_as_string;
 	GValue converted_value = {0};
-	char* _tmp6_;
+	char* _tmp3_;
 	g_return_val_if_fail (auto_pipeline != NULL, 0);
 	g_return_val_if_fail (task != NULL, 0);
 	element_name = g_strdup (g_value_get_string ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_)));
@@ -259,7 +257,7 @@ gint command_set (AutoPipeline* auto_pipeline, Task* task) {
 		return result;
 	}
 	prop_type = prop_spec->value_type;
-	prop_value = G_IS_VALUE (&task_get_arguments (task)->values[2]) ? (g_value_init (&_tmp2_, G_VALUE_TYPE (&task_get_arguments (task)->values[2])), g_value_copy (&task_get_arguments (task)->values[2], &_tmp2_), _tmp2_) : task_get_arguments (task)->values[2];
+	prop_value = task_get_arguments (task)->values[2];
 	if (G_VALUE_HOLDS (&prop_value, G_TYPE_STRING)) {
 		char* prop_string;
 		prop_string = g_strdup (g_value_get_string (&prop_value));
@@ -269,14 +267,13 @@ gint command_set (AutoPipeline* auto_pipeline, Task* task) {
 			enum_class = (GEnumClass*) g_type_class_peek (prop_type);
 			enum_value = g_enum_get_value_by_nick (enum_class, prop_string);
 			if (enum_value != NULL) {
-				GValue _tmp3_ = {0};
-				GValue _tmp4_;
-				prop_value = (_tmp4_ = (g_value_init (&_tmp3_, G_TYPE_INT), g_value_set_int (&_tmp3_, enum_value->value), _tmp3_), G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL, _tmp4_);
+				GValue _tmp2_ = {0};
+				prop_value = (g_value_init (&_tmp2_, G_TYPE_INT), g_value_set_int (&_tmp2_, enum_value->value), _tmp2_);
+				G_IS_VALUE (&_tmp2_) ? (g_value_unset (&_tmp2_), NULL) : NULL;
 			} else {
 				g_printerr ("'%s' is not a valid value for enum '%s'\n", prop_string, g_type_name (prop_type));
 				result = 1;
 				_g_free0 (prop_string);
-				G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL;
 				_g_free0 (prop_name);
 				_gst_object_unref0 (element);
 				_g_free0 (element_name);
@@ -285,7 +282,7 @@ gint command_set (AutoPipeline* auto_pipeline, Task* task) {
 		}
 		_g_free0 (prop_string);
 	}
-	string_value = (g_value_init (&_tmp5_, G_TYPE_STRING), g_value_set_string (&_tmp5_, ""), _tmp5_);
+	g_value_init (&string_value, G_TYPE_STRING);
 	g_value_transform (&prop_value, &string_value);
 	value_as_string = g_strdup (g_value_get_string (&string_value));
 	g_value_init (&converted_value, prop_type);
@@ -295,20 +292,18 @@ gint command_set (AutoPipeline* auto_pipeline, Task* task) {
 		G_IS_VALUE (&converted_value) ? (g_value_unset (&converted_value), NULL) : NULL;
 		_g_free0 (value_as_string);
 		G_IS_VALUE (&string_value) ? (g_value_unset (&string_value), NULL) : NULL;
-		G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL;
 		_g_free0 (prop_name);
 		_gst_object_unref0 (element);
 		_g_free0 (element_name);
 		return result;
 	}
-	g_print ("Setting property '%s' of element '%s' to '%s'\n", prop_name, _tmp6_ = gst_object_get_name ((GstObject*) element), value_as_string);
-	_g_free0 (_tmp6_);
+	g_print ("Setting property '%s' of element '%s' to '%s'\n", prop_name, _tmp3_ = gst_object_get_name ((GstObject*) element), value_as_string);
+	_g_free0 (_tmp3_);
 	g_object_set_property ((GObject*) element, prop_name, &converted_value);
 	result = 0;
 	G_IS_VALUE (&converted_value) ? (g_value_unset (&converted_value), NULL) : NULL;
 	_g_free0 (value_as_string);
 	G_IS_VALUE (&string_value) ? (g_value_unset (&string_value), NULL) : NULL;
-	G_IS_VALUE (&prop_value) ? (g_value_unset (&prop_value), NULL) : NULL;
 	_g_free0 (prop_name);
 	_gst_object_unref0 (element);
 	_g_free0 (element_name);
