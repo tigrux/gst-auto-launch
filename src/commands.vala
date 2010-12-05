@@ -67,7 +67,7 @@ int command_set(AutoPipeline auto_pipeline, Task task) {
         string prop_string = prop_value.get_string();
         if(prop_type.is_enum()) {
             weak EnumClass enum_class = (EnumClass)prop_type.class_peek();
-            weak EnumValue enum_value = enum_class.get_value_by_nick(prop_string);
+            weak EnumValue? enum_value = enum_class.get_value_by_nick(prop_string);
             if(enum_value != null)
                 prop_value = enum_value.value;
             else {
