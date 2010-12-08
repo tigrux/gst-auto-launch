@@ -119,7 +119,7 @@ int main(string[] args) {
             tv = TimeVal();
             auto_pipeline.log(" 'description' : '%s',\n", pipeline_desc);
         }
-        auto_pipeline.pipeline = Gst.parse_launchv(effective_args) as Gst.Bin;
+        auto_pipeline.pipeline = Gst.parse_launch(pipeline_desc) as Gst.Bin;
         if(output_messages) {
             tv = TimeVal();
             auto_pipeline.log(" 'launch' : %6lu.%06lu,\n", tv.tv_sec, tv.tv_usec);

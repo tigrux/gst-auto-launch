@@ -373,7 +373,7 @@ gint _vala_main (char** args, int args_length1) {
 			tv = (g_get_current_time (&_tmp14_), _tmp14_);
 			auto_pipeline_log (auto_pipeline, " 'description' : '%s',\n", pipeline_desc, NULL);
 		}
-		_tmp15_ = gst_parse_launchv (effective_args, &_inner_error_);
+		_tmp15_ = gst_parse_launch (pipeline_desc, &_inner_error_);
 		if (_inner_error_ != NULL) {
 			goto __catch1_g_error;
 		}
