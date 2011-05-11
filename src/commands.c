@@ -72,6 +72,8 @@ gint command_seek (AutoPipeline* auto_pipeline, Task* task);
 static gint _command_seek_command_func (AutoPipeline* auto_pipeline, Task* task);
 gint command_navigation (AutoPipeline* auto_pipeline, Task* task);
 static gint _command_navigation_command_func (AutoPipeline* auto_pipeline, Task* task);
+gint command_emit (AutoPipeline* auto_pipeline, Task* task);
+static gint _command_emit_command_func (AutoPipeline* auto_pipeline, Task* task);
 gboolean auto_pipeline_set_state (AutoPipeline* self, GstState state);
 GValueArray* task_get_arguments (Task* self);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
@@ -79,8 +81,8 @@ gboolean auto_pipeline_send_eos (AutoPipeline* self);
 void scanner_register_symbols (GScanner* scanner);
 static int _vala_strcmp0 (const char * str1, const char * str2);
 
-const Command COMMANDS[11] = {{"play", "Change pipeline state to PLAYING", "", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", "", _command_pause_command_func}, {"ready", "Change pipeline state to READY", "", _command_ready_command_func}, {"stop", "Change pipeline state to READY", "", _command_ready_command_func}, {"null", "Change pipeline state to NULL", "", _command_null_command_func}, {"eos", "Send eos to the source elements", "", _command_eos_command_func}, {"quit", "Quit the event loop", "", _command_quit_command_func}, {"set", "Set properties of an object", "ssv", _command_set_command_func}, {"seek", "Seek to the specified time", "t", _command_seek_command_func}, {"navigation", "Send the specified navigation event name to an element in the given co" \
-"ords", "ssii", _command_navigation_command_func}, {NULL}};
+const Command COMMANDS[12] = {{"play", "Change pipeline state to PLAYING", "", _command_play_command_func}, {"pause", "Change pipeline state to PAUSED", "", _command_pause_command_func}, {"ready", "Change pipeline state to READY", "", _command_ready_command_func}, {"stop", "Change pipeline state to READY", "", _command_ready_command_func}, {"null", "Change pipeline state to NULL", "", _command_null_command_func}, {"eos", "Send eos to the source elements", "", _command_eos_command_func}, {"quit", "Quit the event loop", "", _command_quit_command_func}, {"set", "Set properties of an object", "ssv", _command_set_command_func}, {"seek", "Seek to the specified time", "t", _command_seek_command_func}, {"navigation", "Send the specified navigation event name to an element in the given co" \
+"ords", "ssii", _command_navigation_command_func}, {"emit", "Emit a signal to an element", "ss", _command_emit_command_func}, {NULL}};
 
 
 static gint _command_play_command_func (AutoPipeline* auto_pipeline, Task* task) {
@@ -142,6 +144,13 @@ static gint _command_seek_command_func (AutoPipeline* auto_pipeline, Task* task)
 static gint _command_navigation_command_func (AutoPipeline* auto_pipeline, Task* task) {
 	gint result;
 	result = command_navigation (auto_pipeline, task);
+	return result;
+}
+
+
+static gint _command_emit_command_func (AutoPipeline* auto_pipeline, Task* task) {
+	gint result;
+	result = command_emit (auto_pipeline, task);
 	return result;
 }
 
@@ -409,6 +418,44 @@ gint command_navigation (AutoPipeline* auto_pipeline, Task* task) {
 	_gst_object_unref0 (src_pad);
 	_gst_object_unref0 (element);
 	_g_free0 (event_name);
+	_g_free0 (element_name);
+	return result;
+}
+
+
+gint command_emit (AutoPipeline* auto_pipeline, Task* task) {
+	gint result = 0;
+	GValue _tmp0_;
+	char* element_name;
+	GstElement* element;
+	GValue _tmp1_;
+	char* signal_name;
+	guint signal_id;
+	g_return_val_if_fail (auto_pipeline != NULL, 0);
+	g_return_val_if_fail (task != NULL, 0);
+	element_name = g_strdup (g_value_get_string ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_)));
+	element = gst_bin_get_by_name (auto_pipeline_get_pipeline (auto_pipeline), element_name);
+	if (element == NULL) {
+		g_printerr ("No element named '%s'\n", element_name);
+		result = 1;
+		_gst_object_unref0 (element);
+		_g_free0 (element_name);
+		return result;
+	}
+	signal_name = g_strdup (g_value_get_string ((_tmp1_ = task_get_arguments (task)->values[1], &_tmp1_)));
+	signal_id = g_signal_lookup (signal_name, G_TYPE_FROM_CLASS ((GTypeClass*) G_OBJECT_GET_CLASS ((GObject*) element)));
+	if (signal_id == 0) {
+		g_printerr ("No signal '%s' in element '%s'\n", signal_name, element_name);
+		result = 1;
+		_g_free0 (signal_name);
+		_gst_object_unref0 (element);
+		_g_free0 (element_name);
+		return result;
+	}
+	g_signal_emit (element, signal_id, (GQuark) 0, NULL);
+	result = 0;
+	_g_free0 (signal_name);
+	_gst_object_unref0 (element);
 	_g_free0 (element_name);
 	return result;
 }

@@ -9,6 +9,7 @@ const Command[] COMMANDS = {
     {"set", "Set properties of an object", "ssv", command_set},
     {"seek", "Seek to the specified time", "t", command_seek},
     {"navigation", "Send the specified navigation event name to an element in the given coords", "ssii", command_navigation},
+    {"emit", "Emit a signal to an element", "ss", command_emit},
     {null}
 };
 
@@ -148,6 +149,28 @@ int command_navigation(AutoPipeline auto_pipeline, Task task) {
                 "pointer_x", typeof(double), (double)pointer_x,
                 "pointer_y", typeof(double), (double)pointer_y,
                 null)));
+    return 0;
+}
+
+
+int command_emit(AutoPipeline auto_pipeline, Task task) {
+    string element_name = task.arguments.values[0].get_string();
+
+    Gst.Element? element = auto_pipeline.pipeline.get_by_name(element_name);
+    if(element == null) {
+        printerr("No element named '%s'\n", element_name);
+        return 1;
+    }
+
+    string signal_name = task.arguments.values[1].get_string();
+    uint signal_id = Signal.lookup(signal_name, element.get_class().get_type());
+    if(signal_id == 0)
+    {
+        printerr("No signal '%s' in element '%s'\n", signal_name, element_name);
+        return 1;
+    }
+
+    Signal.emit(element, signal_id, 0);
     return 0;
 }
 
