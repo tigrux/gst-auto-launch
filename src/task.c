@@ -35,7 +35,7 @@ typedef struct _AutoPipelineClass AutoPipelineClass;
 typedef struct _Command Command;
 #define _g_value_array_free0(var) ((var == NULL) ? NULL : (var = (g_value_array_free (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
-typedef struct _Block2Data Block2Data;
+typedef struct _Block1Data Block1Data;
 
 struct _Task {
 	GObject parent_instance;
@@ -60,7 +60,7 @@ struct _TaskPrivate {
 	GValueArray* _arguments;
 };
 
-struct _Block2Data {
+struct _Block1Data {
 	int _ref_count_;
 	Task * self;
 	AutoPipeline* auto_pipeline;
@@ -86,12 +86,12 @@ Task* task_new (double seconds, Command* command);
 Task* task_construct (GType object_type, double seconds, Command* command);
 guint task_exec (Task* self, AutoPipeline* auto_pipeline);
 double task_get_seconds (Task* self);
-static gboolean _lambda2_ (Block2Data* _data2_);
+static gboolean _lambda1_ (Block1Data* _data1_);
 gint auto_pipeline_get_return_status (AutoPipeline* self);
 void auto_pipeline_set_return_status (AutoPipeline* self, gint value);
-static gboolean __lambda2__gsource_func (gpointer self);
-static Block2Data* block2_data_ref (Block2Data* _data2_);
-static void block2_data_unref (Block2Data* _data2_);
+static gboolean __lambda1__gsource_func (gpointer self);
+static Block1Data* block1_data_ref (Block1Data* _data1_);
+static void block1_data_unref (Block1Data* _data1_);
 GValueArray* task_get_arguments (Task* self);
 static void task_finalize (GObject* obj);
 static void task_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
@@ -114,16 +114,16 @@ Task* task_new (double seconds, Command* command) {
 }
 
 
-static gboolean _lambda2_ (Block2Data* _data2_) {
+static gboolean _lambda1_ (Block1Data* _data1_) {
 	Task * self;
 	gboolean result = FALSE;
-	self = _data2_->self;
-	if (auto_pipeline_get_return_status (_data2_->auto_pipeline) == 0) {
+	self = _data1_->self;
+	if (auto_pipeline_get_return_status (_data1_->auto_pipeline) == 0) {
 		gint status;
-		status = (*self->priv->_command).function (_data2_->auto_pipeline, self);
+		status = (*self->priv->_command).function (_data1_->auto_pipeline, self);
 		if (status != 0) {
-			auto_pipeline_set_return_status (_data2_->auto_pipeline, status);
-			g_signal_emit_by_name (_data2_->auto_pipeline, "quit");
+			auto_pipeline_set_return_status (_data1_->auto_pipeline, status);
+			g_signal_emit_by_name (_data1_->auto_pipeline, "quit");
 		}
 	}
 	result = FALSE;
@@ -131,9 +131,9 @@ static gboolean _lambda2_ (Block2Data* _data2_) {
 }
 
 
-static gboolean __lambda2__gsource_func (gpointer self) {
+static gboolean __lambda1__gsource_func (gpointer self) {
 	gboolean result;
-	result = _lambda2_ (self);
+	result = _lambda1_ (self);
 	return result;
 }
 
@@ -143,32 +143,32 @@ static gpointer _g_object_ref0 (gpointer self) {
 }
 
 
-static Block2Data* block2_data_ref (Block2Data* _data2_) {
-	g_atomic_int_inc (&_data2_->_ref_count_);
-	return _data2_;
+static Block1Data* block1_data_ref (Block1Data* _data1_) {
+	g_atomic_int_inc (&_data1_->_ref_count_);
+	return _data1_;
 }
 
 
-static void block2_data_unref (Block2Data* _data2_) {
-	if (g_atomic_int_dec_and_test (&_data2_->_ref_count_)) {
-		_g_object_unref0 (_data2_->self);
-		_g_object_unref0 (_data2_->auto_pipeline);
-		g_slice_free (Block2Data, _data2_);
+static void block1_data_unref (Block1Data* _data1_) {
+	if (g_atomic_int_dec_and_test (&_data1_->_ref_count_)) {
+		_g_object_unref0 (_data1_->self);
+		_g_object_unref0 (_data1_->auto_pipeline);
+		g_slice_free (Block1Data, _data1_);
 	}
 }
 
 
 guint task_exec (Task* self, AutoPipeline* auto_pipeline) {
 	guint result = 0U;
-	Block2Data* _data2_;
+	Block1Data* _data1_;
 	g_return_val_if_fail (self != NULL, 0U);
 	g_return_val_if_fail (auto_pipeline != NULL, 0U);
-	_data2_ = g_slice_new0 (Block2Data);
-	_data2_->_ref_count_ = 1;
-	_data2_->self = g_object_ref (self);
-	_data2_->auto_pipeline = _g_object_ref0 (auto_pipeline);
-	result = g_timeout_add_full (G_PRIORITY_DEFAULT, (guint) (task_get_seconds (self) * 1000), __lambda2__gsource_func, block2_data_ref (_data2_), block2_data_unref);
-	block2_data_unref (_data2_);
+	_data1_ = g_slice_new0 (Block1Data);
+	_data1_->_ref_count_ = 1;
+	_data1_->self = g_object_ref (self);
+	_data1_->auto_pipeline = _g_object_ref0 (auto_pipeline);
+	result = g_timeout_add_full (G_PRIORITY_DEFAULT, (guint) (task_get_seconds (self) * 1000), __lambda1__gsource_func, block1_data_ref (_data1_), block1_data_unref);
+	block1_data_unref (_data1_);
 	return result;
 }
 

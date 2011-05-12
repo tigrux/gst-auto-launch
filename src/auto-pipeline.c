@@ -9,7 +9,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <gst/gst.h>
-#include <gst/base/gstbasesrc.h>
 
 
 #define TYPE_AUTO_PIPELINE (auto_pipeline_get_type ())
@@ -26,9 +25,6 @@ typedef struct _AutoPipelinePrivate AutoPipelinePrivate;
 #define _gst_object_unref0(var) ((var == NULL) ? NULL : (var = (gst_object_unref (var), NULL)))
 #define _g_free0(var) (var = (g_free (var), NULL))
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
-#define _gst_iterator_free0(var) ((var == NULL) ? NULL : (var = (gst_iterator_free (var), NULL)))
-#define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
-typedef struct _Block1Data Block1Data;
 
 struct _AutoPipeline {
 	GObject parent_instance;
@@ -44,13 +40,6 @@ struct _AutoPipelinePrivate {
 	gboolean _output_messages_enabled;
 	gint _return_status;
 	GstBin* _pipeline;
-};
-
-struct _Block1Data {
-	int _ref_count_;
-	AutoPipeline * self;
-	gboolean eos_was_sent;
-	gboolean source_was_found;
 };
 
 
@@ -77,10 +66,6 @@ GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 gboolean auto_pipeline_set_state (AutoPipeline* self, GstState state);
 GstElement* auto_pipeline_get_by_name (AutoPipeline* self, const char* name);
 gboolean auto_pipeline_send_eos (AutoPipeline* self);
-static void _lambda1_ (void* data, Block1Data* _data1_);
-static void __lambda1__gfunc (void* data, gpointer self);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
-static void block1_data_unref (Block1Data* _data1_);
 AutoPipeline* auto_pipeline_new (void);
 AutoPipeline* auto_pipeline_construct (GType object_type);
 gint auto_pipeline_get_return_status (AutoPipeline* self);
@@ -250,88 +235,11 @@ GstElement* auto_pipeline_get_by_name (AutoPipeline* self, const char* name) {
 }
 
 
-static gboolean string_contains (const char* self, const char* needle) {
-	gboolean result = FALSE;
-	g_return_val_if_fail (self != NULL, FALSE);
-	g_return_val_if_fail (needle != NULL, FALSE);
-	result = strstr (self, needle) != NULL;
-	return result;
-}
-
-
-static void _lambda1_ (void* data, Block1Data* _data1_) {
-	AutoPipeline * self;
-	void* _tmp0_;
-	GstElement* elem;
-	gboolean _tmp1_ = FALSE;
-	self = _data1_->self;
-	elem = _gst_object_ref0 ((_tmp0_ = data, GST_IS_ELEMENT (_tmp0_) ? ((GstElement*) _tmp0_) : NULL));
-	if (string_contains (gst_object_get_name ((GstObject*) elem), "src")) {
-		_tmp1_ = TRUE;
-	} else {
-		_tmp1_ = GST_IS_BASE_SRC (elem);
-	}
-	if (_tmp1_) {
-		char* _tmp2_;
-		_data1_->source_was_found = TRUE;
-		g_print ("Sending EOS event to element '%s'\n", _tmp2_ = gst_object_get_name ((GstObject*) elem));
-		_g_free0 (_tmp2_);
-		if (!gst_element_send_event (elem, gst_event_new_eos ())) {
-			_data1_->eos_was_sent = FALSE;
-		}
-	}
-	_gst_object_unref0 (elem);
-}
-
-
-static void __lambda1__gfunc (void* data, gpointer self) {
-	_lambda1_ (data, self);
-}
-
-
-static Block1Data* block1_data_ref (Block1Data* _data1_) {
-	g_atomic_int_inc (&_data1_->_ref_count_);
-	return _data1_;
-}
-
-
-static void block1_data_unref (Block1Data* _data1_) {
-	if (g_atomic_int_dec_and_test (&_data1_->_ref_count_)) {
-		_g_object_unref0 (_data1_->self);
-		g_slice_free (Block1Data, _data1_);
-	}
-}
-
-
 gboolean auto_pipeline_send_eos (AutoPipeline* self) {
 	gboolean result = FALSE;
-	Block1Data* _data1_;
-	GstIterator* _tmp0_;
-	gboolean _tmp1_ = FALSE;
 	g_return_val_if_fail (self != NULL, FALSE);
-	_data1_ = g_slice_new0 (Block1Data);
-	_data1_->_ref_count_ = 1;
-	_data1_->self = g_object_ref (self);
-	_data1_->eos_was_sent = TRUE;
-	_data1_->source_was_found = FALSE;
-	gst_iterator_foreach (_tmp0_ = gst_bin_iterate_elements (auto_pipeline_get_pipeline (auto_pipeline)), __lambda1__gfunc, _data1_);
-	_gst_iterator_free0 (_tmp0_);
-	if (!_data1_->source_was_found) {
-		_tmp1_ = TRUE;
-	} else {
-		_tmp1_ = !_data1_->eos_was_sent;
-	}
-	if (_tmp1_) {
-		if (!_data1_->source_was_found) {
-			g_print ("Could not find a src element\n");
-		}
-		g_print ("Sending EOS to the pipeline\n");
-		result = gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), gst_event_new_eos ());
-		block1_data_unref (_data1_);
-		return result;
-	}
-	result = TRUE;
-	block1_data_unref (_data1_);
+	g_print ("Sending EOS to the pipeline\n");
+	result = gst_element_send_event ((GstElement*) auto_pipeline_get_pipeline (auto_pipeline), gst_event_new_eos ());
 	return result;
 }
 

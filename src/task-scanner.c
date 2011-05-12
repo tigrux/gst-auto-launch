@@ -97,8 +97,8 @@ static double task_scanner_get_signed_number (TaskScanner* self, GTokenType* las
 guint command_get_n_args (Command *self);
 static double task_scanner_get_number (TaskScanner* self, GTokenType* last_token, gint* relative);
 void task_scanner_print_description (TaskScanner* self);
-static void _lambda3_ (void* key, void* val, TaskScanner* self);
-static void __lambda3__gh_func (void* key, void* value, gpointer self);
+static void _lambda2_ (void* key, void* val, TaskScanner* self);
+static void __lambda2__gh_func (void* key, void* value, gpointer self);
 Command* task_scanner_lookup_command (TaskScanner* self, const char* command_name);
 static void task_scanner_finalize (GObject* obj);
 static int _vala_strcmp0 (const char * str1, const char * str2);
@@ -391,7 +391,7 @@ static double task_scanner_get_number (TaskScanner* self, GTokenType* last_token
 }
 
 
-static void _lambda3_ (void* key, void* val, TaskScanner* self) {
+static void _lambda2_ (void* key, void* val, TaskScanner* self) {
 	char* name;
 	Command* command;
 	name = g_strdup ((const char*) key);
@@ -401,14 +401,14 @@ static void _lambda3_ (void* key, void* val, TaskScanner* self) {
 }
 
 
-static void __lambda3__gh_func (void* key, void* value, gpointer self) {
-	_lambda3_ (key, value, self);
+static void __lambda2__gh_func (void* key, void* value, gpointer self) {
+	_lambda2_ (key, value, self);
 }
 
 
 void task_scanner_print_description (TaskScanner* self) {
 	g_return_if_fail (self != NULL);
-	g_scanner_scope_foreach_symbol (self->priv->scanner, 0U, __lambda3__gh_func, self);
+	g_scanner_scope_foreach_symbol (self->priv->scanner, 0U, __lambda2__gh_func, self);
 }
 
 
