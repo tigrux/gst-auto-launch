@@ -48,7 +48,7 @@ int command_quit(AutoPipeline auto_pipeline, Task task) {
 int command_set(AutoPipeline auto_pipeline, Task task) {
     string element_name = task.arguments.values[0].get_string();
     
-    Gst.Element? element = auto_pipeline.pipeline.get_by_name(element_name);
+    Gst.Element? element = auto_pipeline.get_by_name(element_name);
     if(element == null) {
         printerr("No element named '%s'\n", element_name);
         return 1;
@@ -129,7 +129,7 @@ int command_navigation(AutoPipeline auto_pipeline, Task task) {
     int pointer_y = task.arguments.values[3].get_int();
     int button = (event_name != "mouse-move") ? 1 : 0;
 
-    Gst.Element? element = auto_pipeline.pipeline.get_by_name(element_name);
+    Gst.Element? element = auto_pipeline.get_by_name(element_name);
     if(element == null) {
         printerr("No element named '%s'\n", element_name);
         return 1;
@@ -156,7 +156,7 @@ int command_navigation(AutoPipeline auto_pipeline, Task task) {
 int command_emit(AutoPipeline auto_pipeline, Task task) {
     string element_name = task.arguments.values[0].get_string();
 
-    Gst.Element? element = auto_pipeline.pipeline.get_by_name(element_name);
+    Gst.Element? element = auto_pipeline.get_by_name(element_name);
     if(element == null) {
         printerr("No element named '%s'\n", element_name);
         return 1;

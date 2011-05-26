@@ -75,6 +75,7 @@ static gboolean __lambda0__gst_structure_foreach_func (GQuark field_id, GValue* 
 void auto_pipeline_set_return_status (AutoPipeline* self, gint value);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 gboolean auto_pipeline_set_state (AutoPipeline* self, GstState state);
+GstElement* auto_pipeline_get_by_name (AutoPipeline* self, const char* name);
 gboolean auto_pipeline_send_eos (AutoPipeline* self);
 static void _lambda1_ (void* data, Block1Data* _data1_);
 static void __lambda1__gfunc (void* data, gpointer self);
@@ -90,6 +91,7 @@ static void _auto_pipeline_on_bus_message_gst_bus_message (GstBus* _sender, GstM
 static void auto_pipeline_finalize (GObject* obj);
 static void auto_pipeline_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
 static void auto_pipeline_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
+static int _vala_strcmp0 (const char * str1, const char * str2);
 
 
 
@@ -229,6 +231,22 @@ gboolean auto_pipeline_set_state (AutoPipeline* self, GstState state) {
 	g_return_val_if_fail (self != NULL, FALSE);
 	result = gst_element_set_state ((GstElement*) auto_pipeline_get_pipeline (self), state) != GST_STATE_CHANGE_FAILURE;
 	return result;
+}
+
+
+GstElement* auto_pipeline_get_by_name (AutoPipeline* self, const char* name) {
+	GstElement* result = NULL;
+	char* _tmp0_;
+	gboolean _tmp1_;
+	g_return_val_if_fail (self != NULL, NULL);
+	g_return_val_if_fail (name != NULL, NULL);
+	if ((_tmp1_ = _vala_strcmp0 (_tmp0_ = gst_object_get_name ((GstObject*) auto_pipeline_get_pipeline (self)), name) == 0, _g_free0 (_tmp0_), _tmp1_)) {
+		result = _gst_object_ref0 ((GstElement*) auto_pipeline_get_pipeline (self));
+		return result;
+	} else {
+		result = gst_bin_get_by_name (auto_pipeline_get_pipeline (self), name);
+		return result;
+	}
 }
 
 
@@ -473,6 +491,17 @@ static void auto_pipeline_set_property (GObject * object, guint property_id, con
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 		break;
 	}
+}
+
+
+static int _vala_strcmp0 (const char * str1, const char * str2) {
+	if (str1 == NULL) {
+		return -(str1 != str2);
+	}
+	if (str2 == NULL) {
+		return str1 != str2;
+	}
+	return strcmp (str1, str2);
 }
 
 

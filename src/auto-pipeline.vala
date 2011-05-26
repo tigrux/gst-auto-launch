@@ -118,6 +118,14 @@ class AutoPipeline: Object {
     }
 
 
+    public Gst.Element? get_by_name(string name) {
+        if(pipeline.get_name() == name)
+            return pipeline;
+        else
+            return pipeline.get_by_name(name);
+    }
+
+
     public bool send_eos() {
         bool eos_was_sent = true;
         bool source_was_found = false;

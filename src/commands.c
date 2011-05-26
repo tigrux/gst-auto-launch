@@ -76,6 +76,7 @@ gint command_emit (AutoPipeline* auto_pipeline, Task* task);
 static gint _command_emit_command_func (AutoPipeline* auto_pipeline, Task* task);
 gboolean auto_pipeline_set_state (AutoPipeline* self, GstState state);
 GValueArray* task_get_arguments (Task* self);
+GstElement* auto_pipeline_get_by_name (AutoPipeline* self, const char* name);
 GstBin* auto_pipeline_get_pipeline (AutoPipeline* self);
 gboolean auto_pipeline_send_eos (AutoPipeline* self);
 void scanner_register_symbols (GScanner* scanner);
@@ -247,7 +248,7 @@ gint command_set (AutoPipeline* auto_pipeline, Task* task) {
 	g_return_val_if_fail (auto_pipeline != NULL, 0);
 	g_return_val_if_fail (task != NULL, 0);
 	element_name = g_strdup (g_value_get_string ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_)));
-	element = gst_bin_get_by_name (auto_pipeline_get_pipeline (auto_pipeline), element_name);
+	element = auto_pipeline_get_by_name (auto_pipeline, element_name);
 	if (element == NULL) {
 		g_printerr ("No element named '%s'\n", element_name);
 		result = 1;
@@ -394,7 +395,7 @@ gint command_navigation (AutoPipeline* auto_pipeline, Task* task) {
 		_tmp4_ = 0;
 	}
 	button = _tmp4_;
-	element = gst_bin_get_by_name (auto_pipeline_get_pipeline (auto_pipeline), element_name);
+	element = auto_pipeline_get_by_name (auto_pipeline, element_name);
 	if (element == NULL) {
 		g_printerr ("No element named '%s'\n", element_name);
 		result = 1;
@@ -434,7 +435,7 @@ gint command_emit (AutoPipeline* auto_pipeline, Task* task) {
 	g_return_val_if_fail (auto_pipeline != NULL, 0);
 	g_return_val_if_fail (task != NULL, 0);
 	element_name = g_strdup (g_value_get_string ((_tmp0_ = task_get_arguments (task)->values[0], &_tmp0_)));
-	element = gst_bin_get_by_name (auto_pipeline_get_pipeline (auto_pipeline), element_name);
+	element = auto_pipeline_get_by_name (auto_pipeline, element_name);
 	if (element == NULL) {
 		g_printerr ("No element named '%s'\n", element_name);
 		result = 1;
